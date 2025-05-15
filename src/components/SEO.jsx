@@ -6,6 +6,12 @@ import { usePathname } from 'next/navigation'
 
 import { Helmet } from 'react-helmet-async'
 
+// Hook Imports
+import { usePrimaryColor } from '@core/hooks/usePrimaryColor'
+
+// Utils Import
+import { generateFavicon, updateFavicon } from '@/utils/faviconUtils'
+
 const SEO = ({
   title = 'تشخیص چهره دیانا',
   description = 'تشخیص چهره دیاناالکترونیک کویر',
@@ -20,11 +26,17 @@ const SEO = ({
   // Using pathname as part of key for Helmet to force re-render on route change
   const pathname = usePathname()
 
+  // Get primary color from context
+  const [primaryColor] = usePrimaryColor()
+
   // Generate a unique key to force Helmet to update on route changes
   const helmetKey = `helmet-${pathname}-${Date.now()}`
 
   // Force component re-render on route change
   const [mounted, setMounted] = useState(false)
+
+  // Dynamic favicon URL
+  const [faviconUrl, setFaviconUrl] = useState('')
 
   useEffect(() => {
     // Set mounted to true on client side
@@ -66,6 +78,17 @@ const SEO = ({
     }
   }, [pathname, title, description, keywords, author, ogType, ogTitle, ogDescription, ogImage, twitterCard])
 
+  // Effect to update favicon when primary color changes
+  useEffect(() => {
+    if (!primaryColor || typeof window === 'undefined') return
+
+    // Update favicon with current primary color
+    updateFavicon(primaryColor)
+
+    // Also set the URL for React Helmet
+    setFaviconUrl(generateFavicon(primaryColor))
+  }, [primaryColor])
+
   if (!mounted) {
     return null
   }
@@ -90,6 +113,9 @@ const SEO = ({
       <meta property='twitter:title' content={ogTitle || title} />
       <meta property='twitter:description' content={ogDescription || description} />
       <meta property='twitter:image' content={ogImage} />
+
+      {/* Dynamic Favicon */}
+      {faviconUrl && <link rel='icon' type='image/svg+xml' href={faviconUrl} />}
     </Helmet>
   )
 }

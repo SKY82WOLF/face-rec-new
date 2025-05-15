@@ -68,6 +68,20 @@ const DebouncedColorPicker = props => {
 
   const { t } = useTranslation()
 
+  // Optional - add this effect to update favicon directly during color picker changes
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isColorFromPrimaryConfig) {
+      try {
+        // Import dynamically to avoid SSR issues
+        import('@/utils/faviconUtils').then(({ updateFavicon }) => {
+          updateFavicon(debouncedColor)
+        })
+      } catch (error) {
+        console.error('Failed to update favicon preview:', error)
+      }
+    }
+  }, [debouncedColor, isColorFromPrimaryConfig])
+
   return (
     <>
       <HexColorPicker
@@ -167,6 +181,18 @@ const Customizer = ({ breakpoint = 'lg', dir = 'ltr', disableDirection = false }
 
       // Also update settings context for other components
       updateSettings({ [field]: value })
+
+      // Update favicon when primary color changes
+      if (typeof window !== 'undefined') {
+        try {
+          // Import dynamically to avoid SSR issues
+          import('@/utils/faviconUtils').then(({ updateFavicon }) => {
+            updateFavicon(value)
+          })
+        } catch (error) {
+          console.error('Failed to update favicon:', error)
+        }
+      }
     } else {
       // Update settings in cookie
       updateSettings({ [field]: value })
