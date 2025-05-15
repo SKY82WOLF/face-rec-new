@@ -31,6 +31,7 @@ import themeConfig from '@configs/themeConfig'
 // Hook Imports
 import { useImageVariant } from '@core/hooks/useImageVariant'
 import { useSettings } from '@core/hooks/useSettings'
+import { useTranslation } from '@/translations/useTranslation'
 
 // Styled Custom Components
 const LoginIllustration = styled('img')(({ theme }) => ({
@@ -74,6 +75,7 @@ const LoginV2 = ({ mode }) => {
   const theme = useTheme()
   const hidden = useMediaQuery(theme.breakpoints.down('md'))
   const authBackground = useImageVariant(mode, lightImg, darkImg)
+  const { t } = useTranslation()
 
   const characterIllustration = useImageVariant(
     mode,
@@ -110,8 +112,8 @@ const LoginV2 = ({ mode }) => {
         </Link>
         <div className='flex flex-col gap-6 is-full sm:is-auto md:is-full sm:max-is-[400px] md:max-is-[unset] mbs-11 sm:mbs-14 md:mbs-0'>
           <div className='flex flex-col gap-1'>
-            <Typography variant='h4'>{`Welcome to ${themeConfig.templateName}! 👋🏻`}</Typography>
-            <Typography>Please sign-in to your account and start the adventure</Typography>
+            <Typography variant='h4'>{`به ${themeConfig.templateName} خوش آمدید ! 👋🏻`}</Typography>
+            <Typography>{t('auth.pleaseSignIn')}</Typography>
           </div>
           <form
             noValidate
@@ -122,10 +124,15 @@ const LoginV2 = ({ mode }) => {
             }}
             className='flex flex-col gap-5'
           >
-            <CustomTextField autoFocus fullWidth label='Email or Username' placeholder='Enter your email or username' />
+            <CustomTextField
+              autoFocus
+              fullWidth
+              label={t('auth.email')}
+              placeholder={t('auth.email')}
+            />
             <CustomTextField
               fullWidth
-              label='Password'
+              label={t('auth.password')}
               placeholder='············'
               id='outlined-adornment-password'
               type={isPasswordShown ? 'text' : 'password'}
@@ -142,18 +149,18 @@ const LoginV2 = ({ mode }) => {
               }}
             />
             <div className='flex justify-between items-center gap-x-3 gap-y-1 flex-wrap'>
-              <FormControlLabel control={<Checkbox />} label='Remember me' />
+              <FormControlLabel control={<Checkbox />} label={t('auth.rememberMe')} />
               <Typography className='text-end' color='primary.main' component={Link}>
-                Forgot password?
+                {t('auth.forgotPassword')}
               </Typography>
             </div>
             <Button fullWidth variant='contained' type='submit'>
-              Login
+              {t('auth.login')}
             </Button>
             <div className='flex justify-center items-center flex-wrap gap-2'>
-              <Typography>New on our platform?</Typography>
+              <Typography>{t('auth.dontHaveAccount')}</Typography>
               <Typography component={Link} color='primary.main'>
-                Create an account
+                {t('auth.signUp')}
               </Typography>
             </div>
             <Divider className='gap-2 text-textPrimary'>or</Divider>

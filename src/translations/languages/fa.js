@@ -92,9 +92,28 @@ const fa = {
     notifications: 'اعلان‌ها',
     security: 'امنیت',
     theme: {
+      theme: 'تم',
       light: 'روشن',
       dark: 'تیره',
-      system: 'سیستم'
+      system: 'سیستم',
+      mainColor: 'رنگ اصلی',
+      theming: 'شخصی سازی تم',
+      skin: 'پوسته',
+      default: 'پیشفرض',
+      bordered: 'حاشیه دار',
+      layout: 'چیدمان',
+      layouts: 'چیدمان ها',
+      content: 'چینش محتوا',
+      typeColor: 'رنگ را وارد کنید',
+      layoutTypes: {
+        vertical: 'عمودی',
+        collapsed: 'جمع شده',
+        horizontal: 'افقی',
+        contents: {
+          compact: 'کوچک',
+          wide: 'عریض'
+        }
+      }
     }
   },
 
@@ -112,14 +131,15 @@ const fa = {
     register: 'ثبت نام',
     forgotPassword: 'فراموشی رمز عبور',
     resetPassword: 'بازنشانی رمز عبور',
-    email: 'ایمیل',
+    email: 'ایمیل یا نام کاربری',
     password: 'رمز عبور',
     rememberMe: 'مرا به خاطر بسپار',
     dontHaveAccount: 'حساب کاربری ندارید؟',
     alreadyHaveAccount: 'قبلاً ثبت نام کرده‌اید؟',
     signIn: 'ورود',
     signUp: 'ثبت نام',
-    signOut: 'خروج'
+    signOut: 'خروج',
+    pleaseSignIn: 'لطفاً برای استفاده از سامانه وارد شوید'
   },
 
   // Errors and messages
