@@ -120,7 +120,7 @@ const LoginV2 = ({ mode }) => {
             autoComplete='off'
             onSubmit={e => {
               e.preventDefault()
-              router.push('/')
+              router.push('/live')
             }}
             className='flex flex-col gap-5'
           >
