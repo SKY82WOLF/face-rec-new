@@ -12,6 +12,11 @@ const useVerticalMenuData = () => {
       icon: 'tabler-camera'
     },
     {
+      label: t('sidebar.access'),
+      href: '/access',
+      icon: 'tabler-lock-cog'
+    },
+    {
       label: t('sidebar.profile'),
       href: '/profile',
       icon: 'tabler-user'

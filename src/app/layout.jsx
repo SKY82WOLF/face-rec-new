@@ -13,7 +13,7 @@ import '@assets/iconify-icons/generated-icons.css'
 // Components
 import PrimaryColorInitializer from '@core/components/PrimaryColorInitializer'
 import HelmetProvider from '@/components/HelmetProvider'
-
+import Providers from './providers'
 
 const RootLayout = props => {
   const { children } = props
@@ -29,11 +29,13 @@ const RootLayout = props => {
         suppressHydrationWarning
         style={{ backgroundColor: 'var(--background-color)' }}
       >
-        <HelmetProvider>
-          <InitColorSchemeScript attribute='data' defaultMode={systemMode} />
-          <PrimaryColorInitializer />
-          {children}
-        </HelmetProvider>
+        <Providers>
+          <HelmetProvider>
+            <InitColorSchemeScript attribute='data' defaultMode={systemMode} />
+            <PrimaryColorInitializer />
+            {children}
+          </HelmetProvider>
+        </Providers>
       </body>
     </html>
   )

@@ -28,6 +28,83 @@ const fa = {
     logout: 'خروج'
   },
 
+  // Not Found Page
+  notFound: {
+    title: 'صفحه یافت نشد ⚠️',
+    description: 'متأسفانه صفحه مورد نظر شما یافت نشد.',
+    backToHome: 'بازگشت به صفحه اصلی',
+    illustrationAlt: 'تصویر خطای ۴۰۴',
+    maskAlt: 'تصویر پس‌زمینه'
+  },
+
+  // Live Page
+  live: {
+    title: 'پخش زنده',
+    reports: 'گزارش ها',
+    addNewPerson: 'افزودن شخص جدید',
+    loading: 'در حال بارگذاری...',
+    noReports: 'گزارشی موجود نیست',
+    addPersonModal: {
+      title: 'افزودن شخص جدید',
+      name: 'نام',
+      lastName: 'نام خانوادگی',
+      nationalCode: 'کد ملی',
+      nationalCodeLimit: 'کد ملی باید ۱۰ رقم باشد',
+      gender: 'جنسیت',
+      male: 'مرد',
+      female: 'زن',
+      access: 'دسترسی',
+      allowed: 'مجاز',
+      notAllowed: 'غیر مجاز',
+      cancel: 'انصراف',
+      add: 'افزودن'
+    }
+  },
+
+  // Report Card
+  reportCard: {
+    nationalCode: 'کد ملی',
+    gender: 'جنسیت',
+    male: 'مرد',
+    female: 'زن',
+    unknown: 'نامشخص',
+    status: 'وضعیت',
+    allowed: 'مجاز',
+    notAllowed: 'غیر مجاز',
+    details: 'جزئیات',
+    editInfo: 'ویرایش اطلاعات',
+    addToAllowed: 'اضافه کردن به لیست مجاز',
+    saveChanges: 'ذخیره تغییرات',
+    add: 'اضافه کردن',
+    cancel: 'انصراف',
+    userImage: 'تصویر آپلود شده',
+    apiImage: 'تصویر سیستم',
+    uploadImage: 'آپلود تصویر'
+  },
+
+  access: {
+    title: 'افراد مجاز',
+    addNewPerson: 'افزودن شخص جدید',
+    loading: 'در حال بارگذاری...',
+    noPersons: 'شخصی موجود نیست',
+    itemsPerPage: 'تعداد در هر صفحه',
+    addPersonModal: {
+      title: 'افزودن شخص جدید',
+      name: 'نام',
+      lastName: 'نام خانوادگی',
+      nationalCode: 'کد ملی',
+      nationalCodeLimit: 'کد ملی باید 10 رقم باشد',
+      gender: 'جنسیت',
+      male: 'مرد',
+      female: 'زن',
+      uploadImage: 'آپلود تصویر',
+      cancel: 'انصراف',
+      add: 'افزودن',
+      allowed: 'مجاز',
+      notAllowed: 'غیر مجاز'
+    }
+  },
+
   // Sidebar menu
   sidebar: {
     dashboard: 'داشبورد',
@@ -38,7 +115,8 @@ const fa = {
     orders: 'سفارشات',
     analytics: 'تحلیل‌ها',
     notifications: 'اعلان‌ها',
-    live: 'پخش زنده'
+    live: 'پخش زنده',
+    access: 'افراد مجاز'
   },
 
   // Navbar

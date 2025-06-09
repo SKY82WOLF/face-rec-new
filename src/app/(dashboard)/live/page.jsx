@@ -1,108 +1,45 @@
 'use client'
 
-import Link from 'next/link'
+import { useState } from 'react'
 
-import { Button, Typography, Box, Card, Grid } from '@mui/material'
+import {
+  Button,
+  Typography,
+  Box,
+  Card,
+  Grid,
+  Pagination,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
+} from '@mui/material'
 
-// SEO Component
 import SEO from '@/components/SEO'
 import ReportCard from '@/components/ReportCard'
+import { useGetPersons } from '@/hooks/usePersons'
+import { useTranslation } from '@/translations/useTranslation'
+
+const LIMIT_OPTIONS = [5, 10, 15, 20]
 
 export default function Page() {
-  // Dummy data for report cards
-  const dummyReports = [
-    {
-      id: 1,
-      name: 'ناشناس',
-      time: '۱۰:۲۰AM',
-      status: 'مجاز',
-      imageUrl: '../../../../public/images/avatars/1.png'
-    },
-    {
-      id: 2,
-      name: 'ناشناس',
-      time: '۱۰:۲۰AM',
-      status: 'مجاز',
-      imageUrl: '../../../../public/images/avatars/1.png'
-    },
-    {
-      id: 3,
-      name: 'ناشناس',
-      time: '۱۰:۲۰AM',
-      status: 'غیر مجاز',
-      imageUrl: '../../../../public/images/avatars/1.png'
-    },
-    {
-      id: 4,
-      name: 'ناشناس',
-      time: '۱۰:۲۰AM',
-      status: 'مجاز',
-      imageUrl: '../../../../public/images/avatars/1.png'
-    },
-    {
-      id: 5,
-      name: 'ناشناس',
-      time: '۱۰:۲۰AM',
-      status: 'غیر مجاز',
-      imageUrl: '../../../../public/images/avatars/1.png'
-    },
-    {
-      id: 6,
-      name: 'ناشناس',
-      time: '۱۰:۲۰AM',
-      status: 'مجاز',
-      imageUrl: '../../../../public/images/avatars/1.png'
-    },
-    {
-      id: 7,
-      name: 'ناشناس',
-      time: '۱۰:۲۰AM',
-      status: 'غیر مجاز',
-      imageUrl: '../../../../public/images/avatars/1.png'
-    },
-    {
-      id: 8,
-      name: 'ناشناس',
-      time: '۱۰:۲۰AM',
-      status: 'مجاز',
-      imageUrl: '../../../../public/images/avatars/1.png'
-    },
-    {
-      id: 9,
-      name: 'ناشناس',
-      time: '۱۰:۲۰AM',
-      status: 'غیر مجاز',
-      imageUrl: '../../../../public/images/avatars/1.png'
-    },
-    {
-      id: 10,
-      name: 'ناشناس',
-      time: '۱۰:۲۰AM',
-      status: 'غیر مجاز',
-      imageUrl: '../../../../public/images/avatars/1.png'
-    },
-    {
-      id: 11,
-      name: 'ناشناس',
-      time: '۱۰:۲۰AM',
-      status: 'غیر مجاز',
-      imageUrl: '../../../../public/images/avatars/1.png'
-    },
-    {
-      id: 12,
-      name: 'ناشناس',
-      time: '۱۰:۲۰AM',
-      status: 'غیر مجاز',
-      imageUrl: '../../../../public/images/avatars/1.png'
-    },
-    {
-      id: 13,
-      name: 'ناشناس',
-      time: '۱۰:۲۰AM',
-      status: 'غیر مجاز',
-      imageUrl: '../../../../public/images/avatars/1.png'
-    }
-  ]
+  const { t } = useTranslation()
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(10)
+
+  const { data: personsData, isLoading } = useGetPersons({
+    offset: (page - 1) * limit,
+    limit
+  })
+
+  const handlePageChange = (event, value) => {
+    setPage(value)
+  }
+
+  const handleLimitChange = event => {
+    setLimit(event.target.value)
+    setPage(1) // Reset to first page when changing limit
+  }
 
   return (
     <Box sx={{ p: 4 }}>
@@ -112,18 +49,17 @@ export default function Page() {
         keywords='داشبورد, صفحه اصلی, تشخیص چهره دیانا'
       />
 
-      {/* Live Stream Section - Full Width */}
+      {/* Live Stream Section */}
       <Card sx={{ mb: 4, backgroundColor: 'rgb(47 51 73 / 0)' }}>
         <Box sx={{ p: 2 }}>
           <Typography textAlign={'center'} variant='h6' gutterBottom>
-            پخش زنده
+            {t('live.title')}
           </Typography>
-          {/* Placeholder for live video feed */}
           <Box
             sx={{
               position: 'relative',
               width: '100%',
-              paddingTop: '56.25%', // 16:9 Aspect Ratio
+              paddingTop: '56.25%',
               backgroundColor: '#000',
               display: 'flex',
               justifyContent: 'center',
@@ -131,7 +67,6 @@ export default function Page() {
               borderRadius: 1
             }}
           >
-            {/* Replace with actual video component or stream */}
             <img
               src='/placeholder-video.jpg'
               alt='Live Stream Placeholder'
@@ -149,19 +84,62 @@ export default function Page() {
         </Box>
       </Card>
 
-      {/* Reports Section - 3x3 Grid */}
+      {/* Reports Section */}
       <Card sx={{ backgroundColor: 'rgb(47 51 73 / 0)' }}>
         <Box sx={{ p: 2 }}>
-          <Typography textAlign={'center'} variant='h6' gutterBottom>
-            گزارش ها
-          </Typography>
-          <Grid sx={{ overflowY: 'auto', maxHeight: '430px' }} container spacing={2}>
-            {dummyReports.map(report => (
-              <Grid sx={{ display: 'flex', flexGrow: 1 }} item xs={12} sm={6} md={4} key={report.id}>
-                <ReportCard report={report} />
-              </Grid>
-            ))}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant='h6'>{t('live.reports')}</Typography>
+          </Box>
+          <Grid container spacing={2} sx={{ overflowY: 'auto', maxHeight: 'calc(100vh - 250px)' }}>
+            {isLoading ? (
+              <Typography>{t('live.loading')}</Typography>
+            ) : personsData?.length > 0 ? (
+              personsData.map(person => (
+                <Grid sx={{ display: 'flex', flexGrow: 1 }} item xs={12} sm={6} md={4} key={person.id}>
+                  <ReportCard
+                    reportData={{
+                      id: person.id,
+                      name: person.name,
+                      last_name: person.last_name,
+                      national_code: person.national_code,
+                      access: person.access,
+                      gender: person.gender,
+                      created_at: person.created_at,
+                      updated_at: person.updated_at,
+                      is_active: person.is_active
+                    }}
+                  />
+                </Grid>
+              ))
+            ) : (
+              <Typography>{t('live.noReports')}</Typography>
+            )}
           </Grid>
+          {personsData?.length > 0 && (
+            <Box sx={{ display: 'flex', alignItems: 'center', mt: 3 }}>
+              <FormControl sx={{ minWidth: 120 }}>
+                <InputLabel>{t('access.itemsPerPage')}</InputLabel>
+                <Select value={limit} onChange={handleLimitChange} label={t('access.itemsPerPage')}>
+                  {LIMIT_OPTIONS.map(option => (
+                    <MenuItem key={option} value={option}>
+                      {option}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+                <Pagination
+                  count={page + (personsData.length === limit ? 1 : 0)}
+                  page={page}
+                  onChange={handlePageChange}
+                  color='primary'
+                  showFirstButton
+                  showLastButton
+                />
+              </Box>
+              <Box sx={{ width: 120 }} />
+            </Box>
+          )}
         </Box>
       </Card>
     </Box>

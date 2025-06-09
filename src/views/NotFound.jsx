@@ -14,6 +14,7 @@ import classnames from 'classnames'
 
 // Hook Imports
 import { useImageVariant } from '@core/hooks/useImageVariant'
+import { useTranslation } from '@/translations/useTranslation'
 
 // Styled Components
 const MaskImg = styled('img')({
@@ -29,6 +30,7 @@ const NotFound = ({ mode }) => {
   // Vars
   const darkImg = '/images/pages/misc-mask-dark.png'
   const lightImg = '/images/pages/misc-mask-light.png'
+  const { t } = useTranslation()
 
   // Hooks
   const theme = useTheme()
@@ -42,21 +44,21 @@ const NotFound = ({ mode }) => {
           <Typography className='font-medium text-8xl' color='text.primary'>
             404
           </Typography>
-          <Typography variant='h4'>Page Not Found ⚠️</Typography>
-          <Typography>we couldn&#39;t find the page you are looking for.</Typography>
+          <Typography variant='h4'>{t('notFound.title')}</Typography>
+          <Typography>{t('notFound.description')}</Typography>
         </div>
         <Button href='/live' component={Link} variant='contained'>
-          Back To Home
+          {t('notFound.backToHome')}
         </Button>
         <img
-          alt='error-404-illustration'
+          alt={t('notFound.illustrationAlt')}
           src='/images/illustrations/characters/1.png'
           className='object-cover bs-[400px] md:bs-[450px] lg:bs-[500px] mbs-10 md:mbs-14 lg:mbs-20'
         />
       </div>
       {!hidden && (
         <MaskImg
-          alt='mask'
+          alt={t('notFound.maskAlt')}
           src={miscBackground}
           className={classnames({ 'scale-x-[-1]': theme.direction === 'rtl' })}
         />
