@@ -116,8 +116,17 @@ export default function Page() {
             )}
           </Grid>
           {personsData?.length > 0 && (
-            <Box sx={{ display: 'flex', alignItems: 'center', mt: 3 }}>
-              <FormControl sx={{ minWidth: 120 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mt: 3,
+                gap: 2
+              }}
+            >
+              <FormControl sx={{ minWidth: 120, width: { xs: '100%', sm: 'auto' } }}>
                 <InputLabel>{t('access.itemsPerPage')}</InputLabel>
                 <Select value={limit} onChange={handleLimitChange} label={t('access.itemsPerPage')}>
                   {LIMIT_OPTIONS.map(option => (
@@ -127,7 +136,7 @@ export default function Page() {
                   ))}
                 </Select>
               </FormControl>
-              <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+              <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', width: { xs: '100%', sm: 'auto' } }}>
                 <Pagination
                   count={page + (personsData.length === limit ? 1 : 0)}
                   page={page}
@@ -135,9 +144,15 @@ export default function Page() {
                   color='primary'
                   showFirstButton
                   showLastButton
+                  size='small'
+                  sx={{
+                    '& .MuiPaginationItem-root': {
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                    }
+                  }}
                 />
               </Box>
-              <Box sx={{ width: 120 }} />
+              <Box sx={{ width: { xs: 0, sm: 120 } }} />
             </Box>
           )}
         </Box>

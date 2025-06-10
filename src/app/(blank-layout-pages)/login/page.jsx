@@ -1,7 +1,7 @@
 'use client'
 
 // Server Action Imports
-import { getServerMode } from '@core/utils/serverHelpers'
+import { getMode } from '@core/utils/serverHelpers'
 
 // Component Imports
 import Login from '@/views/Login'
@@ -11,7 +11,7 @@ import SEO from '@/components/SEO'
 
 const LoginPage = () => {
   // Vars
-  const mode = getServerMode()
+  const mode = getMode()
 
   return (
     <>

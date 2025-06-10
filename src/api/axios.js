@@ -1,20 +1,9 @@
 import axios from 'axios'
 
-const getBaseURL = () => {
-  const mode = process.env.NEXT_PUBLIC_API_MODE || 'production'
-
-  if (mode === 'remote') {
-    return process.env.NEXT_PUBLIC_REMOTE_API_URL
-  }
-
-  // Default to production mode
-  const hostname = window.location.hostname
-
-  return `http://${hostname}:5555/api`
-}
+import { backendUrl } from '@/configs/routes'
 
 const axiosInstance = axios.create({
-  baseURL: getBaseURL(),
+  baseURL: backendUrl,
   headers: {
     'Content-Type': 'application/json'
   }

@@ -19,6 +19,7 @@ import Divider from '@mui/material/Divider'
 
 // Third-party Imports
 import classnames from 'classnames'
+import Lottie from 'lottie-react'
 
 // Component Imports
 import Link from '@components/Link'
@@ -33,13 +34,16 @@ import { useImageVariant } from '@core/hooks/useImageVariant'
 import { useSettings } from '@core/hooks/useSettings'
 import { useTranslation } from '@/translations/useTranslation'
 
+// Animation Import
+import animationData from '../../public/images/illustrations/auth/Animation - 1749537263516.json'
+
 // Styled Custom Components
-const LoginIllustration = styled('img')(({ theme }) => ({
+const LoginIllustration = styled('div')(({ theme }) => ({
   zIndex: 2,
   blockSize: 'auto',
   maxBlockSize: 680,
   maxInlineSize: '100%',
-  margin: theme.spacing(12),
+  margin: theme.spacing(4),
   [theme.breakpoints.down(1536)]: {
     maxBlockSize: 550
   },
@@ -64,10 +68,6 @@ const LoginV2 = ({ mode }) => {
   // Vars
   const darkImg = '/images/pages/auth-mask-dark.png'
   const lightImg = '/images/pages/auth-mask-light.png'
-  const darkIllustration = '/images/illustrations/auth/v2-login-dark.png'
-  const lightIllustration = '/images/illustrations/auth/v2-login-light.png'
-  const borderedDarkIllustration = '/images/illustrations/auth/v2-login-dark-border.png'
-  const borderedLightIllustration = '/images/illustrations/auth/v2-login-light-border.png'
 
   // Hooks
   const router = useRouter()
@@ -77,41 +77,25 @@ const LoginV2 = ({ mode }) => {
   const authBackground = useImageVariant(mode, lightImg, darkImg)
   const { t } = useTranslation()
 
-  const characterIllustration = useImageVariant(
-    mode,
-    lightIllustration,
-    darkIllustration,
-    borderedLightIllustration,
-    borderedDarkIllustration
-  )
-
   const handleClickShowPassword = () => setIsPasswordShown(show => !show)
 
   return (
-    <div className='flex bs-full justify-center'>
+    <div className='flex bs-full justify-center flex-col md:flex-row-reverse'>
       <div
-        className={classnames(
-          'flex bs-full items-center justify-center flex-1 min-bs-[100dvh] relative p-6 max-md:hidden',
-          {
-            'border-ie': settings.skin === 'bordered'
-          }
-        )}
+        className={classnames('flex bs-full items-center justify-center flex-1 relative p-4', {
+          'border-ie': settings.skin === 'bordered'
+        })}
       >
-        <LoginIllustration src={characterIllustration} alt='character-illustration' />
-        {!hidden && (
-          <MaskImg
-            alt='mask'
-            src={authBackground}
-            className={classnames({ 'scale-x-[-1]': theme.direction === 'rtl' })}
-          />
-        )}
+        <LoginIllustration>
+          <Lottie animationData={animationData} loop={true} style={{ width: '100%', maxWidth: 600, height: 'auto' }} />
+        </LoginIllustration>
       </div>
-      <div className='flex justify-center items-center bs-full bg-backgroundPaper !min-is-full p-6 md:!min-is-[unset] md:p-12 md:is-[480px]'>
-        <Link className='absolute block-start-5 sm:block-start-[33px] inline-start-6 sm:inline-start-[38px]'>
+      <div className='flex justify-center items-center bs-full bg-backgroundPaper p-6 md:p-8 w-full md:w-[480px] lg:w-[400px]'>
+        <Link className='absolute block-start-5 sm:block-start-[33px] inline-end-6 sm:inline-end-[38px]'>
           <Logo />
         </Link>
-        <div className='flex flex-col gap-6 is-full sm:is-auto md:is-full sm:max-is-[400px] md:max-is-[unset] mbs-11 sm:mbs-14 md:mbs-0'>
-          <div className='flex flex-col gap-1'>
+        <div className='flex flex-col gap-6 w-full'>
+          <div className='flex flex-col gap-1 text-right w-full'>
             <Typography variant='h4'>{`به ${themeConfig.templateName} خوش آمدید ! 👋🏻`}</Typography>
             <Typography>{t('auth.pleaseSignIn')}</Typography>
           </div>
@@ -122,13 +106,15 @@ const LoginV2 = ({ mode }) => {
               e.preventDefault()
               router.push('/live')
             }}
-            className='flex flex-col gap-5'
+            className='flex flex-col gap-5 w-full'
           >
             <CustomTextField
               autoFocus
               fullWidth
               label={t('auth.email')}
               placeholder={t('auth.email')}
+              dir='rtl'
+              className='w-full'
             />
             <CustomTextField
               fullWidth
@@ -136,10 +122,12 @@ const LoginV2 = ({ mode }) => {
               placeholder='············'
               id='outlined-adornment-password'
               type={isPasswordShown ? 'text' : 'password'}
+              dir='rtl'
+              className='w-full'
               slotProps={{
                 input: {
                   endAdornment: (
-                    <InputAdornment position='end'>
+                    <InputAdornment position='start'>
                       <IconButton edge='end' onClick={handleClickShowPassword} onMouseDown={e => e.preventDefault()}>
                         <i className={isPasswordShown ? 'tabler-eye-off' : 'tabler-eye'} />
                       </IconButton>
@@ -162,21 +150,6 @@ const LoginV2 = ({ mode }) => {
               <Typography component={Link} color='primary.main'>
                 {t('auth.signUp')}
               </Typography>
-            </div>
-            <Divider className='gap-2 text-textPrimary'>or</Divider>
-            <div className='flex justify-center items-center gap-1.5'>
-              <IconButton className='text-facebook' size='small'>
-                <i className='tabler-brand-facebook-filled' />
-              </IconButton>
-              <IconButton className='text-twitter' size='small'>
-                <i className='tabler-brand-twitter-filled' />
-              </IconButton>
-              <IconButton className='text-textPrimary' size='small'>
-                <i className='tabler-brand-github-filled' />
-              </IconButton>
-              <IconButton className='text-error' size='small'>
-                <i className='tabler-brand-google-filled' />
-              </IconButton>
             </div>
           </form>
         </div>

@@ -1,9 +1,8 @@
 import axios from './axios'
-
-const BASE_URL = 'persons'
+import { personsList, personsAdd } from '@/configs/routes'
 
 export const getPersons = async ({ offset = 0, limit = 10 } = {}) => {
-  return await axios.get(`${BASE_URL}?offset=${offset}&limit=${limit}`)
+  return await axios.get(`${personsList}?offset=${offset}&limit=${limit}`)
 }
 
 export const addPerson = async personData => {
@@ -16,15 +15,15 @@ export const addPerson = async personData => {
 
   delete data.lastname
 
-  return await axios.post(`${BASE_URL}/add`, data)
+  return await axios.post(personsAdd, data)
 }
 
 // TODO: Implement when API is available
 // export const updatePerson = async ({ id, data }) => {
-//   return await axios.patch(`${BASE_URL}/${id}`, data)
+//   return await axios.patch(`${personsUpdate}/${id}`, data)
 // }
 
 // TODO: Implement when API is available
 // export const deletePerson = async id => {
-//   return await axios.delete(`${BASE_URL}/${id}`)
+//   return await axios.delete(`${personsDelete}/${id}`)
 // }
