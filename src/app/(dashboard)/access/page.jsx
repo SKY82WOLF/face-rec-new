@@ -79,17 +79,14 @@ export default function Page() {
     const file = event.target.files[0]
 
     if (file) {
-      const reader = new FileReader()
+      const previewUrl = URL.createObjectURL(file)
 
-      reader.onloadend = () => {
-        setSelectedImage(reader.result)
-        setNewPerson(prev => ({
-          ...prev,
-          userImage: reader.result
-        }))
-      }
+      setSelectedImage(previewUrl)
 
-      reader.readAsDataURL(file)
+      setNewPerson(prev => ({
+        ...prev,
+        userImage: file
+      }))
     }
   }
 

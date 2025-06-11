@@ -6,16 +6,26 @@ export const getPersons = async ({ offset = 0, limit = 10 } = {}) => {
 }
 
 export const addPerson = async personData => {
-  // Ensure access is included in the request
-  const data = {
-    ...personData,
-    last_name: personData.lastname,
-    access: personData.access || false
+  // Create FormData
+  const formData = new FormData()
+
+  // Add all fields to FormData
+  formData.append('name', personData.name)
+  formData.append('last_name', personData.lastname)
+  formData.append('national_code', personData.national_code)
+  formData.append('access', personData.access || false)
+  formData.append('gender', personData.gender)
+
+  // Add the image file if it exists
+  if (personData.userImage instanceof File) {
+    formData.append('userImage', personData.userImage)
   }
 
-  delete data.lastname
-
-  return await axios.post(personsAdd, data)
+  return await axios.post(personsAdd, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
 }
 
 // TODO: Implement when API is available

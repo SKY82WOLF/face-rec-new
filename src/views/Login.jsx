@@ -90,7 +90,7 @@ const LoginV2 = ({ mode }) => {
           <Lottie animationData={animationData} loop={true} style={{ width: '100%', maxWidth: 600, height: 'auto' }} />
         </LoginIllustration>
       </div>
-      <div className='flex justify-center items-center bs-full bg-backgroundPaper p-6 md:p-8 w-full md:w-[480px] lg:w-[400px]'>
+      <div className='flex justify-center items-center bs-full bg-backgroundPaper p-6 md:p-8 w-full md:w-[480px] lg:w-[600px]'>
         <Link className='absolute block-start-5 sm:block-start-[33px] inline-end-6 sm:inline-end-[38px]'>
           <Logo />
         </Link>
@@ -145,12 +145,6 @@ const LoginV2 = ({ mode }) => {
             <Button fullWidth variant='contained' type='submit'>
               {t('auth.login')}
             </Button>
-            <div className='flex justify-center items-center flex-wrap gap-2'>
-              <Typography>{t('auth.dontHaveAccount')}</Typography>
-              <Typography component={Link} color='primary.main'>
-                {t('auth.signUp')}
-              </Typography>
-            </div>
           </form>
         </div>
       </div>

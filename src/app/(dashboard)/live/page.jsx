@@ -68,7 +68,7 @@ export default function Page() {
             }}
           >
             <img
-              src='/placeholder-video.jpg'
+              src='http://192.168.11.39:7000'
               alt='Live Stream Placeholder'
               style={{
                 position: 'absolute',

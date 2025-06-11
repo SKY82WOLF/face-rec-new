@@ -105,6 +105,87 @@ const fa = {
     }
   },
 
+  //users
+
+  users: {
+    title: 'مدیریت کاربران',
+    addUser: 'افزودن کاربر',
+    editUser: 'ویرایش کاربر',
+    deleteUser: 'حذف کاربر',
+    confirmDelete: 'آیا از حذف این کاربر اطمینان دارید؟',
+    avatar: 'تصویر پروفایل',
+    fullName: 'نام و نام خانوادگی',
+    username: 'نام کاربری',
+    email: 'ایمیل',
+    phone: 'شماره تماس',
+    address: 'آدرس',
+    bio: 'درباره',
+    role: 'نقش',
+    status: 'وضعیت',
+    actions: 'عملیات',
+    profile: 'پروفایل',
+    security: 'امنیت',
+    accountDetails: 'جزئیات حساب',
+    editProfile: 'ویرایش پروفایل',
+    saveChanges: 'ذخیره تغییرات',
+    changePassword: 'تغییر رمز عبور',
+    currentPassword: 'رمز عبور فعلی',
+    newPassword: 'رمز عبور جدید',
+    confirmPassword: 'تایید رمز عبور',
+    uploadAvatar: 'آپلود تصویر',
+    add: 'افزودن',
+
+    // New translations
+    roleOptions: {
+      admin: 'مدیر',
+      user: 'کاربر عادی'
+    },
+    statusOptions: {
+      active: 'فعال',
+      inactive: 'غیرفعال'
+    },
+
+    // User Edit Component Translations
+    userEdit: {
+      title: 'ویرایش کاربر',
+      description: 'ویرایش اطلاعات کاربر در سیستم تشخیص چهره دیانا',
+      keywords: 'ویرایش کاربر, مدیریت کاربران, سیستم تشخیص چهره دیانا',
+      userInfo: {
+        title: 'اطلاعات کاربر',
+        role: 'نقش',
+        status: 'وضعیت',
+        email: 'ایمیل',
+        phone: 'شماره تماس',
+        address: 'آدرس',
+        bio: 'درباره'
+      },
+      accountDetails: {
+        title: 'جزئیات حساب',
+        fullName: 'نام و نام خانوادگی',
+        username: 'نام کاربری',
+        email: 'ایمیل',
+        phone: 'شماره تماس',
+        address: 'آدرس',
+        bio: 'درباره',
+        role: 'نقش',
+        status: 'وضعیت'
+      },
+      security: {
+        title: 'امنیت',
+        changePassword: 'تغییر رمز عبور',
+        currentPassword: 'رمز عبور فعلی',
+        newPassword: 'رمز عبور جدید',
+        confirmPassword: 'تایید رمز عبور'
+      },
+      actions: {
+        edit: 'ویرایش',
+        save: 'ذخیره',
+        cancel: 'انصراف',
+        uploadAvatar: 'آپلود تصویر'
+      }
+    }
+  },
+
   // Sidebar menu
   sidebar: {
     dashboard: 'داشبورد',
