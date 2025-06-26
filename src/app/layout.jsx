@@ -1,3 +1,5 @@
+'use client'
+
 // MUI Imports
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'
 
@@ -11,12 +13,12 @@ import '@/app/globals.css'
 import '@assets/iconify-icons/generated-icons.css'
 
 // Components
-import PrimaryColorInitializer from '@core/components/PrimaryColorInitializer'
+import { Provider } from 'react-redux'
 
-export const metadata = {
-  title: 'تشخیص چهره دیانا',
-  description: 'تشخیص چهره دیاناالکترونیک کویر'
-}
+import PrimaryColorInitializer from '@core/components/PrimaryColorInitializer'
+import HelmetProvider from '@/components/HelmetProvider'
+import Providers from './providers'
+import storee from '@/store'
 
 const RootLayout = props => {
   const { children } = props
@@ -32,9 +34,15 @@ const RootLayout = props => {
         suppressHydrationWarning
         style={{ backgroundColor: 'var(--background-color)' }}
       >
-        <InitColorSchemeScript attribute='data' defaultMode={systemMode} />
-        <PrimaryColorInitializer />
-        {children}
+        <Provider store={storee}>
+          <Providers>
+            <HelmetProvider>
+              <InitColorSchemeScript attribute='data' defaultMode={systemMode} />
+              <PrimaryColorInitializer />
+              {children}
+            </HelmetProvider>
+          </Providers>
+        </Provider>
       </body>
     </html>
   )

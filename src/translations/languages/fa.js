@@ -28,6 +28,170 @@ const fa = {
     logout: 'خروج'
   },
 
+  // Not Found Page
+  notFound: {
+    title: 'صفحه یافت نشد ⚠️',
+    description: 'متأسفانه صفحه مورد نظر شما یافت نشد.',
+    backToHome: 'بازگشت به صفحه اصلی',
+    illustrationAlt: 'تصویر خطای ۴۰۴',
+    maskAlt: 'تصویر پس‌زمینه'
+  },
+
+  // Live Page
+  live: {
+    title: 'پخش زنده',
+    reports: 'گزارش ها',
+    addNewPerson: 'افزودن شخص جدید',
+    loading: 'در حال بارگذاری...',
+    noReports: 'گزارشی موجود نیست',
+    addPersonModal: {
+      title: 'افزودن شخص جدید',
+      name: 'نام',
+      lastName: 'نام خانوادگی',
+      nationalCode: 'کد ملی',
+      nationalCodeLimit: 'کد ملی باید ۱۰ رقم باشد',
+      gender: 'جنسیت',
+      male: 'آقا',
+      female: 'خانم',
+      access: 'دسترسی',
+      allowed: 'مجاز',
+      notAllowed: 'غیر مجاز',
+      cancel: 'انصراف',
+      add: 'افزودن'
+    }
+  },
+
+  // Report Card
+  reportCard: {
+    nationalCode: 'کد ملی',
+    gender: 'جنسیت',
+    male: 'آقا',
+    female: 'خانم',
+    unknown: 'نامشخص',
+    status: 'وضعیت',
+    allowed: 'مجاز',
+    notAllowed: 'غیر مجاز',
+    details: 'جزئیات',
+    editInfo: 'ویرایش اطلاعات',
+    addToAllowed: 'اضافه کردن به لیست مجاز',
+    saveChanges: 'ذخیره تغییرات',
+    add: 'اضافه کردن',
+    cancel: 'انصراف',
+    userImage: 'تصویر آپلود شده',
+    apiImage: 'تصویر سیستم',
+    uploadImage: 'آپلود تصویر',
+    name: 'نام',
+    lastName: 'نام خانوادگی',
+    id:'آیدی'
+  },
+
+  access: {
+    title: 'افراد مجاز',
+    addNewPerson: 'افزودن شخص جدید',
+    loading: 'در حال بارگذاری...',
+    noPersons: 'شخصی موجود نیست',
+    itemsPerPage: 'تعداد در هر صفحه',
+    addPersonModal: {
+      title: 'افزودن شخص جدید',
+      name: 'نام',
+      lastName: 'نام خانوادگی',
+      nationalCode: 'کد ملی',
+      nationalCodeLimit: 'کد ملی باید 10 رقم باشد',
+      gender: 'جنسیت',
+      male: 'آقا',
+      female: 'خانم',
+      uploadImage: 'آپلود تصویر',
+      cancel: 'انصراف',
+      add: 'افزودن',
+      allowed: 'مجاز',
+      notAllowed: 'غیر مجاز'
+    }
+  },
+
+  //users
+
+  users: {
+    title: 'مدیریت کاربران',
+    addUser: 'افزودن کاربر',
+    editUser: 'ویرایش کاربر',
+    deleteUser: 'حذف کاربر',
+    confirmDelete: 'آیا از حذف این کاربر اطمینان دارید؟',
+    avatar: 'تصویر پروفایل',
+    fullName: 'نام و نام خانوادگی',
+    username: 'نام کاربری',
+    email: 'ایمیل',
+    password:'رمز عبور',
+    phone: 'شماره تماس',
+    address: 'آدرس',
+    bio: 'درباره',
+    role: 'نقش',
+    status: 'وضعیت',
+    actions: 'عملیات',
+    profile: 'پروفایل',
+    security: 'امنیت',
+    accountDetails: 'جزئیات حساب',
+    editProfile: 'ویرایش پروفایل',
+    saveChanges: 'ذخیره تغییرات',
+    changePassword: 'تغییر رمز عبور',
+    currentPassword: 'رمز عبور فعلی',
+    newPassword: 'رمز عبور جدید',
+    confirmPassword: 'تایید رمز عبور',
+    uploadAvatar: 'آپلود تصویر',
+    add: 'افزودن',
+    userDetail: 'جزئیات کاربر',
+    noData:'کاربری وجود ندارد',
+
+    // New translations
+    roleOptions: {
+      admin: 'مدیر',
+      user: 'کاربر عادی'
+    },
+    statusOptions: {
+      active: 'فعال',
+      inactive: 'غیرفعال'
+    },
+
+    // User Edit Component Translations
+    userEdit: {
+      title: 'ویرایش کاربر',
+      description: 'ویرایش اطلاعات کاربر در سیستم تشخیص چهره دیانا',
+      keywords: 'ویرایش کاربر, مدیریت کاربران, سیستم تشخیص چهره دیانا',
+      userInfo: {
+        title: 'اطلاعات کاربر',
+        role: 'نقش',
+        status: 'وضعیت',
+        email: 'ایمیل',
+        phone: 'شماره تماس',
+        address: 'آدرس',
+        bio: 'درباره'
+      },
+      accountDetails: {
+        title: 'جزئیات حساب',
+        fullName: 'نام و نام خانوادگی',
+        username: 'نام کاربری',
+        email: 'ایمیل',
+        phone: 'شماره تماس',
+        address: 'آدرس',
+        bio: 'درباره',
+        role: 'نقش',
+        status: 'وضعیت'
+      },
+      security: {
+        title: 'امنیت',
+        changePassword: 'تغییر رمز عبور',
+        currentPassword: 'رمز عبور فعلی',
+        newPassword: 'رمز عبور جدید',
+        confirmPassword: 'تایید رمز عبور'
+      },
+      actions: {
+        edit: 'ویرایش',
+        save: 'ذخیره',
+        cancel: 'انصراف',
+        uploadAvatar: 'آپلود تصویر'
+      }
+    }
+  },
+
   // Sidebar menu
   sidebar: {
     dashboard: 'داشبورد',
@@ -38,7 +202,8 @@ const fa = {
     orders: 'سفارشات',
     analytics: 'تحلیل‌ها',
     notifications: 'اعلان‌ها',
-    live: 'پخش زنده'
+    live: 'پخش زنده',
+    access: 'افراد مجاز'
   },
 
   // Navbar
@@ -92,9 +257,28 @@ const fa = {
     notifications: 'اعلان‌ها',
     security: 'امنیت',
     theme: {
-      light: 'روشن',
-      dark: 'تیره',
-      system: 'سیستم'
+      theme: 'تم',
+      light: 'روز',
+      dark: 'شب',
+      system: 'سیستم',
+      mainColor: 'رنگ اصلی',
+      theming: 'شخصی سازی تم',
+      skin: 'پوسته',
+      default: 'پیشفرض',
+      bordered: 'حاشیه دار',
+      layout: 'چیدمان',
+      layouts: 'چیدمان ها',
+      content: 'چینش محتوا',
+      typeColor: 'رنگ را وارد کنید',
+      layoutTypes: {
+        vertical: 'عمودی',
+        collapsed: 'جمع شده',
+        horizontal: 'افقی',
+        contents: {
+          compact: 'کوچک',
+          wide: 'عریض'
+        }
+      }
     }
   },
 
@@ -109,17 +293,19 @@ const fa = {
   // Authentication
   auth: {
     login: 'ورود',
+    loggingIn:'درحال ورود',
     register: 'ثبت نام',
     forgotPassword: 'فراموشی رمز عبور',
     resetPassword: 'بازنشانی رمز عبور',
-    email: 'ایمیل',
+    username: 'نام کاربری',
     password: 'رمز عبور',
     rememberMe: 'مرا به خاطر بسپار',
     dontHaveAccount: 'حساب کاربری ندارید؟',
     alreadyHaveAccount: 'قبلاً ثبت نام کرده‌اید؟',
     signIn: 'ورود',
     signUp: 'ثبت نام',
-    signOut: 'خروج'
+    signOut: 'خروج',
+    pleaseSignIn: 'لطفاً برای استفاده از سامانه وارد شوید'
   },
 
   // Errors and messages

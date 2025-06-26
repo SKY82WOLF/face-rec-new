@@ -21,6 +21,9 @@ import CustomTextField from '@core/components/mui/TextField'
 // Import Translation Hook
 import { useTranslation } from '@/translations/useTranslation'
 
+// SEO Component
+import SEO from '@/components/SEO'
+
 const ProfilePage = () => {
   const { t } = useTranslation()
 
@@ -129,7 +132,36 @@ const ProfilePage = () => {
 
   return (
     <Box className='flex flex-col gap-6'>
-      <Typography variant='h4'>{t('profile.title')}</Typography>
+      <SEO
+        title='پروفایل کاربری | سیستم تشخیص چهره دیانا'
+        description='مدیریت اطلاعات پروفایل کاربری در سیستم تشخیص چهره دیانا'
+        keywords='پروفایل کاربری, حساب کاربری, مدیریت اطلاعات'
+      />
+
+      <Typography
+        variant='h4'
+        sx={{
+          fontWeight: 600,
+          color: 'primary.main',
+          textTransform: 'uppercase',
+          letterSpacing: '1px',
+          position: 'relative',
+          marginBottom: '10px',
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            bottom: -8,
+            left: '0',
+            width: '77px',
+            height: '3px',
+            backgroundColor: 'primary.main',
+            borderRadius: '2px',
+            marginBottom: '5px'
+          }
+        }}
+      >
+        {t('profile.title')}
+      </Typography>
 
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 6 }}>
         {/* User Info Card */}
@@ -243,6 +275,7 @@ const ProfilePage = () => {
                     onChange={handleInputChange}
                     disabled={!isEditing}
                     fullWidth
+                    required
                     sx={{ flex: { xs: '1 0 100%', sm: '1 0 calc(50% - 16px)' } }}
                   />
                   <CustomTextField
@@ -252,6 +285,7 @@ const ProfilePage = () => {
                     onChange={handleInputChange}
                     disabled={!isEditing}
                     fullWidth
+                    required
                     sx={{ flex: { xs: '1 0 100%', sm: '1 0 calc(50% - 16px)' } }}
                   />
                 </Box>
@@ -265,6 +299,7 @@ const ProfilePage = () => {
                     onChange={handleInputChange}
                     disabled={!isEditing}
                     fullWidth
+                    required
                     sx={{ flex: { xs: '1 0 100%', sm: '1 0 calc(50% - 16px)' } }}
                   />
                   <CustomTextField
@@ -274,6 +309,7 @@ const ProfilePage = () => {
                     onChange={handleInputChange}
                     disabled={!isEditing}
                     fullWidth
+                    required
                     sx={{ flex: { xs: '1 0 100%', sm: '1 0 calc(50% - 16px)' } }}
                   />
                 </Box>
@@ -285,6 +321,7 @@ const ProfilePage = () => {
                   onChange={handleInputChange}
                   disabled={!isEditing}
                   fullWidth
+                  required
                 />
 
                 <CustomTextField

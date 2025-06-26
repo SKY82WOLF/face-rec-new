@@ -22,6 +22,9 @@ import { getMode, getSystemMode } from '@core/utils/serverHelpers'
 
 import Customizer from '@/@core/components/customizer'
 
+// SEO Component
+import SEO from '@/components/SEO'
+
 const Layout = props => {
   const { children } = props
 
@@ -32,6 +35,11 @@ const Layout = props => {
 
   return (
     <Providers direction={direction}>
+      <SEO
+        title='داشبورد | سیستم تشخیص چهره دیانا'
+        description='داشبورد اصلی سیستم تشخیص چهره دیانا'
+        keywords='داشبورد, صفحه اصلی, تشخیص چهره دیانا'
+      />
       <LayoutWrapper
         systemMode={systemMode}
         verticalLayout={

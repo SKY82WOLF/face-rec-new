@@ -246,17 +246,35 @@ const TextFieldStyled = styled(TextField)(({ theme }) => ({
 }))
 
 const CustomTextField = forwardRef((props, ref) => {
-  const { size = 'small', slotProps, ...rest } = props
+  const { size = 'small', slotProps, required = false, label, ...rest } = props
+
+  // Create customized label with (الزامی) text for required fields
+  const customLabel = required ? (
+    <>
+      {label} <small style={{ fontSize: '10px', color: 'var(--mui-palette-error-main)' }}>(الزامی)</small>
+    </>
+  ) : (
+    label
+  )
 
   return (
     <TextFieldStyled
       size={size}
       inputRef={ref}
+      required={required}
+      label={customLabel}
       {...rest}
       variant='filled'
       slotProps={{
         ...slotProps,
-        inputLabel: { ...slotProps?.inputLabel, shrink: true }
+        inputLabel: {
+          ...slotProps?.inputLabel,
+          shrink: true,
+          sx: {
+            ...(slotProps?.inputLabel?.sx || {}),
+            '& .MuiFormLabel-asterisk': { display: 'none' }
+          }
+        }
       }}
     />
   )

@@ -11,12 +11,14 @@ const Layout = props => {
   const { children } = props
 
   // Vars
-  const direction = 'ltr'
+  const direction = 'rtl'
   const systemMode = getSystemMode()
 
   return (
     <Providers direction={direction}>
-      <BlankLayout systemMode={systemMode}>{children}</BlankLayout>
+      <BlankLayout systemMode={systemMode} direction={direction}>
+        {children}
+      </BlankLayout>
     </Providers>
   )
 }
