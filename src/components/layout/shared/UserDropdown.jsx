@@ -27,6 +27,7 @@ import { useTranslation } from '@/translations/useTranslation'
 
 // Event Imports
 import customizerEvents, { CUSTOMIZER_EVENTS } from '@core/utils/customizerEvents'
+import { useAuth } from '@/hooks/useAuth'
 
 // Styled component for badge content
 const BadgeContentSpan = styled('span')({
@@ -49,7 +50,8 @@ const UserDropdown = () => {
   const router = useRouter()
   const { settings } = useSettings()
   const { t } = useTranslation()
-  
+  const { handleLogout } = useAuth()
+
   const handleDropdownOpen = () => {
     !open ? setOpen(true) : setOpen(false)
   }
@@ -75,8 +77,7 @@ const UserDropdown = () => {
   }
 
   const handleUserLogout = async () => {
-    // Redirect to login page
-    router.push('/login')
+    await handleLogout()
   }
 
   return (

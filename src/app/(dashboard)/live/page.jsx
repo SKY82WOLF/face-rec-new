@@ -1,48 +1,37 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
-import {
-  Button,
-  Typography,
-  Box,
-  Card,
-  Grid,
-  Pagination,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem
-} from '@mui/material'
+import { useDispatch, useSelector } from 'react-redux'
+
+import { Typography, Box, Grid, Card } from '@mui/material'
 
 import SEO from '@/components/SEO'
-import ReportCard from '@/components/ReportCard'
-import { useGetPersons } from '@/hooks/usePersons'
 import { useTranslation } from '@/translations/useTranslation'
+import LiveReportCard from '@/components/LiveReportCard'
 
-const LIMIT_OPTIONS = [5, 10, 15, 20]
-
-export default function Page() {
+const LivePage = () => {
   const { t } = useTranslation()
-  const [page, setPage] = useState(1)
-  const [limit, setLimit] = useState(10)
+  const dispatch = useDispatch()
+  const { reports, isConnected, error } = useSelector(state => state.websocket)
+  const [isPlaying, setIsPlaying] = useState(true)
 
-  const { data: personsData, isLoading } = useGetPersons({
-    offset: (page - 1) * limit,
-    limit
-  })
+  useEffect(() => {
+    // Connect to WebSocket when component mounts
+    dispatch({ type: 'websocket/connect' })
 
-  const handlePageChange = (event, value) => {
-    setPage(value)
-  }
+    // Disconnect when component unmounts
+    return () => {
+      dispatch({ type: 'websocket/disconnect' })
+    }
+  }, [dispatch])
 
-  const handleLimitChange = event => {
-    setLimit(event.target.value)
-    setPage(1) // Reset to first page when changing limit
+  const handleTogglePlay = () => {
+    setIsPlaying(prev => !prev)
   }
 
   return (
-    <Box sx={{ p: 4 }}>
+    <Box>
       <SEO
         title='داشبورد | سیستم تشخیص چهره دیانا'
         description='داشبورد اصلی سیستم تشخیص چهره دیانا'
@@ -50,9 +39,33 @@ export default function Page() {
       />
 
       {/* Live Stream Section */}
-      <Card sx={{ mb: 4, backgroundColor: 'rgb(47 51 73 / 0)' }}>
-        <Box sx={{ p: 2 }}>
-          <Typography textAlign={'center'} variant='h6' gutterBottom>
+      <Card sx={{ mb: 4, backgroundColor: 'rgb(47 51 73 / 0)', pt: 3 }}>
+        <Box>
+          <Typography
+            textAlign={'center'}
+            variant='h5'
+            gutterBottom
+            sx={{
+              fontWeight: 600,
+              color: 'primary.main',
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
+              position: 'relative',
+              marginBottom: '13px',
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                bottom: -8,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '80px',
+                height: '3px',
+                backgroundColor: 'primary.main',
+                borderRadius: '2px',
+                marginBottom: '8px'
+              }
+            }}
+          >
             {t('live.title')}
           </Typography>
           <Box
@@ -68,8 +81,9 @@ export default function Page() {
             }}
           >
             <img
-              src='http://192.168.11.39:7000'
+              src={isPlaying ? '/images/stop-video.png' : 'http://192.168.11.39:7000'}
               alt='Live Stream Placeholder'
+              onClick={handleTogglePlay}
               style={{
                 position: 'absolute',
                 top: 0,
@@ -77,7 +91,8 @@ export default function Page() {
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
-                borderRadius: 'inherit'
+                borderRadius: 'inherit',
+                cursor: 'pointer'
               }}
             />
           </Box>
@@ -85,78 +100,88 @@ export default function Page() {
       </Card>
 
       {/* Reports Section */}
-      <Card sx={{ backgroundColor: 'rgb(47 51 73 / 0)' }}>
+      <Card sx={{ backgroundColor: 'rgb(47 51 73 / 0)', pt: 2 }}>
         <Box sx={{ p: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant='h6'>{t('live.reports')}</Typography>
-          </Box>
-          <Grid container spacing={2} sx={{ overflowY: 'auto', maxHeight: 'calc(100vh - 250px)' }}>
-            {isLoading ? (
-              <Typography>{t('live.loading')}</Typography>
-            ) : personsData?.length > 0 ? (
-              personsData.map(person => (
-                <Grid sx={{ display: 'flex', flexGrow: 1 }} item xs={12} sm={6} md={4} key={person.id}>
-                  <ReportCard
-                    reportData={{
-                      id: person.id,
-                      name: person.name,
-                      last_name: person.last_name,
-                      national_code: person.national_code,
-                      access: person.access,
-                      gender: person.gender,
-                      created_at: person.created_at,
-                      updated_at: person.updated_at,
-                      is_active: person.is_active
-                    }}
-                  />
-                </Grid>
-              ))
-            ) : (
-              <Typography>{t('live.noReports')}</Typography>
-            )}
-          </Grid>
-          {personsData?.length > 0 && (
-            <Box
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
+            <Typography
+              textAlign={'center'}
+              variant='h5'
               sx={{
-                display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' },
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                mt: 3,
-                gap: 2
+                fontWeight: 600,
+                color: 'primary.main',
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                position: 'relative',
+                '&::after': {
+                  content: '""',
+                  position: 'absolute',
+                  bottom: -8,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: '75px',
+                  height: '3px',
+                  backgroundColor: 'primary.main',
+                  borderRadius: '2px',
+                  marginBottom: '5px'
+                }
               }}
             >
-              <FormControl sx={{ minWidth: 120, width: { xs: '100%', sm: 'auto' } }}>
-                <InputLabel>{t('access.itemsPerPage')}</InputLabel>
-                <Select value={limit} onChange={handleLimitChange} label={t('access.itemsPerPage')}>
-                  {LIMIT_OPTIONS.map(option => (
-                    <MenuItem key={option} value={option}>
-                      {option}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', width: { xs: '100%', sm: 'auto' } }}>
-                <Pagination
-                  count={page + (personsData.length === limit ? 1 : 0)}
-                  page={page}
-                  onChange={handlePageChange}
-                  color='primary'
-                  showFirstButton
-                  showLastButton
-                  size='small'
-                  sx={{
-                    '& .MuiPaginationItem-root': {
-                      fontSize: { xs: '0.75rem', sm: '0.875rem' }
-                    }
-                  }}
-                />
-              </Box>
-              <Box sx={{ width: { xs: 0, sm: 120 } }} />
-            </Box>
-          )}
+              {t('live.reports')}
+            </Typography>
+            {/* {error && (
+              <Typography color='error' variant='body2'>
+                {error}
+              </Typography>
+            )} */}
+          </Box>
+          <Box
+            sx={{
+              maxHeight: 'calc(100vh - 250px)',
+              overflowY: 'auto',
+              '&::-webkit-scrollbar': {
+                width: '8px'
+              },
+              '&::-webkit-scrollbar-track': {
+                background: 'rgba(0,0,0,0.1)',
+                borderRadius: '4px'
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: 'rgba(0,0,0,0.2)',
+                borderRadius: '4px',
+                '&:hover': {
+                  background: 'rgba(0,0,0,0.3)'
+                }
+              }
+            }}
+          >
+            <Grid container spacing={2}>
+              {reports.length > 0 ? (
+                reports.map(report => (
+                  <Grid sx={{ display: 'flex', flexGrow: 1 }} item xs={12} sm={6} md={4} key={`report_${report.index}`}>
+                    <LiveReportCard
+                      reportData={{
+                        id: report.id,
+                        name: report.name,
+                        last_name: report.last_name,
+                        national_code: report.national_code,
+                        access: report.access,
+                        gender: report.gender,
+                        last_image: report.last_image,
+                        index: report.index
+                      }}
+                      allReports={reports}
+                    />
+                  </Grid>
+                ))
+              ) : (
+                <Typography>{t('live.noReports')}</Typography>
+              )}
+            </Grid>
+          </Box>
         </Box>
       </Card>
     </Box>
   )
 }
+
+export default LivePage

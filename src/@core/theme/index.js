@@ -1,5 +1,6 @@
 // Next Imports
-import { Public_Sans, Vazirmatn, El_Messiri } from 'next/font/google'
+// import { Public_Sans, Vazirmatn, El_Messiri } from 'next/font/google'
+import '../../../public/fonts/vazirmatn/vazirmatn.css'
 
 // Theme Options Imports
 import overrides from './overrides'
@@ -9,9 +10,9 @@ import shadows from './shadows'
 import customShadows from './customShadows'
 import typography from './typography'
 
-const public_sans = Public_Sans({ subsets: ['latin'], weight: ['300', '400', '500', '600', '700', '800', '900'] })
-const vazirmatn = Vazirmatn({ subsets: ['arabic'], weight: ['300', '400', '500', '600', '700', '800', '900'] })
-const el_messiri = El_Messiri({ subsets: ['arabic'], weight: ['400', '500', '600', '700'] })
+// const public_sans = Public_Sans({ subsets: ['latin'], weight: ['300', '400', '500', '600', '700', '800', '900'] })
+// const vazirmatn = Vazirmatn({ subsets: ['arabic'], weight: ['300', '400', '500', '600', '700', '800', '900'] })
+// const el_messiri = El_Messiri({ subsets: ['arabic'], weight: ['400', '500', '600', '700'] })
 
 const theme = (settings, mode, direction) => {
   return {
@@ -30,7 +31,7 @@ const theme = (settings, mode, direction) => {
       }
     },
     shadows: shadows(mode),
-    typography: typography(vazirmatn.style.fontFamily),
+    typography: typography('Vazirmatn'),
     customShadows: customShadows(mode),
     mainColorChannels: {
       light: '47 43 61',

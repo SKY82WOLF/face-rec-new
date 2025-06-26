@@ -16,6 +16,7 @@ import Checkbox from '@mui/material/Checkbox'
 import Button from '@mui/material/Button'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Divider from '@mui/material/Divider'
+import Alert from '@mui/material/Alert'
 
 // Third-party Imports
 import classnames from 'classnames'
@@ -33,6 +34,7 @@ import themeConfig from '@configs/themeConfig'
 import { useImageVariant } from '@core/hooks/useImageVariant'
 import { useSettings } from '@core/hooks/useSettings'
 import { useTranslation } from '@/translations/useTranslation'
+import { useAuth } from '@/hooks/useAuth'
 
 // Animation Import
 import animationData from '../../public/images/illustrations/auth/Animation - 1749537263516.json'
@@ -65,6 +67,11 @@ const LoginV2 = ({ mode }) => {
   // States
   const [isPasswordShown, setIsPasswordShown] = useState(false)
 
+  const [formData, setFormData] = useState({
+    username: '',
+    password: ''
+  })
+
   // Vars
   const darkImg = '/images/pages/auth-mask-dark.png'
   const lightImg = '/images/pages/auth-mask-light.png'
@@ -76,8 +83,29 @@ const LoginV2 = ({ mode }) => {
   const hidden = useMediaQuery(theme.breakpoints.down('md'))
   const authBackground = useImageVariant(mode, lightImg, darkImg)
   const { t } = useTranslation()
+  const { handleLogin, loading, error } = useAuth()
 
   const handleClickShowPassword = () => setIsPasswordShown(show => !show)
+
+  const handleInputChange = e => {
+    const { name, value } = e.target
+
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handleSubmit = async e => {
+    e.preventDefault()
+
+    try {
+      await handleLogin(formData.username, formData.password)
+    } catch (err) {
+      // Error is handled in the useAuth hook
+      console.error(err)
+    }
+  }
 
   return (
     <div className='flex bs-full justify-center flex-col md:flex-row-reverse'>
@@ -99,25 +127,28 @@ const LoginV2 = ({ mode }) => {
             <Typography variant='h4'>{`به ${themeConfig.templateName} خوش آمدید ! 👋🏻`}</Typography>
             <Typography>{t('auth.pleaseSignIn')}</Typography>
           </div>
-          <form
-            noValidate
-            autoComplete='off'
-            onSubmit={e => {
-              e.preventDefault()
-              router.push('/live')
-            }}
-            className='flex flex-col gap-5 w-full'
-          >
+          {error && (
+            <Alert severity='error' className='w-full'>
+              {error}
+            </Alert>
+          )}
+          <form noValidate autoComplete='off' onSubmit={handleSubmit} className='flex flex-col gap-5 w-full'>
             <CustomTextField
               autoFocus
               fullWidth
-              label={t('auth.email')}
-              placeholder={t('auth.email')}
+              name='username'
+              value={formData.username}
+              onChange={handleInputChange}
+              label={t('auth.username')}
+              placeholder={t('auth.username')}
               dir='rtl'
               className='w-full'
             />
             <CustomTextField
               fullWidth
+              name='password'
+              value={formData.password}
+              onChange={handleInputChange}
               label={t('auth.password')}
               placeholder='············'
               id='outlined-adornment-password'
@@ -142,8 +173,8 @@ const LoginV2 = ({ mode }) => {
                 {t('auth.forgotPassword')}
               </Typography>
             </div>
-            <Button fullWidth variant='contained' type='submit'>
-              {t('auth.login')}
+            <Button fullWidth variant='contained' type='submit' disabled={loading}>
+              {loading ? t('auth.loggingIn') : t('auth.login')}
             </Button>
           </form>
         </div>

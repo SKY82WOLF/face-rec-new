@@ -138,7 +138,30 @@ const ProfilePage = () => {
         keywords='پروفایل کاربری, حساب کاربری, مدیریت اطلاعات'
       />
 
-      <Typography variant='h4'>{t('profile.title')}</Typography>
+      <Typography
+        variant='h4'
+        sx={{
+          fontWeight: 600,
+          color: 'primary.main',
+          textTransform: 'uppercase',
+          letterSpacing: '1px',
+          position: 'relative',
+          marginBottom: '10px',
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            bottom: -8,
+            left: '0',
+            width: '77px',
+            height: '3px',
+            backgroundColor: 'primary.main',
+            borderRadius: '2px',
+            marginBottom: '5px'
+          }
+        }}
+      >
+        {t('profile.title')}
+      </Typography>
 
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 6 }}>
         {/* User Info Card */}

@@ -39,9 +39,9 @@ if (process.env.NEXT_PUBLIC_API_MODE === 'production') {
 // API Routes
 export const API_ROUTES = {
   // Auth
-  login: '/auth/login',
-  logout: '/auth/logout',
-  refreshToken: '/auth/refresh',
+  login: '/login',
+  logout: '/logout',
+  refreshToken: '/token/new-tokens',
 
   // Persons
   persons: {
@@ -50,6 +50,12 @@ export const API_ROUTES = {
     update: '/persons/update',
     delete: '/persons/delete',
     changeStatus: '/persons/change/status'
+  },
+
+  // Users
+  users: {
+    list: '/users',
+    create: '/users/create'
   }
 }
 
@@ -73,3 +79,5 @@ export const {
   delete: personsDelete,
   changeStatus: personsChangeStatus
 } = API_ROUTES.persons
+
+export const { list: usersList, create: usersCreate } = API_ROUTES.users

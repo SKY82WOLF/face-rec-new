@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect } from 'react'
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { getPersons, addPerson } from '@/api/persons'
@@ -7,38 +9,45 @@ import { getPersons, addPerson } from '@/api/persons'
 const keys = 'persons'
 
 export const useGetPersons = (options = {}) => {
-  const { offset = 0, limit = 10, ...restOptions } = options
+  const { offset = 0, limit = 10 } = options
   const queryClient = useQueryClient()
 
-  return useQuery({
-    queryKey: [keys, offset, limit],
+  const queryResult = useQuery({
+    queryKey: ['persons', offset, limit],
     queryFn: () => getPersons({ offset, limit }),
-    staleTime: 30 * 1000,
-    select: data => {
-      // Return the data as is, without transforming it
-      return data || []
-    },
-    onSuccess: () => {
-      // Prefetch next page
-      const nextOffset = offset + limit
+    staleTime: 5000,
+    gcTime: 60000,
+    select: data => data || []
+  })
+
+  useEffect(() => {
+
+    // Prefetch next page
+    const nextOffset = offset + limit
+
+    queryClient.prefetchQuery({
+      queryKey: ['persons', nextOffset, limit],
+      queryFn: () => getPersons({ offset: nextOffset, limit }),
+      staleTime: 5000,
+      gcTime: 60000,
+      select: data => data || []
+    })
+
+    // Prefetch previous page if it exists
+    if (offset > 0) {
+      const prevOffset = Math.max(0, offset - limit)
 
       queryClient.prefetchQuery({
-        queryKey: [keys, nextOffset, limit],
-        queryFn: () => getPersons({ offset: nextOffset, limit })
+        queryKey: ['persons', prevOffset, limit],
+        queryFn: () => getPersons({ offset: prevOffset, limit }),
+        staleTime: 5000,
+        gcTime: 60000,
+        select: data => data || []
       })
+    }
+  }, [offset, limit, queryClient])
 
-      // Prefetch previous page if not on first page
-      if (offset > 0) {
-        const prevOffset = Math.max(0, offset - limit)
-
-        queryClient.prefetchQuery({
-          queryKey: [keys, prevOffset, limit],
-          queryFn: () => getPersons({ offset: prevOffset, limit })
-        })
-      }
-    },
-    ...restOptions
-  })
+  return queryResult
 }
 
 export const useAddPerson = (options = {}) => {
@@ -46,8 +55,7 @@ export const useAddPerson = (options = {}) => {
 
   return useMutation({
     mutationFn: addPerson,
-    onSuccess: newPerson => {
-      queryClient.setQueryData([keys], old => [...(old || []), newPerson])
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [keys] })
     },
     ...options

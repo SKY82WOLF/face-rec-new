@@ -37,11 +37,11 @@ export default function Page() {
 
   const [newPerson, setNewPerson] = useState({
     name: '',
-    lastname: '',
+    last_name: '',
     national_code: '',
     access: false,
-    gender: '',
-    userImage: null
+    gender: 1,
+    profile_image: null
   })
 
   const { data: personsData, isLoading } = useGetPersons({
@@ -57,11 +57,11 @@ export default function Page() {
     setOpenAddModal(false)
     setNewPerson({
       name: '',
-      lastname: '',
+      last_name: '',
       national_code: '',
       access: false,
       gender: '',
-      userImage: null
+      profile_image: null
     })
     setSelectedImage(null)
   }
@@ -85,7 +85,7 @@ export default function Page() {
 
       setNewPerson(prev => ({
         ...prev,
-        userImage: file
+        profile_image: file
       }))
     }
   }
@@ -111,7 +111,7 @@ export default function Page() {
   }
 
   return (
-    <Box sx={{ p: 4 }}>
+    <Box sx={{pt:3}}>
       <SEO
         title='افراد مجاز | سیستم تشخیص چهره دیانا'
         description='مدیریت افراد مجاز سیستم تشخیص چهره دیانا'
@@ -119,18 +119,38 @@ export default function Page() {
       />
 
       <Card sx={{ backgroundColor: 'rgb(47 51 73 / 0)' }}>
-        <Box sx={{ p: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant='h6'>{t('access.title')}</Typography>
+        <Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, p:3 }}>
+            <Typography variant='h4'
+            sx={{
+              fontWeight: 600,
+              color: 'primary.main',
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
+              position: 'relative',
+              marginBottom:'10px',
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                bottom: -8,
+                left: '0',
+                width: '107px',
+                height: '3px',
+                backgroundColor: 'primary.main',
+                borderRadius: '2px',
+                marginBottom: '5px'
+              }
+            }}
+            >{t('access.title')}</Typography>
             <Button variant='contained' onClick={handleOpenAddModal}>
               {t('access.addNewPerson')}
             </Button>
           </Box>
-          <Grid container spacing={2} sx={{ overflowY: 'auto', maxHeight: 'calc(100vh - 250px)' }}>
+          <Grid p={2} container spacing={2} sx={{ overflowY: 'auto', maxHeight: 'calc(100vh - 250px)' }}>
             {isLoading ? (
               <Typography>{t('access.loading')}</Typography>
             ) : personsData?.length > 0 ? (
-              personsData.map(person => (
+              personsData.map((person,index) => (
                 <Grid sx={{ display: 'flex', flexGrow: 1 }} xs={12} sm={6} md={4} key={person.id}>
                   <ReportCard
                     reportData={{
@@ -142,8 +162,10 @@ export default function Page() {
                       gender: person.gender,
                       created_at: person.created_at,
                       updated_at: person.updated_at,
-                      is_active: person.is_active
+                      is_active: person.is_active,
+                      index:index
                     }}
+                    allReports={personsData}
                   />
                 </Grid>
               ))
@@ -159,7 +181,8 @@ export default function Page() {
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 mt: 3,
-                gap: 2
+                gap: 2,
+                p:2
               }}
             >
               <FormControl sx={{ minWidth: 120, width: { xs: '100%', sm: 'auto' } }}>
@@ -243,8 +266,8 @@ export default function Page() {
             <CustomTextField
               fullWidth
               label={t('access.addPersonModal.lastName')}
-              name='lastname'
-              value={newPerson.lastname}
+              name='last_name'
+              value={newPerson.last_name}
               onChange={handleInputChange}
               margin='normal'
               required

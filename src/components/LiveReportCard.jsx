@@ -78,7 +78,7 @@ const VisuallyHiddenInput = styled('input')({
   width: 1
 })
 
-const ReportCard = ({ reportData, allReports }) => {
+const LiveReportCard = ({ reportData, allReports }) => {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -103,14 +103,23 @@ const ReportCard = ({ reportData, allReports }) => {
       access: data.access || false,
       profile_image: data.profile_image || null,
       last_image: data.last_image || null,
-      index
+      index: data.index
     })
     setIsAllowed(data.access)
   }
 
   const handleOpen = () => {
-    setCurrentIndex(reportData.index) 
-    setReportDataByIndex(reportData.index)
+    const index = allReports.findIndex(r => r.index === reportData.index)
+
+
+    if (index >= 0) {
+      setCurrentIndex(index)
+      setReportDataByIndex(index)
+    } else {
+      setCurrentIndex(0)
+      setReportDataByIndex(0)
+    }
+
     setOpen(true)
   }
 
@@ -239,7 +248,7 @@ const ReportCard = ({ reportData, allReports }) => {
       >
         <Fade in={open}>
           <Box sx={modalStyle}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
               <IconButton disabled={currentIndex === 0} onClick={() => handleNavigate(-1)}>
                 <NavigateNextIcon />
               </IconButton>
@@ -399,4 +408,4 @@ const ReportCard = ({ reportData, allReports }) => {
   )
 }
 
-export default ReportCard
+export default LiveReportCard

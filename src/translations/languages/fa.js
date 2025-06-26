@@ -51,8 +51,8 @@ const fa = {
       nationalCode: 'کد ملی',
       nationalCodeLimit: 'کد ملی باید ۱۰ رقم باشد',
       gender: 'جنسیت',
-      male: 'مرد',
-      female: 'زن',
+      male: 'آقا',
+      female: 'خانم',
       access: 'دسترسی',
       allowed: 'مجاز',
       notAllowed: 'غیر مجاز',
@@ -65,8 +65,8 @@ const fa = {
   reportCard: {
     nationalCode: 'کد ملی',
     gender: 'جنسیت',
-    male: 'مرد',
-    female: 'زن',
+    male: 'آقا',
+    female: 'خانم',
     unknown: 'نامشخص',
     status: 'وضعیت',
     allowed: 'مجاز',
@@ -79,7 +79,10 @@ const fa = {
     cancel: 'انصراف',
     userImage: 'تصویر آپلود شده',
     apiImage: 'تصویر سیستم',
-    uploadImage: 'آپلود تصویر'
+    uploadImage: 'آپلود تصویر',
+    name: 'نام',
+    lastName: 'نام خانوادگی',
+    id:'آیدی'
   },
 
   access: {
@@ -95,8 +98,8 @@ const fa = {
       nationalCode: 'کد ملی',
       nationalCodeLimit: 'کد ملی باید 10 رقم باشد',
       gender: 'جنسیت',
-      male: 'مرد',
-      female: 'زن',
+      male: 'آقا',
+      female: 'خانم',
       uploadImage: 'آپلود تصویر',
       cancel: 'انصراف',
       add: 'افزودن',
@@ -117,6 +120,7 @@ const fa = {
     fullName: 'نام و نام خانوادگی',
     username: 'نام کاربری',
     email: 'ایمیل',
+    password:'رمز عبور',
     phone: 'شماره تماس',
     address: 'آدرس',
     bio: 'درباره',
@@ -134,6 +138,8 @@ const fa = {
     confirmPassword: 'تایید رمز عبور',
     uploadAvatar: 'آپلود تصویر',
     add: 'افزودن',
+    userDetail: 'جزئیات کاربر',
+    noData:'کاربری وجود ندارد',
 
     // New translations
     roleOptions: {
@@ -252,8 +258,8 @@ const fa = {
     security: 'امنیت',
     theme: {
       theme: 'تم',
-      light: 'روشن',
-      dark: 'تیره',
+      light: 'روز',
+      dark: 'شب',
       system: 'سیستم',
       mainColor: 'رنگ اصلی',
       theming: 'شخصی سازی تم',
@@ -287,10 +293,11 @@ const fa = {
   // Authentication
   auth: {
     login: 'ورود',
+    loggingIn:'درحال ورود',
     register: 'ثبت نام',
     forgotPassword: 'فراموشی رمز عبور',
     resetPassword: 'بازنشانی رمز عبور',
-    email: 'ایمیل یا نام کاربری',
+    username: 'نام کاربری',
     password: 'رمز عبور',
     rememberMe: 'مرا به خاطر بسپار',
     dontHaveAccount: 'حساب کاربری ندارید؟',
