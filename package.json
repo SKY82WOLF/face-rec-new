@@ -28,6 +28,7 @@
     "@tanstack/react-query-devtools": "^5.81.2",
     "axios": "^1.9.0",
     "classnames": "2.5.1",
+    "jalali-moment": "^3.3.11",
     "lottie-react": "^2.4.1",
     "next": "^15.3.2",
     "react": "18.3.1",
@@ -36,6 +37,7 @@
     "react-helmet-async": "^2.0.5",
     "react-perfect-scrollbar": "1.5.8",
     "react-redux": "^9.2.0",
+    "react-toastify": "^11.0.5",
     "react-use": "17.6.0",
     "redux": "^5.0.1",
     "server-only": "0.0.1"

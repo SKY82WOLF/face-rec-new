@@ -51,5 +51,6 @@
     "iconify",
     "tanstack",
     "Vuexy"
-  ]
+  ],
+  "CodeGPT.apiKey": "CodeGPT Plus Beta"
 }

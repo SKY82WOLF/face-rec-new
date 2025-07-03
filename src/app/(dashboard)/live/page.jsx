@@ -9,6 +9,7 @@ import { Typography, Box, Grid, Card } from '@mui/material'
 import SEO from '@/components/SEO'
 import { useTranslation } from '@/translations/useTranslation'
 import LiveReportCard from '@/components/LiveReportCard'
+import { getLiveWebSocketUrl } from '@/configs/routes'
 
 const LivePage = () => {
   const { t } = useTranslation()
@@ -39,7 +40,7 @@ const LivePage = () => {
       />
 
       {/* Live Stream Section */}
-      <Card sx={{ mb: 4, backgroundColor: 'rgb(47 51 73 / 0)', pt: 3 }}>
+      <Card sx={{ mb: 4, p: 4, pt: 2 }}>
         <Box>
           <Typography
             textAlign={'center'}
@@ -51,7 +52,7 @@ const LivePage = () => {
               textTransform: 'uppercase',
               letterSpacing: '1px',
               position: 'relative',
-              marginBottom: '13px',
+              marginBottom: '1rem',
               '&::after': {
                 content: '""',
                 position: 'absolute',
@@ -61,8 +62,8 @@ const LivePage = () => {
                 width: '80px',
                 height: '3px',
                 backgroundColor: 'primary.main',
-                borderRadius: '2px',
-                marginBottom: '8px'
+                borderRadius: '5px',
+                marginBottom: '0.4rem'
               }
             }}
           >
@@ -81,7 +82,7 @@ const LivePage = () => {
             }}
           >
             <img
-              src={isPlaying ? '/images/stop-video.png' : 'http://192.168.11.39:7000'}
+              src={isPlaying ? '/images/stop-video.png' : getLiveWebSocketUrl()}
               alt='Live Stream Placeholder'
               onClick={handleTogglePlay}
               style={{
@@ -100,7 +101,7 @@ const LivePage = () => {
       </Card>
 
       {/* Reports Section */}
-      <Card sx={{ backgroundColor: 'rgb(47 51 73 / 0)', pt: 2 }}>
+      <Card sx={{p:4 , pt: 2 }}>
         <Box sx={{ p: 2 }}>
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
             <Typography
@@ -118,10 +119,10 @@ const LivePage = () => {
                   bottom: -8,
                   left: '50%',
                   transform: 'translateX(-50%)',
-                  width: '75px',
+                  width: '70px',
                   height: '3px',
                   backgroundColor: 'primary.main',
-                  borderRadius: '2px',
+                  borderRadius: '5px',
                   marginBottom: '5px'
                 }
               }}
@@ -136,6 +137,7 @@ const LivePage = () => {
           </Box>
           <Box
             sx={{
+              padding:"5px",
               maxHeight: 'calc(100vh - 250px)',
               overflowY: 'auto',
               '&::-webkit-scrollbar': {
@@ -157,17 +159,22 @@ const LivePage = () => {
             <Grid container spacing={2}>
               {reports.length > 0 ? (
                 reports.map(report => (
-                  <Grid sx={{ display: 'flex', flexGrow: 1 }} item xs={12} sm={6} md={4} key={`report_${report.index}`}>
+                  <Grid sx={{ display: 'flex', flexGrow: 1}} item xs={12} sm={6} md={4} key={`report_${report.index}`}>
                     <LiveReportCard
                       reportData={{
                         id: report.id,
-                        name: report.name,
+                        first_name: report.first_name,
                         last_name: report.last_name,
                         national_code: report.national_code,
                         access: report.access,
                         gender: report.gender,
+                        profile_image:report.profile_image,
                         last_image: report.last_image,
-                        index: report.index
+                        feature_vector:report.feature_vector,
+                        index: report.index,
+                        report_id:report.report_id,
+                        image_quality: report.image_quality,
+                        date: report.date
                       }}
                       allReports={reports}
                     />

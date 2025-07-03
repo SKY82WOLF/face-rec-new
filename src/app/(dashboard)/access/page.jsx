@@ -1,6 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
+
+import { useRouter, useSearchParams } from 'next/navigation'
 
 import {
   Button,
@@ -16,7 +18,7 @@ import {
   FormControlLabel,
   Switch,
   Pagination,
-  IconButton
+  CircularProgress
 } from '@mui/material'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 
@@ -28,20 +30,38 @@ import CustomTextField from '@/@core/components/mui/TextField'
 
 const LIMIT_OPTIONS = [5, 10, 15, 20]
 
-export default function Page() {
+function AccessContent({ initialPage = 1, initialLimit = 10 }) {
   const { t } = useTranslation()
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const [page, setPage] = useState(() => {
+    const pageFromUrl = parseInt(searchParams.get('page'), 10)
+
+    return pageFromUrl && pageFromUrl > 0 ? pageFromUrl : initialPage
+  })
+
+  const [limit, setLimit] = useState(() => {
+    const limitFromUrl = parseInt(searchParams.get('limit'), 10)
+
+    return limitFromUrl && LIMIT_OPTIONS.includes(limitFromUrl) ? limitFromUrl : initialLimit
+  })
+
   const [openAddModal, setOpenAddModal] = useState(false)
-  const [page, setPage] = useState(1)
-  const [limit, setLimit] = useState(10)
   const [selectedImage, setSelectedImage] = useState(null)
 
   const [newPerson, setNewPerson] = useState({
-    name: '',
+    first_name: '',
     last_name: '',
     national_code: '',
     access: false,
     gender: 1,
-    profile_image: null
+    profile_image: null,
+    last_image: '',
+    feature_vector: '',
+    index: '',
+    report_id: '',
+    image_quality: ''
   })
 
   const { data: personsData, isLoading } = useGetPersons({
@@ -51,12 +71,20 @@ export default function Page() {
 
   const addPersonMutation = useAddPerson()
 
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams)
+
+    params.set('page', page.toString())
+    params.set('limit', limit.toString())
+    router.replace(`?${params.toString()}`, { scroll: false })
+  }, [page, limit, router, searchParams])
+
   const handleOpenAddModal = () => setOpenAddModal(true)
 
   const handleCloseAddModal = () => {
     setOpenAddModal(false)
     setNewPerson({
-      name: '',
+      first_name: '',
       last_name: '',
       national_code: '',
       access: false,
@@ -82,7 +110,6 @@ export default function Page() {
       const previewUrl = URL.createObjectURL(file)
 
       setSelectedImage(previewUrl)
-
       setNewPerson(prev => ({
         ...prev,
         profile_image: file
@@ -94,7 +121,12 @@ export default function Page() {
     e.preventDefault()
 
     try {
-      await addPersonMutation.mutateAsync(newPerson)
+      const submitData = {
+        ...newPerson,
+        access: newPerson.access ? 'allowed' : 'not_allowed'
+      }
+
+      await addPersonMutation.mutateAsync(submitData)
       handleCloseAddModal()
     } catch (error) {
       console.error('Failed to add person:', error)
@@ -102,120 +134,140 @@ export default function Page() {
   }
 
   const handlePageChange = (event, value) => {
-    setPage(value)
+    if (value && !isNaN(value)) {
+      const totalPages = Math.ceil((personsData?.total || 0) / limit)
+      const newPage = Math.max(1, Math.min(value, totalPages))
+
+      setPage(newPage)
+    }
   }
 
   const handleLimitChange = event => {
     setLimit(event.target.value)
-    setPage(1) // Reset to first page when changing limit
+    setPage(1)
   }
 
   return (
-    <Box sx={{pt:3}}>
+    <Box sx={{ pt: 3 }}>
       <SEO
-        title='افراد مجاز | سیستم تشخیص چهره دیانا'
-        description='مدیریت افراد مجاز سیستم تشخیص چهره دیانا'
-        keywords='افراد مجاز, مدیریت دسترسی, تشخیص چهره دیانا'
+        title='اشخاص مجاز | سیستم تشخیص چهره دیانا'
+        description='مدیریت اشخاص مجاز سیستم تشخیص چهره دیانا'
+        keywords='اشخاص مجاز, مدیریت دسترسی, تشخیص چهره دیانا'
       />
 
-      <Card sx={{ backgroundColor: 'rgb(47 51 73 / 0)' }}>
-        <Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, p:3 }}>
-            <Typography variant='h4'
-            sx={{
-              fontWeight: 600,
-              color: 'primary.main',
-              textTransform: 'uppercase',
-              letterSpacing: '1px',
-              position: 'relative',
-              marginBottom:'10px',
-              '&::after': {
-                content: '""',
-                position: 'absolute',
-                bottom: -8,
-                left: '0',
-                width: '107px',
-                height: '3px',
-                backgroundColor: 'primary.main',
-                borderRadius: '2px',
-                marginBottom: '5px'
-              }
-            }}
-            >{t('access.title')}</Typography>
-            <Button variant='contained' onClick={handleOpenAddModal}>
-              {t('access.addNewPerson')}
-            </Button>
-          </Box>
-          <Grid p={2} container spacing={2} sx={{ overflowY: 'auto', maxHeight: 'calc(100vh - 250px)' }}>
-            {isLoading ? (
-              <Typography>{t('access.loading')}</Typography>
-            ) : personsData?.length > 0 ? (
-              personsData.map((person,index) => (
-                <Grid sx={{ display: 'flex', flexGrow: 1 }} xs={12} sm={6} md={4} key={person.id}>
-                  <ReportCard
-                    reportData={{
-                      id: person.id,
-                      name: person.name,
-                      last_name: person.last_name,
-                      national_code: person.national_code,
-                      access: person.access,
-                      gender: person.gender,
-                      created_at: person.created_at,
-                      updated_at: person.updated_at,
-                      is_active: person.is_active,
-                      index:index
-                    }}
-                    allReports={personsData}
-                  />
-                </Grid>
-              ))
-            ) : (
-              <Typography>{t('access.noPersons')}</Typography>
-            )}
-          </Grid>
-          {personsData?.length > 0 && (
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' },
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                mt: 3,
-                gap: 2,
-                p:2
-              }}
-            >
-              <FormControl sx={{ minWidth: 120, width: { xs: '100%', sm: 'auto' } }}>
-                <InputLabel>{t('access.itemsPerPage')}</InputLabel>
-                <Select value={limit} onChange={handleLimitChange} label={t('access.itemsPerPage')}>
-                  {LIMIT_OPTIONS.map(option => (
-                    <MenuItem key={option} value={option}>
-                      {option}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', width: { xs: '100%', sm: 'auto' } }}>
-                <Pagination
-                  count={page + (personsData.length === limit ? 1 : 0)}
-                  page={page}
-                  onChange={handlePageChange}
-                  color='primary'
-                  showFirstButton
-                  showLastButton
-                  size='small'
-                  sx={{
-                    '& .MuiPaginationItem-root': {
-                      fontSize: { xs: '0.75rem', sm: '0.875rem' }
-                    }
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, p: 3 }}>
+        <Typography
+          variant='h4'
+          sx={{
+            fontWeight: 600,
+            color: 'primary.main',
+            textTransform: 'uppercasemq',
+            letterSpacing: '1px',
+            position: 'relative',
+            marginBottom: '10px',
+            '&::after': {
+              content: '""',
+              position: 'absolute',
+              bottom: -8,
+              left: '0',
+              width: '130px',
+              height: '3px',
+              backgroundColor: 'primary.main',
+              borderRadius: '2px',
+              marginBottom: '5px'
+            }
+          }}
+        >
+          {t('access.title')}
+        </Typography>
+        <Button variant='contained' onClick={handleOpenAddModal}>
+          {t('access.addNewPerson')}
+        </Button>
+      </Box>
+      <Card
+        elevation={0}
+        sx={{
+          backgroundColor:
+            isLoading || !personsData?.data?.length ? 'var(--mui-palette-background-paper)' : 'transparent',
+          boxShadow: isLoading || !personsData?.data?.length ? 'var(--mui-customShadows-md)' : 'none'
+        }}
+      >
+        <Grid
+          p={2}
+          container
+          spacing={2}
+          sx={{ overflowY: 'auto', maxHeight: 'calc(100vh - 250px)', justifyContent: 'center' }}
+        >
+          {isLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+              <CircularProgress />
+            </Box>
+          ) : personsData?.data?.length > 0 ? (
+            personsData.data.map((person, index) => (
+              <Grid sx={{ display: 'flex', flexGrow: 1, minWidth: '330px' }} xs={12} sm={6} md={4} key={person.id}>
+                <ReportCard
+                  reportData={{
+                    id: person.id,
+                    first_name: person.first_name,
+                    last_name: person.last_name,
+                    national_code: person.national_code,
+                    access: person.access,
+                    gender: person.gender,
+                    profile_image: person.profile_image,
+                    index: index
                   }}
+                  allReports={personsData.data}
                 />
-              </Box>
-              <Box sx={{ width: { xs: 0, sm: 120 } }} /> {/* Spacer to balance the layout */}
+              </Grid>
+            ))
+          ) : (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+              <Typography>{t('access.noPersons')}</Typography>
             </Box>
           )}
-        </Box>
+        </Grid>
       </Card>
+      {personsData?.data?.length > 0 && (
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mt: 3,
+            gap: 2,
+            p: 2
+          }}
+        >
+          <FormControl sx={{ minWidth: 120, width: { xs: '100%', sm: 'auto' } }}>
+            <InputLabel>{t('access.itemsPerPage')}</InputLabel>
+            <Select value={limit} onChange={handleLimitChange} label={t('access.itemsPerPage')}>
+              {LIMIT_OPTIONS.map(option => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', width: { xs: '100%', sm: 'auto' } }}>
+            <Pagination
+              count={Math.ceil((personsData?.total || 0) / limit)}
+              page={page}
+              onChange={handlePageChange}
+              color='primary'
+              showFirstButton
+              showLastButton
+              size='small'
+              sx={{
+                '& .MuiPaginationItem-root': {
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                }
+              }}
+            />
+          </Box>
+          <Box sx={{ width: { xs: 0, sm: 120 } }} /> {/* Spacer to balance the layout */}
+        </Box>
+      )}
 
       {/* Add Person Modal */}
       <Modal open={openAddModal} onClose={handleCloseAddModal} aria-labelledby='add-person-modal'>
@@ -244,7 +296,7 @@ export default function Page() {
                 sx={{
                   width: 150,
                   height: 150,
-                  borderRadius: '50%',
+                  borderRadius: '10%',
                   objectFit: 'cover',
                   mb: 2
                 }}
@@ -257,8 +309,8 @@ export default function Page() {
             <CustomTextField
               fullWidth
               label={t('access.addPersonModal.name')}
-              name='name'
-              value={newPerson.name}
+              name='first_name'
+              value={newPerson.first_name}
               onChange={handleInputChange}
               margin='normal'
               required
@@ -331,5 +383,13 @@ export default function Page() {
         </Box>
       </Modal>
     </Box>
+  )
+}
+
+export default function Page() {
+  return (
+    <Suspense>
+      <AccessContent />
+    </Suspense>
   )
 }

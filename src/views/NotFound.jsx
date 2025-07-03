@@ -51,7 +51,7 @@ const NotFound = ({ mode }) => {
     <div className='flex items-center justify-center min-bs-[100dvh] relative p-6 overflow-x-hidden'>
       <div className='flex items-center flex-col text-center'>
         <div className='flex flex-col gap-2 is-[90vw] sm:is-[unset] mbe-6'>
-          <Typography fontFamily={"monospace"} className='font-medium text-8xl' color='text.primary'>
+          <Typography fontFamily={'monospace'} className='font-medium text-8xl' color='text.primary'>
             404
           </Typography>
           <Typography variant='h4'>{t('notFound.title')}</Typography>
@@ -60,11 +60,7 @@ const NotFound = ({ mode }) => {
         <Button href='/live' component={Link} variant='contained'>
           {t('notFound.backToHome')}
         </Button>
-        <StyledSVG
-          xmlns='http://www.w3.org/2000/svg'
-          viewBox='0 0 799.031 618.112'
-          className='mbs-1 md:mbs-2 lg:mbs-3'
-        >
+        <StyledSVG xmlns='http://www.w3.org/2000/svg' viewBox='0 0 799.031 618.112' className='mbs-1 md:mbs-2 lg:mbs-3'>
           <g transform='translate(-893 -197)'>
             <path
               d='M15.18,488.763c0,.872.478,1.573,1.073,1.573h535.1c.6,0,1.073-.7,1.073-1.573s-.478-1.573-1.073-1.573H16.253C15.658,487.191,15.18,487.891,15.18,488.763Z'

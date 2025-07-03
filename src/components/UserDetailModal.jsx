@@ -167,7 +167,9 @@ const UserDetailModal = ({ open, onClose, user }) => {
               </Typography>
 
               {!isEditing && (
-                <Button variant='contained' sx={{ mt: 4 }} fullWidth onClick={() => setIsEditing(true)}>
+                
+                //onClick={() => setIsEditing(true)}
+                <Button variant='contained' sx={{ mt: 4 }} fullWidth>
                   {t('profile.editProfile')}
                 </Button>
               )}

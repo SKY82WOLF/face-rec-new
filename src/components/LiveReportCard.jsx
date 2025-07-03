@@ -1,46 +1,40 @@
 import { useState, useRef } from 'react'
 
-import {
-  Card,
-  Box,
-  Typography,
-  Button,
-  Modal,
-  Fade,
-  Backdrop,
-  TextField,
-  Switch,
-  FormControlLabel,
-  Avatar,
-  Divider,
-  IconButton,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Grid
-} from '@mui/material'
+import { Card, Box, Typography, Button, Modal, Fade, Backdrop, Avatar, Divider, IconButton, Grid } from '@mui/material'
 import { styled } from '@mui/system'
 import LockIcon from '@mui/icons-material/Lock'
 import LockOpenIcon from '@mui/icons-material/LockOpen'
-import PersonAddIcon from '@mui/icons-material/PersonAdd'
 import Info from '@mui/icons-material/Info'
-import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore'
+import PersonAddIcon from '@mui/icons-material/PersonAdd'
+import EditIcon from '@mui/icons-material/Edit'
+
+import moment from 'jalali-moment'
 
 import { useTranslation } from '@/translations/useTranslation'
 import { useAddPerson } from '@/hooks/usePersons'
+import { useSettings } from '@core/hooks/useSettings'
+import AddModal from './AddModal'
+import EditModal from './EditModal'
 
-const StyledReportCard = styled(Card)(({ theme }) => ({
+const StyledReportCard = styled(Card)(({ theme, mode }) => ({
   display: 'flex',
   flexDirection: 'column',
   padding: theme.spacing(2),
   marginBottom: theme.spacing(2),
-  flexGrow: 1
+  flexGrow: 1,
+  border: `2px solid ${mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.12)'}`,
+  boxShadow: mode === 'dark' ? '0px 4px 8px rgba(0, 0, 0, 0.3), 0px 2px 4px rgba(0, 0, 0, 0.2)' : theme.shadows[1],
+  transition: 'all 0.2s ease-in-out',
+  '&:hover': {
+    boxShadow:
+      mode === 'dark' ? '0px 6px 12px rgba(36, 18, 18, 0.4), 0px 4px 8px rgba(0, 0, 0, 0.3)' : theme.shadows[4],
+    transform: 'translateY(-2px)'
+  }
 }))
 
-const modalStyle = {
+const modalStyle = mode => ({
   position: 'absolute',
   top: '50%',
   left: '50%',
@@ -50,45 +44,34 @@ const modalStyle = {
   bgcolor: 'background.paper',
   borderRadius: 2,
   boxShadow: 24,
-  p: 4
-}
-
-const editModalStyle = {
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: '90%',
-  maxWidth: 500,
-  bgcolor: 'background.paper',
-  borderRadius: 2,
-  boxShadow: 24,
-  p: 4
-}
-
-const VisuallyHiddenInput = styled('input')({
-  clip: 'rect(0 0 0 0)',
-  clipPath: 'inset(50%)',
-  height: 1,
-  overflow: 'hidden',
-  position: 'absolute',
-  bottom: 0,
-  left: 0,
-  whiteSpace: 'nowrap',
-  width: 1
+  p: 4,
+  border: `1px solid ${mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)'}`
 })
 
 const LiveReportCard = ({ reportData, allReports }) => {
   const { t } = useTranslation()
+  const { settings } = useSettings()
   const [open, setOpen] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [addOpen, setAddOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [isAllowed, setIsAllowed] = useState(reportData.access)
   const [modalData, setModalData] = useState(reportData)
-  const [formData, setFormData] = useState({})
-  const fileInputRef = useRef(null)
-
   const addPersonMutation = useAddPerson()
+
+  const getCurrentMode = () => {
+    if (settings?.mode === 'system') {
+      if (typeof window !== 'undefined') {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+      }
+
+      return 'light'
+    }
+
+    return settings?.mode || 'light'
+  }
+
+  const currentMode = getCurrentMode()
 
   const setReportDataByIndex = index => {
     const data = allReports[index]
@@ -96,21 +79,22 @@ const LiveReportCard = ({ reportData, allReports }) => {
     setCurrentIndex(index)
     setModalData({
       id: data.id || '',
-      name: data.name || '',
+      first_name: data.first_name || '',
       last_name: data.last_name || '',
       national_code: data.national_code || '',
       gender: data.gender ?? '',
       access: data.access || false,
       profile_image: data.profile_image || null,
       last_image: data.last_image || null,
-      index: data.index
+      index: data.index,
+      feature_vector: data.feature_vector,
+      report_id: data.report_id,
+      date: data.date
     })
-    setIsAllowed(data.access)
   }
 
   const handleOpen = () => {
     const index = allReports.findIndex(r => r.index === reportData.index)
-
 
     if (index >= 0) {
       setCurrentIndex(index)
@@ -125,59 +109,27 @@ const LiveReportCard = ({ reportData, allReports }) => {
 
   const handleClose = () => setOpen(false)
 
+  const handleAddOpen = () => {
+    setAddOpen(true)
+    setOpen(false)
+  }
+
   const handleEditOpen = () => {
-    setFormData(modalData)
     setEditOpen(true)
     setOpen(false)
   }
 
+  const handleAddClose = () => setAddOpen(false)
+
   const handleEditClose = () => setEditOpen(false)
 
-  const handleInputChange = e => {
-    const { name, value } = e.target
-
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-  }
-
-  const handleStatusChange = event => {
-    setIsAllowed(event.target.checked)
-    setFormData(prev => ({
-      ...prev,
-      access: event.target.checked
-    }))
-  }
-
-  const handleImageUpload = event => {
-    const file = event.target.files[0]
-
-    if (file) {
-      const reader = new FileReader()
-
-      reader.onloadend = () => {
-        setFormData(prev => ({
-          ...prev,
-          profile_image: reader.result
-        }))
-      }
-
-      reader.readAsDataURL(file)
-    }
-  }
-
-  const handleSubmit = async () => {
+  const handleSubmit = async formData => {
     try {
-      const submitData = { ...formData }
-
-      if (!isAllowed) {
-        await addPersonMutation.mutateAsync(submitData)
-      }
-
+      await addPersonMutation.mutateAsync(formData)
+      handleAddClose()
       handleEditClose()
     } catch (error) {
-      console.error('Failed to add person:', error)
+      console.error('Failed to add/edit person:', error)
     }
   }
 
@@ -189,16 +141,42 @@ const LiveReportCard = ({ reportData, allReports }) => {
     }
   }
 
-  const displayImage = reportData.profile_image || reportData.last_image || '/images/avatars/1.png'
+  // Format time for main card (HH:mm:ss)
+  const formatTime = date => {
+    if (!date) return t('reportCard.unknown')
+
+    return moment(date).format('HH:mm:ss')
+  }
+
+  // Format Shamsi date and time for modal
+  const formatShamsiDate = date => {
+    if (!date) return t('reportCard.unknown')
+
+    return moment(date).locale('fa').format('YYYY/MM/DD')
+  }
+
+  const formatShamsiTime = date => {
+    if (!date) return t('reportCard.unknown')
+
+    return moment(date).format('HH:mm:ss')
+  }
+
+  const displayImage = reportData.last_image || reportData.profile_image || '/images/avatars/1.png'
+
 
   return (
     <>
-      <StyledReportCard>
+      <StyledReportCard mode={currentMode}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <Avatar variant='rounded' src={displayImage} alt={reportData.name} sx={{ width: 60, height: 60, mr: 2 }} />
+          <Avatar
+            variant='rounded'
+            src={displayImage}
+            alt={reportData.first_name}
+            sx={{ width: 60, height: 60, mr: 2 }}
+          />
           <Box sx={{ flexGrow: 1 }}>
             <Typography variant='h6' gutterBottom>
-              {`${reportData.name || ''} ${reportData.last_name || ''}`}
+              {`${reportData.first_name || ''} ${reportData.last_name || ''}`}
             </Typography>
             <Typography variant='body2' color='textSecondary'>
               {t('reportCard.id')}: {reportData.id || t('reportCard.unknown')}
@@ -232,6 +210,9 @@ const LiveReportCard = ({ reportData, allReports }) => {
             {isAllowed ? t('reportCard.allowed') : t('reportCard.notAllowed')}
             {isAllowed ? <LockOpenIcon sx={{ fontSize: 16, ml: 0.5 }} /> : <LockIcon sx={{ fontSize: 16, ml: 0.5 }} />}
           </Typography>
+          <Typography variant='body2' color='var(--mui-palette-primary-main)' sx={{ ml: 1 }}>
+            {formatTime(reportData.date)}
+          </Typography>
           <Button variant='outlined' size='small' onClick={handleOpen} startIcon={<Info />}>
             {t('reportCard.details')}
           </Button>
@@ -247,8 +228,8 @@ const LiveReportCard = ({ reportData, allReports }) => {
         slotProps={{ backdrop: { timeout: 500 } }}
       >
         <Fade in={open}>
-          <Box sx={modalStyle}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+          <Box sx={modalStyle(currentMode)}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
               <IconButton disabled={currentIndex === 0} onClick={() => handleNavigate(-1)}>
                 <NavigateNextIcon />
               </IconButton>
@@ -262,8 +243,8 @@ const LiveReportCard = ({ reportData, allReports }) => {
                   <Typography variant='subtitle1'>{t('reportCard.userImage')}</Typography>
                   <Avatar
                     variant='rounded'
-                    src={modalData.profile_image || '/images/defaultAvatar.png'}
-                    alt={modalData.name}
+                    src={modalData.profile_image || '/images/avatars/1.png'}
+                    alt={modalData.first_name}
                     sx={{ width: 200, height: 200, mx: 'auto', mb: 2 }}
                   />
                 </Box>
@@ -273,15 +254,15 @@ const LiveReportCard = ({ reportData, allReports }) => {
                   <Typography variant='subtitle1'>{t('reportCard.apiImage')}</Typography>
                   <Avatar
                     variant='rounded'
-                    src={modalData.last_image || '/images/defaultAvatar.png'}
-                    alt={modalData.name}
+                    src={modalData.last_image || '/images/avatars/1.png'}
+                    alt={modalData.first_name}
                     sx={{ width: 200, height: 200, mx: 'auto', mb: 2 }}
                   />
                 </Box>
               </Grid>
             </Grid>
             <Box>
-              <Typography variant='h5'>{`${modalData.name || ''} ${modalData.last_name || ''}`}</Typography>
+              <Typography variant='h5'>{`${modalData.first_name || ''} ${modalData.last_name || ''}`}</Typography>
               <Typography variant='body1' color='textSecondary'>
                 {t('reportCard.nationalCode')}: {modalData.national_code || t('reportCard.unknown')}
               </Typography>
@@ -296,13 +277,19 @@ const LiveReportCard = ({ reportData, allReports }) => {
                     ? t('reportCard.female')
                     : t('reportCard.unknown')}
               </Typography>
+              <Typography variant='body1' color='textSecondary'>
+                {t('reportCard.date')}: {formatShamsiDate(modalData.date)}
+              </Typography>
+              <Typography variant='body1' color='textSecondary'>
+                {t('reportCard.time')}: {formatShamsiTime(modalData.date)}
+              </Typography>
               <Typography
                 variant='body1'
-                color={isAllowed ? 'success.main' : 'error.main'}
+                color={modalData.access ? 'success.main' : 'error.main'}
                 sx={{ display: 'flex', alignItems: 'center' }}
               >
-                {t('reportCard.status')}: {isAllowed ? t('reportCard.allowed') : t('reportCard.notAllowed')}
-                {isAllowed ? (
+                {t('reportCard.status')}: {modalData.access ? t('reportCard.allowed') : t('reportCard.notAllowed')}
+                {modalData.access ? (
                   <LockOpenIcon sx={{ fontSize: 20, ml: 0.5 }} />
                 ) : (
                   <LockIcon sx={{ fontSize: 20, ml: 0.5 }} />
@@ -313,97 +300,56 @@ const LiveReportCard = ({ reportData, allReports }) => {
               <Button variant='outlined' onClick={handleClose}>
                 {t('common.close')}
               </Button>
-              {!isAllowed && (
-                <Button variant='contained' onClick={handleEditOpen} startIcon={<PersonAddIcon />}>
-                  {t('reportCard.addToAllowed')}
-                </Button>
-              )}
+              <Button
+                variant='contained'
+                onClick={modalData.id <= 0 ? handleAddOpen : handleEditOpen}
+                startIcon={modalData.id <= 0 ? <PersonAddIcon /> : <EditIcon />}
+              >
+                {modalData.id <= 0 ? t('reportCard.addToAllowed') : t('reportCard.editInfo')}
+              </Button>
             </Box>
           </Box>
         </Fade>
       </Modal>
 
-      {/* Edit/Add Modal */}
-      <Modal
-        open={editOpen}
-        onClose={handleEditClose}
-        closeAfterTransition
-        slots={{ backdrop: Backdrop }}
-        slotProps={{ backdrop: { timeout: 500 } }}
-      >
-        <Fade in={editOpen}>
-          <Box sx={editModalStyle}>
-            <Typography variant='h6'>{t('reportCard.addToAllowed')}</Typography>
-            <Box sx={{ mt: 3 }}>
-              <Box sx={{ textAlign: 'center', mb: 3 }}>
-                <Avatar
-                  variant='rounded'
-                  src={formData.profile_image || '/images/defaultAvatar.png'}
-                  alt={formData.name}
-                  sx={{ width: 150, height: 150, mx: 'auto', mb: 2 }}
-                />
-                <Button component='label' variant='outlined' startIcon={<CloudUploadIcon />}>
-                  {t('reportCard.uploadImage')}
-                  <VisuallyHiddenInput type='file' ref={fileInputRef} onChange={handleImageUpload} accept='image/*' />
-                </Button>
-              </Box>
-              <TextField
-                fullWidth
-                variant='outlined'
-                label={t('reportCard.name')}
-                name='name'
-                value={formData.name || ''}
-                onChange={handleInputChange}
-                sx={{ mb: 2 }}
-              />
-              <TextField
-                fullWidth
-                variant='outlined'
-                label={t('reportCard.lastName')}
-                name='last_name'
-                value={formData.last_name || ''}
-                onChange={handleInputChange}
-                sx={{ mb: 2 }}
-              />
-              <TextField
-                fullWidth
-                variant='outlined'
-                label={t('reportCard.nationalCode')}
-                name='national_code'
-                value={formData.national_code || ''}
-                onChange={handleInputChange}
-                sx={{ mb: 2 }}
-              />
-              <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel id='gender-label'>{t('reportCard.gender')}</InputLabel>
-                <Select
-                  labelId='gender-label'
-                  name='gender'
-                  value={formData.gender ?? ''} // Use nullish coalescing for undefined/null
-                  onChange={handleInputChange}
-                  label={t('reportCard.gender')}
-                >
-                  <MenuItem value={false}>{t('reportCard.male')}</MenuItem>
-                  <MenuItem value={true}>{t('reportCard.female')}</MenuItem>
-                </Select>
-              </FormControl>
-              <FormControlLabel
-                control={<Switch checked={isAllowed} onChange={handleStatusChange} />}
-                label={isAllowed ? t('reportCard.allowed') : t('reportCard.notAllowed')}
-                sx={{ mb: 2 }}
-              />
-            </Box>
-            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-              <Button variant='outlined' onClick={handleEditClose}>
-                {t('reportCard.cancel')}
-              </Button>
-              <Button variant='contained' onClick={handleSubmit}>
-                {t('reportCard.add')}
-              </Button>
-            </Box>
-          </Box>
-        </Fade>
-      </Modal>
+      {/* Add Modal */}
+      <AddModal
+        open={addOpen}
+        onClose={handleAddClose}
+        onSubmit={handleSubmit}
+        initialData={{
+          id: modalData.id,
+          first_name: modalData.first_name || '',
+          last_name: modalData.last_name || '',
+          national_code: modalData.national_code || '',
+          gender: modalData.gender ?? '',
+          access: modalData.access || false,
+          profile_image: modalData.profile_image || null,
+          feature_vector: modalData.feature_vector,
+          report_id: modalData.report_id,
+          image_quality: modalData.image_quality
+        }}
+        mode={currentMode}
+      />
+
+      {/* Edit Modal */}
+      {/* <EditModal
+          open={editOpen}
+          onClose={handleEditClose}
+          onSubmit={handleSubmit}
+          initialData={{
+            id: modalData.id,
+            first_name: modalData.first_name || '',
+            last_name: modalData.last_name || '',
+            national_code: modalData.national_code || '',
+            gender: modalData.gender ?? '',
+            access: modalData.access || false,
+            profile_image: modalData.profile_image || null,
+            feature_vector: modalData.feature_vector,
+            report_id: modalData.report_id
+          }}
+          mode={currentMode}
+        /> */}
     </>
   )
 }

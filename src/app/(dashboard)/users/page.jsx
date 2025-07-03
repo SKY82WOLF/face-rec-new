@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 import {
   Box,
@@ -29,9 +29,9 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  Stack
 } from '@mui/material'
-
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -45,15 +45,26 @@ import UserDetailModal from '@/components/UserDetailModal'
 
 const LIMIT_OPTIONS = [5, 10, 15, 20]
 
-export default function UsersPage() {
+function UsersContent({ initialPage = 1, initialLimit = 10 }) {
   const { t } = useTranslation()
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   const [openAddModal, setOpenAddModal] = useState(false)
   const [selectedImage, setSelectedImage] = useState(null)
   const [selectedUser, setSelectedUser] = useState(null)
-  const [page, setPage] = useState(1)
-  const [limit, setLimit] = useState(10)
+
+  const [page, setPage] = useState(() => {
+    const pageFromUrl = parseInt(searchParams.get('page'), 10)
+
+    return pageFromUrl && pageFromUrl > 0 ? pageFromUrl : initialPage
+  })
+
+  const [limit, setLimit] = useState(() => {
+    const limitFromUrl = parseInt(searchParams.get('limit'), 10)
+
+    return limitFromUrl && LIMIT_OPTIONS.includes(limitFromUrl) ? limitFromUrl : initialLimit
+  })
 
   const offset = (page - 1) * limit
 
@@ -65,7 +76,15 @@ export default function UsersPage() {
     is_active: false
   })
 
-  const { users, isLoading, addUser } = useUsers(offset, limit)
+  const { users, total, isLoading, addUser } = useUsers(offset, limit)
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams)
+
+    params.set('page', page.toString())
+    params.set('limit', limit.toString())
+    router.replace(`?${params.toString()}`, { scroll: false })
+  }, [page, limit, router, searchParams])
 
   const handleOpenAddModal = () => setOpenAddModal(true)
 
@@ -94,22 +113,40 @@ export default function UsersPage() {
       const previewUrl = URL.createObjectURL(file)
 
       setSelectedImage(previewUrl)
+      setNewUser(prev => ({ ...prev, avatar: file }))
     }
   }
 
   const handleAddUser = async e => {
     e.preventDefault()
-    await addUser(newUser)
+    const formData = new FormData()
+
+    formData.append('full_name', newUser.full_name)
+    formData.append('username', newUser.username)
+    formData.append('email', newUser.email)
+    formData.append('password', newUser.password)
+    formData.append('is_active', newUser.is_active)
+
+    if (newUser.avatar) {
+      formData.append('avatar', newUser.avatar)
+    }
+
+    await addUser(formData)
     handleCloseAddModal()
   }
 
   const handlePageChange = (event, value) => {
-    setPage(value)
+    if (value && !isNaN(value)) {
+      const totalPages = Math.ceil((total || 0) / limit)
+      const newPage = Math.max(1, Math.min(value, totalPages))
+
+      setPage(newPage)
+    }
   }
 
   const handleLimitChange = event => {
     setLimit(event.target.value)
-    setPage(1) // Reset to first page when changing limit
+    setPage(1)
   }
 
   return (
@@ -161,7 +198,7 @@ export default function UsersPage() {
         </Button>
       </Box>
 
-      <Card elevation={0}>
+      <Card elevation={0} sx={{ backgroundColor: { xs: '#00000000' } }}>
         <Box sx={{ display: 'contents', p: { xs: 2, sm: 4 } }}>
           {isLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
@@ -170,7 +207,7 @@ export default function UsersPage() {
           ) : users.length === 0 ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
               <Typography variant='h6' color='text.secondary'>
-                {t('users.noData') || 'هیچ کاربری یافت نشد'}
+                {t('users.noData')}
               </Typography>
             </Box>
           ) : (
@@ -193,7 +230,7 @@ export default function UsersPage() {
                       {users.map(user => (
                         <TableRow key={user.id} hover>
                           <TableCell sx={{ textAlign: 'center' }}>
-                            <Avatar src='/images/avatars/1.png' alt={user.full_name} />
+                            <Avatar src={user.avatar || '/images/avatars/1.png'} alt={user.full_name} />
                           </TableCell>
                           <TableCell sx={{ textAlign: 'center' }}>{user.full_name}</TableCell>
                           <TableCell sx={{ textAlign: 'center' }}>{user.username}</TableCell>
@@ -229,56 +266,76 @@ export default function UsersPage() {
               </Box>
 
               {/* Mobile Cards */}
-              <Box sx={{ display: { xs: 'contents', md: 'none' } }}>
-                {users.map(user => (
-                  <Card key={user.id} sx={{ gap: 2, mb: 2, p: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                      <Avatar src='/images/avatars/1.png' alt={user.full_name} sx={{ width: 50, height: 50 }} />
-                      <Box sx={{ flex: 1 }}>
-                        <Typography variant='subtitle1' sx={{ fontWeight: 600 }}>
-                          {user.full_name}
-                        </Typography>
-                        <Typography variant='body2' color='text.secondary'>
-                          @{user.username}
-                        </Typography>
+              <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+                <Stack spacing={2}>
+                  {users.map(user => (
+                    <Card
+                      key={user.id}
+                      variant='outlined'
+                      sx={{
+                        p: 2,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        mb: 1
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                        <Avatar
+                          alt={user.full_name}
+                          src={user.avatar || '/images/avatars/1.png'}
+                          sx={{ width: 60, height: 60 }}
+                        />
+                        <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                            <i className='tabler-user' style={{ marginRight: '8px' }} />
+                            <Typography variant='body2'>{user.full_name}</Typography>
+                          </Box>
+                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                            <i className='tabler-at' style={{ marginRight: '8px' }} />
+                            <Typography variant='body2'>{user.username}</Typography>
+                          </Box>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <i className='tabler-mail' style={{ marginRight: '8px' }} />
+                            <Typography variant='caption'>{user.email}</Typography>
+                          </Box>
+                        </Box>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              border: '1px solid',
+                              borderColor: 'divider',
+                              borderRadius: 1,
+                              px: 1
+                            }}
+                          >
+                            <i
+                              className={user.is_active ? 'tabler-lock-open' : 'tabler-lock'}
+                              style={{ color: user.is_active ? 'green' : 'red', marginRight: '5px' }}
+                            />
+                            <Typography variant='body2' color={user.is_active ? 'green' : 'red'}>
+                              {t(`users.statusOptions.${user.is_active ? 'active' : 'inactive'}`)}
+                            </Typography>
+                          </Box>
+                          <Box>
+                            <IconButton
+                              onClick={() => setSelectedUser(user)}
+                              color='primary'
+                              aria-label={t('users.editUser')}
+                            >
+                              <EditIcon />
+                            </IconButton>
+                            <IconButton color='error' aria-label={t('users.deleteUser')}>
+                              <DeleteIcon />
+                            </IconButton>
+                          </Box>
+                        </Box>
                       </Box>
-                    </Box>
-
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Typography variant='body2' color='text.secondary'>
-                          {t('users.email')}:
-                        </Typography>
-                        <Typography variant='body2'>{user.email}</Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Typography variant='body2' color='text.secondary'>
-                          {t('users.status')}:
-                        </Typography>
-                        <Typography
-                          variant='body2'
-                          color={user.is_active ? 'success.main' : 'error.main'}
-                          sx={{ fontWeight: 600 }}
-                        >
-                          {t(`users.statusOptions.${user.is_active ? 'active' : 'inactive'}`)}
-                        </Typography>
-                      </Box>
-                    </Box>
-
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                      <IconButton
-                        onClick={() => setSelectedUser(user)}
-                        color='primary'
-                        aria-label={t('users.editUser')}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton color='error' aria-label={t('users.deleteUser')}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </Box>
-                  </Card>
-                ))}
+                    </Card>
+                  ))}
+                </Stack>
               </Box>
             </>
           )}
@@ -308,7 +365,7 @@ export default function UsersPage() {
           </FormControl>
           <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', width: { xs: '100%', sm: 'auto' } }}>
             <Pagination
-              count={page + (users.length === limit ? 1 : 0)}
+              count={Math.ceil((total || 0) / limit)}
               page={page}
               onChange={handlePageChange}
               color='primary'
@@ -393,5 +450,13 @@ export default function UsersPage() {
         </form>
       </Dialog>
     </Box>
+  )
+}
+
+export default function UsersPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <UsersContent />
+    </Suspense>
   )
 }

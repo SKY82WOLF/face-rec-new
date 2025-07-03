@@ -1,5 +1,5 @@
 import axiosInstance from './axios'
-import { personsList, personsAdd } from '@/configs/routes'
+import { personsList, personsAdd, personsDelete } from '@/configs/routes'
 
 export const getPersons = async ({ offset = 0, limit = 10 }) => {
   try {
@@ -7,7 +7,7 @@ export const getPersons = async ({ offset = 0, limit = 10 }) => {
       params: { offset, limit }
     })
 
-    return response.results || []
+    return response.results
   } catch (error) {
     throw error
   }
@@ -18,17 +18,24 @@ export const addPerson = async personData => {
   const formData = new FormData()
 
   // Add all fields to FormData
-  formData.append('name', personData.name)
-  formData.append('last_name', personData.lastname)
+  formData.append('first_name', personData.first_name)
+  formData.append('last_name', personData.last_name)
   formData.append('national_code', personData.national_code)
-  formData.append('access', personData.access || false)
+  formData.append('access', personData.access ? 'allowed' : 'not_allowed')
   formData.append('gender', personData.gender)
-
   formData.append('profile_image', personData.profile_image || '')
 
-  // Add the image file if it exists
-  // if (personData.userImage instanceof File) {
-  // }
+  if (personData.report_id) {
+    formData.append('report_id', personData.report_id)
+  }
+
+  if (personData.feature_vector) {
+    formData.append('feature_vector', personData.feature_vector)
+  }
+
+  if (personData.image_quality) {
+    formData.append('image_quality', personData.image_quality)
+  }
 
   return await axiosInstance.post(personsAdd, formData, {
     headers: {
@@ -42,7 +49,12 @@ export const addPerson = async personData => {
 //   return await axios.patch(`${personsUpdate}/${id}`, data)
 // }
 
-// TODO: Implement when API is available
-// export const deletePerson = async id => {
-//   return await axios.delete(`${personsDelete}/${id}`)
-// }
+export const deletePerson = async id => {
+  try {
+    const response = await axiosInstance.delete(`${personsDelete}${id}`)
+
+    return response.data
+  } catch (error) {
+    throw error
+  }
+}

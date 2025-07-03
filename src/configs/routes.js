@@ -12,7 +12,7 @@ if (process.env.NEXT_PUBLIC_API_MODE === 'production') {
   const deviceIP = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
 
   frontUrl = `http://${deviceIP}`
-  backendUrl = `http://${deviceIP}/api`
+  backendUrl = `http://${deviceIP}:8585/api`
 } else if (process.env.NEXT_PUBLIC_API_MODE === 'remote') {
   // In remote mode, use the specified IP from environment variable
   const remoteIP = process.env.NEXT_PUBLIC_REMOTE_API_IP
@@ -33,7 +33,7 @@ if (process.env.NEXT_PUBLIC_API_MODE === 'production') {
   const deviceIP = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
 
   frontUrl = `http://${deviceIP}`
-  backendUrl = `http://${deviceIP}/api`
+  backendUrl = `http://${deviceIP}:8585/api`
 }
 
 // API Routes
@@ -47,8 +47,8 @@ export const API_ROUTES = {
   persons: {
     list: '/persons',
     add: '/persons/add',
-    update: '/persons/update',
-    delete: '/persons/delete',
+    update: '/persons/',
+    delete: '/persons/',
     changeStatus: '/persons/change/status'
   },
 
@@ -81,3 +81,91 @@ export const {
 } = API_ROUTES.persons
 
 export const { list: usersList, create: usersCreate } = API_ROUTES.users
+
+// WebSocket URL helpers for data and live
+export function getDataWebSocketUrl() {
+  let wsProtocol = 'ws:'
+  let wsHost = 'localhost'
+  let wsPath = '/ws/'
+
+  if (typeof window !== 'undefined') {
+    wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+    wsHost = window.location.hostname
+  }
+
+  if (process.env.NEXT_PUBLIC_API_MODE === 'production') {
+    wsHost = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
+
+    return `${wsProtocol}//${wsHost}${wsPath}`
+  } else if (process.env.NEXT_PUBLIC_API_MODE === 'remote') {
+    const remoteDataWs = process.env.NEXT_PUBLIC_REMOTE_DATA_WS
+
+    if (remoteDataWs) {
+      return remoteDataWs
+    }
+
+    return `${wsProtocol}//localhost${wsPath}`
+  } else {
+    wsHost = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
+
+    return `${wsProtocol}//${wsHost}${wsPath}`
+  }
+}
+
+export function getLiveWebSocketUrl() {
+  let httpProtocol = 'http:'
+  let host = 'localhost'
+  let path = '/live/'
+
+  if (typeof window !== 'undefined') {
+    httpProtocol = window.location.protocol === 'https:' ? 'https:' : 'http:'
+    host = window.location.hostname
+  }
+
+  if (process.env.NEXT_PUBLIC_API_MODE === 'production') {
+    host = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
+
+    return `${httpProtocol}//${host}${path}`
+  } else if (process.env.NEXT_PUBLIC_API_MODE === 'remote') {
+    const remoteLiveImg = process.env.NEXT_PUBLIC_REMOTE_LIVE_WS
+
+    if (remoteLiveImg) {
+      return remoteLiveImg
+    }
+
+    return `${httpProtocol}//localhost${path}`
+  } else {
+    host = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
+
+    return `${httpProtocol}//${host}${path}`
+  }
+}
+
+export function getImgWebSocketUrl() {
+  let wsProtocol = 'http:'
+  let wsHost = 'localhost'
+  let wsPath = '/'
+
+  if (typeof window !== 'undefined') {
+    wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+    wsHost = window.location.hostname
+  }
+
+  if (process.env.NEXT_PUBLIC_API_MODE === 'production') {
+    wsHost = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
+
+    return `${wsProtocol}//${wsHost}${wsPath}`
+  } else if (process.env.NEXT_PUBLIC_API_MODE === 'remote') {
+    const remoteDataWs = process.env.NEXT_PUBLIC_REMOTE_IMG_WS
+
+    if (remoteDataWs) {
+      return remoteDataWs
+    }
+
+    return `${wsProtocol}//localhost${wsPath}`
+  } else {
+    wsHost = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
+
+    return `${wsProtocol}//${wsHost}${wsPath}`
+  }
+}

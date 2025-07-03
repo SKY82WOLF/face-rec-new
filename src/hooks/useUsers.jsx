@@ -8,19 +8,25 @@ import { getUsers, createUser } from '@/api/users'
 
 const useUsers = (offset = 0, limit = 10) => {
   const queryClient = useQueryClient()
-
   const queryKey = ['users', offset, limit]
 
   const {
-    data: users = [],
+    data = { users: [], total: 0 },
     isLoading,
     isError,
     refetch
   } = useQuery({
     queryKey,
-    queryFn: () => getUsers(offset, limit),
+    queryFn: async () => {
+      const response = await getUsers(offset, limit)
+
+      return {
+        users: response.results || [], // The array of users
+        total: response.total || 0 // The total count for pagination
+      }
+    },
     staleTime: 5000,
-    gcTime:120000,
+    gcTime: 120000
   })
 
   // Prefetch next & previous pages whenever offset or limit changes
@@ -28,7 +34,14 @@ const useUsers = (offset = 0, limit = 10) => {
     if (offset >= limit) {
       queryClient.prefetchQuery({
         queryKey: ['users', offset - limit, limit],
-        queryFn: () => getUsers(offset - limit, limit),
+        queryFn: async () => {
+          const response = await getUsers(offset - limit, limit)
+
+          return {
+            users: response.results || [],
+            total: response.total || 0
+          }
+        },
         staleTime: 5000,
         gcTime: 120000
       })
@@ -36,7 +49,14 @@ const useUsers = (offset = 0, limit = 10) => {
 
     queryClient.prefetchQuery({
       queryKey: ['users', offset + limit, limit],
-      queryFn: () => getUsers(offset + limit, limit),
+      queryFn: async () => {
+        const response = await getUsers(offset + limit, limit)
+
+        return {
+          users: response.results || [],
+          total: response.total || 0
+        }
+      },
       staleTime: 5000,
       gcTime: 120000
     })
@@ -50,7 +70,8 @@ const useUsers = (offset = 0, limit = 10) => {
   })
 
   return {
-    users,
+    users: data.users,
+    total: data.total,
     isLoading,
     isError,
     addUser: mutation.mutateAsync,

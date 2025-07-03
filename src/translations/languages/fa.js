@@ -82,15 +82,21 @@ const fa = {
     uploadImage: 'آپلود تصویر',
     name: 'نام',
     lastName: 'نام خانوادگی',
-    id:'آیدی'
+    id: 'آیدی',
+    date: 'تاریخ تشخیص',
+    time: 'زمان تشخیص'
   },
 
   access: {
-    title: 'افراد مجاز',
+    title: 'اشخاص مجاز',
     addNewPerson: 'افزودن شخص جدید',
     loading: 'در حال بارگذاری...',
     noPersons: 'شخصی موجود نیست',
     itemsPerPage: 'تعداد در هر صفحه',
+    confirmDelete: 'تأیید حذف',
+    confirmDeleteMessage: 'آیا مطمئن هستید که می‌خواهید این شخص را حذف کنید؟',
+    delete: 'حذف',
+    deleting: 'در حال حذف...',
     addPersonModal: {
       title: 'افزودن شخص جدید',
       name: 'نام',
@@ -120,7 +126,7 @@ const fa = {
     fullName: 'نام و نام خانوادگی',
     username: 'نام کاربری',
     email: 'ایمیل',
-    password:'رمز عبور',
+    password: 'رمز عبور',
     phone: 'شماره تماس',
     address: 'آدرس',
     bio: 'درباره',
@@ -139,7 +145,7 @@ const fa = {
     uploadAvatar: 'آپلود تصویر',
     add: 'افزودن',
     userDetail: 'جزئیات کاربر',
-    noData:'کاربری وجود ندارد',
+    noData: 'کاربری یافت نشد',
 
     // New translations
     roleOptions: {
@@ -203,7 +209,7 @@ const fa = {
     analytics: 'تحلیل‌ها',
     notifications: 'اعلان‌ها',
     live: 'پخش زنده',
-    access: 'افراد مجاز'
+    access: 'اشخاص مجاز'
   },
 
   // Navbar
@@ -293,7 +299,7 @@ const fa = {
   // Authentication
   auth: {
     login: 'ورود',
-    loggingIn:'درحال ورود',
+    loggingIn: 'درحال ورود',
     register: 'ثبت نام',
     forgotPassword: 'فراموشی رمز عبور',
     resetPassword: 'بازنشانی رمز عبور',

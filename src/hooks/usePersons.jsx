@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { getPersons, addPerson } from '@/api/persons'
+import { getPersons, addPerson, deletePerson } from '@/api/persons'
 
 const keys = 'persons'
 
@@ -14,23 +14,34 @@ export const useGetPersons = (options = {}) => {
 
   const queryResult = useQuery({
     queryKey: ['persons', offset, limit],
-    queryFn: () => getPersons({ offset, limit }),
+    queryFn: async () => {
+      const response = await getPersons({ offset, limit })
+
+      return {
+        data: response.data || [], // The array of persons
+        total: response.total || 0 // The total count
+      }
+    },
     staleTime: 5000,
-    gcTime: 60000,
-    select: data => data || []
+    gcTime: 60000
   })
 
   useEffect(() => {
-
     // Prefetch next page
     const nextOffset = offset + limit
 
     queryClient.prefetchQuery({
       queryKey: ['persons', nextOffset, limit],
-      queryFn: () => getPersons({ offset: nextOffset, limit }),
+      queryFn: async () => {
+        const response = await getPersons({ offset: nextOffset, limit })
+
+        return {
+          data: response.data || [],
+          total: response.total || 0
+        }
+      },
       staleTime: 5000,
-      gcTime: 60000,
-      select: data => data || []
+      gcTime: 60000
     })
 
     // Prefetch previous page if it exists
@@ -39,10 +50,16 @@ export const useGetPersons = (options = {}) => {
 
       queryClient.prefetchQuery({
         queryKey: ['persons', prevOffset, limit],
-        queryFn: () => getPersons({ offset: prevOffset, limit }),
+        queryFn: async () => {
+          const response = await getPersons({ offset: prevOffset, limit })
+
+          return {
+            data: response.data || [],
+            total: response.total || 0
+          }
+        },
         staleTime: 5000,
-        gcTime: 60000,
-        select: data => data || []
+        gcTime: 60000
       })
     }
   }, [offset, limit, queryClient])
@@ -78,16 +95,23 @@ export const useAddPerson = (options = {}) => {
 //   })
 // }
 
-// TODO: Implement when API is available
-// export const useDeletePerson = (options = {}) => {
-//   const queryClient = useQueryClient()
+export const useDeletePerson = (options = {}) => {
+  const queryClient = useQueryClient()
 
-//   return useMutation({
-//     mutationFn: deletePerson,
-//     onSuccess: (_, deletedId) => {
-//       queryClient.setQueryData([keys], old => old?.filter(person => person.id !== deletedId))
-//       queryClient.invalidateQueries({ queryKey: [keys] })
-//     },
-//     ...options
-//   })
-// }
+  return useMutation({
+    mutationFn: deletePerson,
+    onSuccess: (_, deletedId) => {
+      // Update all queries with the 'persons' prefix
+      queryClient.setQueriesData({ queryKey: [keys] }, old => {
+        if (!old) return old
+
+        return {
+          ...old,
+          data: old.data?.filter(person => person.id !== deletedId) || []
+        }
+      })
+      queryClient.invalidateQueries({ queryKey: [keys] })
+    },
+    ...options
+  })
+}
