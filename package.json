@@ -28,6 +28,7 @@
     "@tanstack/react-query-devtools": "^5.81.2",
     "axios": "^1.9.0",
     "classnames": "2.5.1",
+    "html-to-image": "^1.11.13",
     "jalali-moment": "^3.3.11",
     "lottie-react": "^2.4.1",
     "next": "^15.3.2",

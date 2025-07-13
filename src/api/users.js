@@ -1,18 +1,15 @@
 import { usersCreate, usersList } from '@/configs/routes'
 import axiosInstance from './axios'
 
-export const getUsers = async (offset = 0, limit = 10) => {
+export const getUsers = async ({ page = 1, per_page = 10 }) => {
   try {
     const response = await axiosInstance.get(usersList, {
-      params: { offset, limit }
+      params: { page, per_page }
     })
 
-    return {
-      results: response.results.results || [], // Array of users
-      total: response.results.total || 0 // Total count
-    }
+    return response
   } catch (error) {
-    throw error.response?.results || error.message
+    throw error.response || error.message
   }
 }
 

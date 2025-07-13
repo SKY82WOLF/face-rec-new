@@ -28,9 +28,9 @@ import { useGetPersons, useAddPerson } from '@/hooks/usePersons'
 import { useTranslation } from '@/translations/useTranslation'
 import CustomTextField from '@/@core/components/mui/TextField'
 
-const LIMIT_OPTIONS = [5, 10, 15, 20]
+const per_page_OPTIONS = [5, 10, 15, 20]
 
-function AccessContent({ initialPage = 1, initialLimit = 10 }) {
+function AccessContent({ initialPage = 1, initialper_page = 10 }) {
   const { t } = useTranslation()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -41,10 +41,10 @@ function AccessContent({ initialPage = 1, initialLimit = 10 }) {
     return pageFromUrl && pageFromUrl > 0 ? pageFromUrl : initialPage
   })
 
-  const [limit, setLimit] = useState(() => {
-    const limitFromUrl = parseInt(searchParams.get('limit'), 10)
+  const [per_page, setper_page] = useState(() => {
+    const per_pageFromUrl = parseInt(searchParams.get('per_page'), 10)
 
-    return limitFromUrl && LIMIT_OPTIONS.includes(limitFromUrl) ? limitFromUrl : initialLimit
+    return per_pageFromUrl && per_page_OPTIONS.includes(per_pageFromUrl) ? per_pageFromUrl : initialper_page
   })
 
   const [openAddModal, setOpenAddModal] = useState(false)
@@ -65,8 +65,8 @@ function AccessContent({ initialPage = 1, initialLimit = 10 }) {
   })
 
   const { data: personsData, isLoading } = useGetPersons({
-    offset: (page - 1) * limit,
-    limit
+    page: page,
+    per_page
   })
 
   const addPersonMutation = useAddPerson()
@@ -75,9 +75,9 @@ function AccessContent({ initialPage = 1, initialLimit = 10 }) {
     const params = new URLSearchParams(searchParams)
 
     params.set('page', page.toString())
-    params.set('limit', limit.toString())
+    params.set('per_page', per_page.toString())
     router.replace(`?${params.toString()}`, { scroll: false })
-  }, [page, limit, router, searchParams])
+  }, [page, per_page, router, searchParams])
 
   const handleOpenAddModal = () => setOpenAddModal(true)
 
@@ -135,15 +135,15 @@ function AccessContent({ initialPage = 1, initialLimit = 10 }) {
 
   const handlePageChange = (event, value) => {
     if (value && !isNaN(value)) {
-      const totalPages = Math.ceil((personsData?.total || 0) / limit)
+      const totalPages = Math.ceil((personsData?.total || 0) / per_page)
       const newPage = Math.max(1, Math.min(value, totalPages))
 
       setPage(newPage)
     }
   }
 
-  const handleLimitChange = event => {
-    setLimit(event.target.value)
+  const handleper_pageChange = event => {
+    setper_page(event.target.value)
     setPage(1)
   }
 
@@ -214,7 +214,8 @@ function AccessContent({ initialPage = 1, initialLimit = 10 }) {
                     access: person.access,
                     gender: person.gender,
                     profile_image: person.profile_image,
-                    index: index
+                    index: index,
+                    date: person.updated_at,
                   }}
                   allReports={personsData.data}
                 />
@@ -241,8 +242,8 @@ function AccessContent({ initialPage = 1, initialLimit = 10 }) {
         >
           <FormControl sx={{ minWidth: 120, width: { xs: '100%', sm: 'auto' } }}>
             <InputLabel>{t('access.itemsPerPage')}</InputLabel>
-            <Select value={limit} onChange={handleLimitChange} label={t('access.itemsPerPage')}>
-              {LIMIT_OPTIONS.map(option => (
+            <Select value={per_page} onChange={handleper_pageChange} label={t('access.itemsPerPage')}>
+              {per_page_OPTIONS.map(option => (
                 <MenuItem key={option} value={option}>
                   {option}
                 </MenuItem>
@@ -251,7 +252,7 @@ function AccessContent({ initialPage = 1, initialLimit = 10 }) {
           </FormControl>
           <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', width: { xs: '100%', sm: 'auto' } }}>
             <Pagination
-              count={Math.ceil((personsData?.total || 0) / limit)}
+              count={Math.ceil((personsData?.total || 0) / per_page)}
               page={page}
               onChange={handlePageChange}
               color='primary'

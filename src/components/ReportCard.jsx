@@ -34,10 +34,12 @@ import Info from '@mui/icons-material/Info'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore'
+import * as htmlToImage from 'html-to-image'
 
 import { useTranslation } from '@/translations/useTranslation'
 import { useAddPerson, useDeletePerson } from '@/hooks/usePersons'
 import { useSettings } from '@core/hooks/useSettings'
+import ShamsiDateTime from './ShamsiDateTimer'
 
 const StyledReportCard = styled(Card)(({ theme, mode }) => ({
   display: 'flex',
@@ -48,7 +50,6 @@ const StyledReportCard = styled(Card)(({ theme, mode }) => ({
 
   border: `1px solid ${mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.12)'}`,
   boxShadow: mode === 'dark' ? '0px 4px 8px rgba(0, 0, 0, 0.3), 0px 2px 4px rgba(0, 0, 0, 0.2)' : theme.shadows[1],
-
   transition: 'all 0.2s ease-in-out',
   '&:hover': {
     boxShadow: mode === 'dark' ? '0px 6px 12px rgba(0, 0, 0, 0.4), 0px 4px 8px rgba(0, 0, 0, 0.3)' : theme.shadows[4],
@@ -107,6 +108,7 @@ const ReportCard = ({ reportData, allReports }) => {
   const [modalData, setModalData] = useState(reportData)
   const [formData, setFormData] = useState({})
   const fileInputRef = useRef(null)
+  const modalRef = useRef(null)
 
   const addPersonMutation = useAddPerson()
   const deletePersonMutation = useDeletePerson()
@@ -140,6 +142,7 @@ const ReportCard = ({ reportData, allReports }) => {
       access: data.access || 'not_allowed',
       profile_image: data.profile_image || null,
       last_image: data.last_image || null,
+      date: data.date || null,
       index
     })
     setIsAllowed(data.access === 'allowed')
@@ -233,6 +236,67 @@ const ReportCard = ({ reportData, allReports }) => {
     }
   }
 
+  // Data for the details table in the modal
+  const modalInfo = [
+    { label: t('reportCard.fullName'), value: `${modalData.first_name || ''} ${modalData.last_name || ''}` },
+    { label: t('reportCard.nationalCode'), value: modalData.national_code || t('reportCard.unknown') },
+    { label: t('reportCard.id'), value: modalData.id || t('reportCard.unknown') },
+    {
+      label: t('reportCard.gender'),
+      value:
+        modalData.gender === false
+          ? t('reportCard.male')
+          : modalData.gender === true
+            ? t('reportCard.female')
+            : t('reportCard.unknown')
+    },
+    { label: t('reportCard.date'), value: <ShamsiDateTime dateTime={modalData.date} format='date' /> },
+    { label: t('reportCard.time'), value: <ShamsiDateTime dateTime={modalData.date} format='time' /> },
+    {
+      label: t('reportCard.status'),
+      value: (
+        <>
+          {modalData.access ? t('reportCard.allowed') : t('reportCard.notAllowed')}
+          {modalData.access ? <LockOpenIcon sx={{ fontSize: 20, ml: 1 }} /> : <LockIcon sx={{ fontSize: 20, ml: 1 }} />}
+        </>
+      ),
+      valueColor: modalData.access ? 'success.main' : 'error.main'
+    }
+  ]
+
+  const handleDownloadImage = (url, filename) => {
+    if (!url) return
+    fetch(url)
+      .then(response => response.blob())
+      .then(blob => {
+        const link = document.createElement('a')
+
+        link.href = URL.createObjectURL(blob)
+        link.download = filename
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      })
+      .catch(err => console.error('Download failed:', err))
+  }
+
+  // Download modal/card as image
+  const handleDownloadCardImage = () => {
+    if (!modalRef.current) return
+    htmlToImage
+      .toPng(modalRef.current)
+      .then(dataUrl => {
+        const link = document.createElement('a')
+
+        link.href = dataUrl
+        link.download = 'report_card.png'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      })
+      .catch(err => console.error('Download card image failed:', err))
+  }
+
   const displayImage = reportData.profile_image || reportData.last_image || '/images/avatars/1.png'
 
   return (
@@ -294,72 +358,151 @@ const ReportCard = ({ reportData, allReports }) => {
         closeAfterTransition
         slots={{ backdrop: Backdrop }}
         slotProps={{ backdrop: { timeout: 500 } }}
+        ref={modalRef}
       >
         <Fade in={open}>
           <Box sx={modalStyle(currentMode)}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <IconButton disabled={currentIndex === 0} onClick={() => handleNavigate(-1)}>
                 <NavigateNextIcon />
               </IconButton>
+              <Typography variant='h6' component='h2'>
+                {t('reportCard.details')}
+              </Typography>
               <IconButton disabled={currentIndex === allReports.length - 1} onClick={() => handleNavigate(1)}>
                 <NavigateBeforeIcon />
               </IconButton>
             </Box>
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
+            <Grid justifyContent={'center'} container spacing={3}>
+              <Grid item xs={6}>
                 <Box sx={{ textAlign: 'center', mb: 2 }}>
                   <Typography variant='subtitle1'>{t('reportCard.userImage')}</Typography>
                   <Avatar
                     variant='rounded'
-                    src={modalData.profile_image || '/images/defaultAvatar.png'}
+                    src={modalData.profile_image || '/images/avatars/1.png'}
                     alt={modalData.first_name}
-                    sx={{ width: 200, height: 200, mx: 'auto', mb: 2 }}
+                    sx={{
+                      width: { xs: 100, sm: 140, md: 200 },
+                      height: { xs: 100, sm: 140, md: 200 },
+                      mx: 'auto',
+                      mb: 2,
+                      border: '1px solid',
+                      borderColor: 'divider'
+                    }}
                   />
                 </Box>
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={6}>
                 <Box sx={{ textAlign: 'center', mb: 2 }}>
                   <Typography variant='subtitle1'>{t('reportCard.apiImage')}</Typography>
                   <Avatar
                     variant='rounded'
-                    src={modalData.last_image || '/images/defaultAvatar.png'}
+                    src={modalData.last_image || '/images/avatars/1.png'}
                     alt={modalData.first_name}
-                    sx={{ width: 200, height: 200, mx: 'auto', mb: 2 }}
+                    sx={{
+                      width: { xs: 100, sm: 140, md: 200 },
+                      height: { xs: 100, sm: 140, md: 200 },
+                      mx: 'auto',
+                      mb: 2,
+                      border: '1px solid',
+                      borderColor: 'divider'
+                    }}
                   />
                 </Box>
               </Grid>
             </Grid>
-            <Box>
-              <Typography variant='h5'>{`${modalData.first_name || ''} ${modalData.last_name || ''}`}</Typography>
-              <Typography variant='body1' color='textSecondary'>
-                {t('reportCard.nationalCode')}: {modalData.national_code || t('reportCard.unknown')}
-              </Typography>
-              <Typography variant='body1' color='textSecondary'>
-                {t('reportCard.id')}: {modalData.id || t('reportCard.unknown')}
-              </Typography>
-              <Typography variant='body1' color='textSecondary'>
-                {t('reportCard.gender')}:{' '}
-                {modalData.gender === false
-                  ? t('reportCard.male')
-                  : modalData.gender === true
-                    ? t('reportCard.female')
-                    : t('reportCard.unknown')}
-              </Typography>
-              <Typography
-                variant='body1'
-                color={isAllowed ? 'success.main' : 'error.main'}
-                sx={{ display: 'flex', alignItems: 'center' }}
-              >
-                {t('reportCard.status')}: {isAllowed ? t('reportCard.allowed') : t('reportCard.notAllowed')}
-                {isAllowed ? (
-                  <LockOpenIcon sx={{ fontSize: 20, ml: 0.5 }} />
-                ) : (
-                  <LockIcon sx={{ fontSize: 20, ml: 0.5 }} />
-                )}
-              </Typography>
+
+            {/* NEW: Information Table */}
+            <Box
+              sx={{
+                mt: 2,
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 1,
+                overflow: 'hidden'
+              }}
+            >
+              {modalInfo.map((item, index) => (
+                <Box
+                  key={index}
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    py: 1.5,
+                    px: 3,
+                    backgroundColor:
+                      index % 2 !== 0
+                        ? currentMode === 'dark'
+                          ? 'rgba(255, 255, 255, 0.05)'
+                          : 'rgba(0, 0, 0, 0.02)'
+                        : 'transparent',
+                    '&:not(:last-of-type)': {
+                      borderBottom: '1px solid',
+                      borderColor: 'divider'
+                    }
+                  }}
+                >
+                  <Typography variant='subtitle2' sx={{ fontWeight: 600, color: 'text.secondary' }}>
+                    {item.label}
+                  </Typography>
+                  <Typography
+                    variant='body1'
+                    color={item.valueColor || 'text.primary'}
+                    sx={{ display: 'flex', alignItems: 'center' }}
+                  >
+                    {item.value}
+                  </Typography>
+                </Box>
+              ))}
             </Box>
-            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-              <Button variant='outlined' onClick={handleClose}>
+
+            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
+              <Button
+                sx={{
+                  '&:hover': {
+                    color: 'primary.main',
+                    borderColor: 'primary.main'
+                  }
+                }}
+                variant='outlined'
+                color='secondary'
+                onClick={() =>
+                  handleDownloadImage(modalData.profile_image || '/images/avatars/1.png', 'profile_image.png')
+                }
+              >
+                {t('reportCard.downloadProfileImage')}
+              </Button>
+              <Button
+                sx={{
+                  '&:hover': {
+                    color: 'primary.main',
+                    borderColor: 'primary.main'
+                  }
+                }}
+                variant='outlined'
+                color='secondary'
+                onClick={() => handleDownloadImage(modalData.last_image || '/images/avatars/1.png', 'last_image.png')}
+              >
+                {t('reportCard.downloadLastImage')}
+              </Button>
+              <Button
+                sx={{
+                  '&:hover': {
+                    color: 'primary.main',
+                    borderColor: 'primary.main'
+                  }
+                }}
+                variant='outlined'
+                color='secondary'
+                onClick={handleDownloadCardImage}
+              >
+                {t('reportCard.downloadCardAsImage')}
+              </Button>
+            </Box>
+            <Divider sx={{ my: 3 }} />
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, flexWrap: 'wrap' }}>
+              <Button color='error' variant='outlined' onClick={handleClose}>
                 {t('common.close')}
               </Button>
               <Button
@@ -382,12 +525,8 @@ const ReportCard = ({ reportData, allReports }) => {
       </Modal>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={deleteConfirmOpen}
-        onClose={handleDeleteClose}
-        aria-labelledby="delete-confirm-dialog-title"
-      >
-        <DialogTitle id="delete-confirm-dialog-title">{t('access.confirmDelete')}</DialogTitle>
+      <Dialog open={deleteConfirmOpen} onClose={handleDeleteClose} aria-labelledby='delete-confirm-dialog-title'>
+        <DialogTitle id='delete-confirm-dialog-title'>{t('access.confirmDelete')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
             {t('access.confirmDeleteMessage', {
@@ -396,13 +535,13 @@ const ReportCard = ({ reportData, allReports }) => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDeleteClose} variant="outlined">
+          <Button onClick={handleDeleteClose} variant='outlined'>
             {t('reportCard.cancel')}
           </Button>
           <Button
             onClick={handleDelete}
-            color="error"
-            variant="contained"
+            color='error'
+            variant='contained'
             startIcon={<DeleteIcon />}
             disabled={deletePersonMutation.isLoading}
           >

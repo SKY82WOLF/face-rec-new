@@ -78,13 +78,17 @@ const fa = {
     add: 'اضافه کردن',
     cancel: 'انصراف',
     userImage: 'تصویر آپلود شده',
-    apiImage: 'تصویر سیستم',
+    apiImage: 'آخرین تردد',
     uploadImage: 'آپلود تصویر',
     name: 'نام',
     lastName: 'نام خانوادگی',
     id: 'آیدی',
     date: 'تاریخ تشخیص',
-    time: 'زمان تشخیص'
+    time: 'زمان تشخیص',
+    downloadCardAsImage: 'دانلود گزارش',
+    downloadProfileImage: 'دانلود تصویر پروفایل',
+    downloadLastImage: 'دانلود تصویر آخرین تردد',
+    fullName: 'نام و نام خانوادگی'
   },
 
   access: {

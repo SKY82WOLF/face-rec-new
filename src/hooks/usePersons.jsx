@@ -9,17 +9,17 @@ import { getPersons, addPerson, deletePerson } from '@/api/persons'
 const keys = 'persons'
 
 export const useGetPersons = (options = {}) => {
-  const { offset = 0, limit = 10 } = options
+  const { page = 1, per_page = 10 } = options
   const queryClient = useQueryClient()
 
   const queryResult = useQuery({
-    queryKey: ['persons', offset, limit],
+    queryKey: ['persons', page, per_page],
     queryFn: async () => {
-      const response = await getPersons({ offset, limit })
+      const response = await getPersons({ page, per_page })
 
       return {
-        data: response.data || [], // The array of persons
-        total: response.total || 0 // The total count
+        data: response.results || [], // The array of persons
+        total: response.count || 0 // The total count
       }
     },
     staleTime: 5000,
@@ -27,42 +27,53 @@ export const useGetPersons = (options = {}) => {
   })
 
   useEffect(() => {
-    // Prefetch next page
-    const nextOffset = offset + limit
+    // Exit early if the data isn't available yet
+    if (!queryResult.data) {
+      return
+    }
 
-    queryClient.prefetchQuery({
-      queryKey: ['persons', nextOffset, limit],
-      queryFn: async () => {
-        const response = await getPersons({ offset: nextOffset, limit })
+    // Calculate the total number of pages
+    const totalPages = Math.ceil(queryResult.data.total / per_page)
 
-        return {
-          data: response.data || [],
-          total: response.total || 0
-        }
-      },
-      staleTime: 5000,
-      gcTime: 60000
-    })
-
-    // Prefetch previous page if it exists
-    if (offset > 0) {
-      const prevOffset = Math.max(0, offset - limit)
+    // --- Start of Change ---
+    // Prefetch the next page only if the current page is not the last one
+    if (page < totalPages) {
+      const nextpage = page + 1
 
       queryClient.prefetchQuery({
-        queryKey: ['persons', prevOffset, limit],
+        queryKey: ['persons', nextpage, per_page],
         queryFn: async () => {
-          const response = await getPersons({ offset: prevOffset, limit })
+          const response = await getPersons({ page: nextpage, per_page })
 
           return {
-            data: response.data || [],
-            total: response.total || 0
+            data: response.results || [],
+            total: response.count || 0
           }
         },
         staleTime: 5000,
         gcTime: 60000
       })
     }
-  }, [offset, limit, queryClient])
+
+    // Prefetch previous page if it exists
+    if (page > 1) {
+      const prevpage = page - 1
+
+      queryClient.prefetchQuery({
+        queryKey: ['persons', prevpage, per_page],
+        queryFn: async () => {
+          const response = await getPersons({ page: prevpage, per_page })
+
+          return {
+            data: response.results || [],
+            total: response.count || 0
+          }
+        },
+        staleTime: 5000,
+        gcTime: 60000
+      })
+    }
+  }, [page, per_page, queryClient, queryResult.data])
 
   return queryResult
 }

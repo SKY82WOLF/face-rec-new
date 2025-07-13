@@ -1,17 +1,17 @@
 import axiosInstance from './axios'
 import { personsList, personsAdd, personsDelete } from '@/configs/routes'
 
-export const getPersons = async ({ offset = 0, limit = 10 }) => {
+export const getPersons = async ({ page = 1, per_page = 10 }) => {
   try {
     const response = await axiosInstance.get(personsList, {
-      params: { offset, limit }
-    })
+      params: { page, per_page }
+    });
 
-    return response.results
+    return response;
   } catch (error) {
-    throw error
+    throw error;
   }
-}
+};
 
 export const addPerson = async personData => {
   // Create FormData

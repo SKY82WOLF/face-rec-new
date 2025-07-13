@@ -6,9 +6,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { getUsers, createUser } from '@/api/users'
 
-const useUsers = (offset = 0, limit = 10) => {
+const useUsers = ({ page = 1, per_page = 10 } = {}) => {
   const queryClient = useQueryClient()
-  const queryKey = ['users', offset, limit]
+  const queryKey = ['users', page, per_page]
 
   const {
     data = { users: [], total: 0 },
@@ -18,49 +18,62 @@ const useUsers = (offset = 0, limit = 10) => {
   } = useQuery({
     queryKey,
     queryFn: async () => {
-      const response = await getUsers(offset, limit)
+      const response = await getUsers({ page, per_page })
 
       return {
         users: response.results || [], // The array of users
-        total: response.total || 0 // The total count for pagination
+        total: response.count || 0 // The total count for pagination
       }
     },
     staleTime: 5000,
     gcTime: 120000
   })
 
-  // Prefetch next & previous pages whenever offset or limit changes
+  // Prefetch next & previous pages whenever page or per_page changes
   useEffect(() => {
-    if (offset >= limit) {
+    if (!data?.total) return
+
+    const totalPages = Math.ceil(data.total / per_page)
+
+    // Prefetch the next page
+    if (page < totalPages) {
+      const nextPage = page + 1
+
       queryClient.prefetchQuery({
-        queryKey: ['users', offset - limit, limit],
+        queryKey: ['users', nextPage, per_page],
+
+        // FIXED: The prefetch query function must also transform the data
+        // to match the shape that is stored in the cache.
         queryFn: async () => {
-          const response = await getUsers(offset - limit, limit)
+          const response = await getUsers({ page: nextPage, per_page })
 
           return {
             users: response.results || [],
-            total: response.total || 0
+            total: response.count || 0
           }
-        },
-        staleTime: 5000,
-        gcTime: 120000
+        }
       })
     }
 
-    queryClient.prefetchQuery({
-      queryKey: ['users', offset + limit, limit],
-      queryFn: async () => {
-        const response = await getUsers(offset + limit, limit)
+    // Prefetch the previous page
+    if (page > 1) {
+      const prevPage = page - 1
 
-        return {
-          users: response.results || [],
-          total: response.total || 0
+      queryClient.prefetchQuery({
+        queryKey: ['users', prevPage, per_page],
+
+        // FIXED: Also transform the data here for consistency.
+        queryFn: async () => {
+          const response = await getUsers({ page: prevPage, per_page })
+
+          return {
+            users: response.results || [],
+            total: response.count || 0
+          }
         }
-      },
-      staleTime: 5000,
-      gcTime: 120000
-    })
-  }, [offset, limit, queryClient])
+      })
+    }
+  }, [page, per_page, data?.total, queryClient])
 
   const mutation = useMutation({
     mutationFn: createUser,
