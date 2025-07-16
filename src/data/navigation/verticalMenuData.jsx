@@ -19,6 +19,11 @@ const useVerticalMenuData = () => {
     {
       label: t('sidebar.users'),
       href: '/users',
+      icon: 'tabler-users'
+    },
+    {
+      label: t('groups.groups'),
+      href: '/groups',
       icon: 'tabler-users-group'
     },
     {

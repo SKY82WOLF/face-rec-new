@@ -4,48 +4,76 @@ import { useEffect } from 'react'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { getPersons, addPerson } from '@/api/persons'
+import { getPersons, addPerson, deletePerson } from '@/api/persons'
 
 const keys = 'persons'
 
 export const useGetPersons = (options = {}) => {
-  const { offset = 0, limit = 10 } = options
+  const { page = 1, per_page = 10 } = options
   const queryClient = useQueryClient()
 
   const queryResult = useQuery({
-    queryKey: ['persons', offset, limit],
-    queryFn: () => getPersons({ offset, limit }),
+    queryKey: ['persons', page, per_page],
+    queryFn: async () => {
+      const response = await getPersons({ page, per_page })
+
+      return {
+        data: response.results || [], // The array of persons
+        total: response.count || 0 // The total count
+      }
+    },
     staleTime: 5000,
-    gcTime: 60000,
-    select: data => data || []
+    gcTime: 60000
   })
 
   useEffect(() => {
+    // Exit early if the data isn't available yet
+    if (!queryResult.data) {
+      return
+    }
 
-    // Prefetch next page
-    const nextOffset = offset + limit
+    // Calculate the total number of pages
+    const totalPages = Math.ceil(queryResult.data.total / per_page)
 
-    queryClient.prefetchQuery({
-      queryKey: ['persons', nextOffset, limit],
-      queryFn: () => getPersons({ offset: nextOffset, limit }),
-      staleTime: 5000,
-      gcTime: 60000,
-      select: data => data || []
-    })
-
-    // Prefetch previous page if it exists
-    if (offset > 0) {
-      const prevOffset = Math.max(0, offset - limit)
+    // --- Start of Change ---
+    // Prefetch the next page only if the current page is not the last one
+    if (page < totalPages) {
+      const nextpage = page + 1
 
       queryClient.prefetchQuery({
-        queryKey: ['persons', prevOffset, limit],
-        queryFn: () => getPersons({ offset: prevOffset, limit }),
+        queryKey: ['persons', nextpage, per_page],
+        queryFn: async () => {
+          const response = await getPersons({ page: nextpage, per_page })
+
+          return {
+            data: response.results || [],
+            total: response.count || 0
+          }
+        },
         staleTime: 5000,
-        gcTime: 60000,
-        select: data => data || []
+        gcTime: 60000
       })
     }
-  }, [offset, limit, queryClient])
+
+    // Prefetch previous page if it exists
+    if (page > 1) {
+      const prevpage = page - 1
+
+      queryClient.prefetchQuery({
+        queryKey: ['persons', prevpage, per_page],
+        queryFn: async () => {
+          const response = await getPersons({ page: prevpage, per_page })
+
+          return {
+            data: response.results || [],
+            total: response.count || 0
+          }
+        },
+        staleTime: 5000,
+        gcTime: 60000
+      })
+    }
+  }, [page, per_page, queryClient, queryResult.data])
 
   return queryResult
 }
@@ -78,16 +106,23 @@ export const useAddPerson = (options = {}) => {
 //   })
 // }
 
-// TODO: Implement when API is available
-// export const useDeletePerson = (options = {}) => {
-//   const queryClient = useQueryClient()
+export const useDeletePerson = (options = {}) => {
+  const queryClient = useQueryClient()
 
-//   return useMutation({
-//     mutationFn: deletePerson,
-//     onSuccess: (_, deletedId) => {
-//       queryClient.setQueryData([keys], old => old?.filter(person => person.id !== deletedId))
-//       queryClient.invalidateQueries({ queryKey: [keys] })
-//     },
-//     ...options
-//   })
-// }
+  return useMutation({
+    mutationFn: deletePerson,
+    onSuccess: (_, deletedId) => {
+      // Update all queries with the 'persons' prefix
+      queryClient.setQueriesData({ queryKey: [keys] }, old => {
+        if (!old) return old
+
+        return {
+          ...old,
+          data: old.data?.filter(person => person.id !== deletedId) || []
+        }
+      })
+      queryClient.invalidateQueries({ queryKey: [keys] })
+    },
+    ...options
+  })
+}

@@ -78,19 +78,29 @@ const fa = {
     add: 'اضافه کردن',
     cancel: 'انصراف',
     userImage: 'تصویر آپلود شده',
-    apiImage: 'تصویر سیستم',
+    apiImage: 'آخرین تردد',
     uploadImage: 'آپلود تصویر',
     name: 'نام',
     lastName: 'نام خانوادگی',
-    id:'آیدی'
+    id: 'آیدی',
+    date: 'تاریخ تشخیص',
+    time: 'زمان تشخیص',
+    downloadCardAsImage: 'دانلود گزارش',
+    downloadProfileImage: 'دانلود تصویر پروفایل',
+    downloadLastImage: 'دانلود تصویر آخرین تردد',
+    fullName: 'نام و نام خانوادگی'
   },
 
   access: {
-    title: 'افراد مجاز',
+    title: 'اشخاص مجاز',
     addNewPerson: 'افزودن شخص جدید',
     loading: 'در حال بارگذاری...',
     noPersons: 'شخصی موجود نیست',
     itemsPerPage: 'تعداد در هر صفحه',
+    confirmDelete: 'تأیید حذف',
+    confirmDeleteMessage: 'آیا مطمئن هستید که می‌خواهید این شخص را حذف کنید؟',
+    delete: 'حذف',
+    deleting: 'در حال حذف...',
     addPersonModal: {
       title: 'افزودن شخص جدید',
       name: 'نام',
@@ -120,7 +130,7 @@ const fa = {
     fullName: 'نام و نام خانوادگی',
     username: 'نام کاربری',
     email: 'ایمیل',
-    password:'رمز عبور',
+    password: 'رمز عبور',
     phone: 'شماره تماس',
     address: 'آدرس',
     bio: 'درباره',
@@ -139,7 +149,8 @@ const fa = {
     uploadAvatar: 'آپلود تصویر',
     add: 'افزودن',
     userDetail: 'جزئیات کاربر',
-    noData:'کاربری وجود ندارد',
+    noData: 'کاربری یافت نشد',
+    loading: 'درحال بارگزاری کاربرها',
 
     // New translations
     roleOptions: {
@@ -192,6 +203,54 @@ const fa = {
     }
   },
 
+  //groups
+  groups: {
+    groups: 'گروه ها',
+    title: 'مدیریت گروه‌ها',
+    addGroup: 'افزودن گروه',
+    editGroup: 'ویرایش گروه',
+    deleteGroup: 'حذف گروه',
+    confirmDelete: 'آیا از حذف این گروه اطمینان دارید؟',
+    confirmDeleteMessage: 'آیا از حذف گروه "{name}" اطمینان دارید؟ این عملیات قابل بازگشت نیست.',
+    id: 'شناسه',
+    name: 'نام گروه',
+    groupName: 'نام گروه',
+    createdAt: 'تاریخ ایجاد',
+    updatedAt: 'تاریخ بروزرسانی',
+    actions: 'عملیات',
+    noData: 'هیچ گروهی یافت نشد',
+    add: 'افزودن',
+    save: 'ذخیره تغییرات',
+    cancel: 'انصراف',
+    edit: 'ویرایش',
+    delete: 'حذف',
+    itemsPerPage: 'تعداد در صفحه',
+    sortBy: 'مرتب‌سازی بر اساس',
+    sortOrder: 'ترتیب',
+    ascending: 'صعودی',
+    descending: 'نزولی',
+    addNewGroup: 'افزودن گروه جدید',
+    editGroupTitle: 'ویرایش گروه',
+    addGroupTitle: 'افزودن گروه جدید',
+    deleteConfirmation: 'تأیید حذف',
+    loading: 'درحال بارگزاری گروه ها',
+    noData: 'گروهی یافت نشد',
+
+    // Sort fields
+    sortFields: {
+      id: 'شناسه',
+      name: 'نام',
+      createdAt: 'تاریخ ایجاد',
+      updatedAt: 'تاریخ بروزرسانی'
+    },
+
+    // Sort orders
+    sortOrders: {
+      asc: 'صعودی',
+      desc: 'نزولی'
+    }
+  },
+
   // Sidebar menu
   sidebar: {
     dashboard: 'داشبورد',
@@ -203,7 +262,7 @@ const fa = {
     analytics: 'تحلیل‌ها',
     notifications: 'اعلان‌ها',
     live: 'پخش زنده',
-    access: 'افراد مجاز'
+    access: 'اشخاص مجاز'
   },
 
   // Navbar
@@ -293,7 +352,7 @@ const fa = {
   // Authentication
   auth: {
     login: 'ورود',
-    loggingIn:'درحال ورود',
+    loggingIn: 'درحال ورود',
     register: 'ثبت نام',
     forgotPassword: 'فراموشی رمز عبور',
     resetPassword: 'بازنشانی رمز عبور',

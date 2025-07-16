@@ -141,3 +141,49 @@ input:-webkit-autofill:active {
   -webkit-text-fill-color: var(--mui-palette-text-primary) !important;
   transition: background-color 5000s ease-in-out 0s;
 }
+
+/* Toastify custom styles */
+.custom-toast {
+  background: var(--mui-palette-background-paper, #222) !important;
+  color: var(--mui-palette-text-primary, #fff) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--mui-customShadows-xs, 0 2px 8px rgba(0, 0, 0, 0.15)) !important;
+  padding-block: 16px !important;
+  padding-inline: 32px !important;
+  font-family: inherit !important;
+  direction: rtl !important;
+}
+
+.custom-toast-success {
+  border-inline-end: 6px solid var(--mui-palette-success-main, #4caf50) !important;
+}
+
+.custom-toast-success .Toastify__toast-icon {
+  color: var(--mui-palette-success-main, #4caf50) !important;
+}
+
+.custom-toast-error {
+  border-inline-end: 6px solid var(--mui-palette-error-main, #f44336) !important;
+}
+
+.custom-toast-error .Toastify__toast-icon {
+  color: var(--mui-palette-error-main, #f44336) !important;
+}
+
+.custom-toast-body {
+  font-size: 1.1rem !important;
+  padding-block: 12px !important;
+}
+
+/* Progress bar with primary color */
+.custom-toast .Toastify__progress-bar {
+  background: var(--mui-palette-primary-main, #7367f0) !important;
+}
+
+.custom-toast .Toastify__progress-bar--success {
+  background: var(--mui-palette-success-main, #4caf50) !important;
+}
+
+.custom-toast .Toastify__progress-bar--error {
+  background: var(--mui-palette-error-main, #f44336) !important;
+}

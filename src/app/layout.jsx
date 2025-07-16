@@ -5,6 +5,8 @@ import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'
 
 // Third-party Imports
 import 'react-perfect-scrollbar/dist/css/styles.css'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 // Style Imports
 import '@/app/globals.css'
@@ -39,6 +41,20 @@ const RootLayout = props => {
             <HelmetProvider>
               <InitColorSchemeScript attribute='data' defaultMode={systemMode} />
               <PrimaryColorInitializer />
+              <ToastContainer
+                position='top-left'
+                rtl
+                autoClose={4000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme='colored'
+                toastClassName={() => 'custom-toast'}
+                bodyClassName={() => 'custom-toast-body'}
+              />
               {children}
             </HelmetProvider>
           </Providers>

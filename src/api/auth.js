@@ -1,6 +1,7 @@
 import axios from 'axios'
 
 import { login as loginRoute, logout as logoutRoute, refreshToken, backendUrl } from '@/configs/routes'
+import { toastError, toastSuccess } from '@/utils/toast'
 
 // This axios has NO interceptors
 const rawAxios = axios.create({
@@ -17,8 +18,11 @@ export const login = async (username, password) => {
       password
     })
 
+    toastSuccess('success')
+
     return response.data
   } catch (error) {
+    toastError(error.response?.data?.message || 'error')
     throw error
   }
 }
@@ -30,9 +34,11 @@ export const logout = async () => {
 
   try {
     await rawAxios.post(logoutRoute, { refresh: refreshToken })
+    toastSuccess('success')
   } catch (err) {
     // You can ignore error or log it
     console.error('Logout error:', err)
+    toastError('error')
   }
 }
 

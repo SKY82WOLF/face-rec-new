@@ -1,25 +1,28 @@
-// 📁 api/users.js
 import { usersCreate, usersList } from '@/configs/routes'
 import axiosInstance from './axios'
 
-export const getUsers = async (offset = 0, limit = 10) => {
+export const getUsers = async ({ page = 1, per_page = 10 }) => {
   try {
     const response = await axiosInstance.get(usersList, {
-      params: { offset, limit }
+      params: { page, per_page }
     })
 
-    return response.results || []
+    return response
   } catch (error) {
-    throw error.response?.data || error.message
+    throw error.response || error.message
   }
 }
 
 export const createUser = async data => {
   try {
-    const response = await axiosInstance.post(usersCreate, data)
+    const response = await axiosInstance.post(usersCreate, data, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
 
     return response
   } catch (error) {
-    throw error.response?.data || error.message
+    throw error.response?.results || error.message
   }
 }
