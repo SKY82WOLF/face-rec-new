@@ -20,6 +20,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 
 import CustomTextField from '@/@core/components/mui/TextField'
 import { useTranslation } from '@/translations/useTranslation'
+import { commonStyles } from '@/@core/styles/commonStyles'
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -34,16 +35,9 @@ const VisuallyHiddenInput = styled('input')({
 })
 
 const modalStyle = mode => ({
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
+  ...commonStyles.modalContainer,
   width: '90%',
   maxWidth: 500,
-  bgcolor: 'background.paper',
-  borderRadius: 2,
-  boxShadow: 24,
-  p: 4,
   border: `1px solid ${mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)'}`
 })
 
@@ -70,7 +64,7 @@ const AddModal = ({ open, onClose, onSubmit, initialData, mode }) => {
     if (initialData?.profile_image && !selectedImage) {
       setSelectedImage(initialData.profile_image)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData?.profile_image])
 
   const handleInputChange = e => {
@@ -268,7 +262,7 @@ const AddModal = ({ open, onClose, onSubmit, initialData, mode }) => {
                   : ''
               }
             />
-            <FormControl fullWidth style={{ mb: 2, mt:"16px" }}>
+            <FormControl fullWidth style={{ mb: 2, mt: '16px' }}>
               <InputLabel id='gender-label'>{t('reportCard.gender')}</InputLabel>
               <Select
                 labelId='gender-label'

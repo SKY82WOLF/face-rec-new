@@ -150,6 +150,7 @@ const fa = {
     add: 'افزودن',
     userDetail: 'جزئیات کاربر',
     noData: 'کاربری یافت نشد',
+    loading: 'درحال بارگزاری کاربرها',
 
     // New translations
     roleOptions: {
@@ -199,6 +200,54 @@ const fa = {
         cancel: 'انصراف',
         uploadAvatar: 'آپلود تصویر'
       }
+    }
+  },
+
+  //groups
+  groups: {
+    groups: 'گروه ها',
+    title: 'مدیریت گروه‌ها',
+    addGroup: 'افزودن گروه',
+    editGroup: 'ویرایش گروه',
+    deleteGroup: 'حذف گروه',
+    confirmDelete: 'آیا از حذف این گروه اطمینان دارید؟',
+    confirmDeleteMessage: 'آیا از حذف گروه "{name}" اطمینان دارید؟ این عملیات قابل بازگشت نیست.',
+    id: 'شناسه',
+    name: 'نام گروه',
+    groupName: 'نام گروه',
+    createdAt: 'تاریخ ایجاد',
+    updatedAt: 'تاریخ بروزرسانی',
+    actions: 'عملیات',
+    noData: 'هیچ گروهی یافت نشد',
+    add: 'افزودن',
+    save: 'ذخیره تغییرات',
+    cancel: 'انصراف',
+    edit: 'ویرایش',
+    delete: 'حذف',
+    itemsPerPage: 'تعداد در صفحه',
+    sortBy: 'مرتب‌سازی بر اساس',
+    sortOrder: 'ترتیب',
+    ascending: 'صعودی',
+    descending: 'نزولی',
+    addNewGroup: 'افزودن گروه جدید',
+    editGroupTitle: 'ویرایش گروه',
+    addGroupTitle: 'افزودن گروه جدید',
+    deleteConfirmation: 'تأیید حذف',
+    loading: 'درحال بارگزاری گروه ها',
+    noData: 'گروهی یافت نشد',
+
+    // Sort fields
+    sortFields: {
+      id: 'شناسه',
+      name: 'نام',
+      createdAt: 'تاریخ ایجاد',
+      updatedAt: 'تاریخ بروزرسانی'
+    },
+
+    // Sort orders
+    sortOrders: {
+      asc: 'صعودی',
+      desc: 'نزولی'
     }
   },
 

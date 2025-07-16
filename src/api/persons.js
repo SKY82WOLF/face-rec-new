@@ -21,9 +21,9 @@ export const addPerson = async personData => {
   formData.append('first_name', personData.first_name)
   formData.append('last_name', personData.last_name)
   formData.append('national_code', personData.national_code)
-  formData.append('access', personData.access ? 'allowed' : 'not_allowed')
-  formData.append('gender', personData.gender)
-  formData.append('profile_image', personData.profile_image || '')
+  formData.append('access_id', personData.access ? 'allowed' : 'not_allowed')
+  formData.append('gender_id', personData.gender)
+  formData.append('person_image', personData.person_image || '')
 
   if (personData.report_id) {
     formData.append('report_id', personData.report_id)

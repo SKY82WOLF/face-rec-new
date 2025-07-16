@@ -56,6 +56,9 @@ export const API_ROUTES = {
   users: {
     list: '/users',
     create: '/users/create'
+  },
+  groups: {
+    list: '/groups'
   }
 }
 
@@ -81,6 +84,8 @@ export const {
 } = API_ROUTES.persons
 
 export const { list: usersList, create: usersCreate } = API_ROUTES.users
+
+export const { list: groupsList } = API_ROUTES.groups
 
 // WebSocket URL helpers for data and live
 export function getDataWebSocketUrl() {

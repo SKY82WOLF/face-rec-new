@@ -39,11 +39,7 @@ const ShamsiDateTime = ({ dateTime, format = 'dateTime', variant = 'body2', colo
         ? formatShamsi(dateTime, 'time')
         : formatShamsi(dateTime, 'dateTime')
 
-  return (
-    <span style={{ color: color }}>
-      {displayText}
-    </span>
-  )
+  return <span style={{ color: color }}>{displayText}</span>
 }
 
 export default ShamsiDateTime
