@@ -43,6 +43,12 @@ export const API_ROUTES = {
   logout: '/logout',
   refreshToken: '/token/new-tokens',
 
+  // Types
+  types: {
+    list: '/types',
+    add: 'types/add'
+  },
+
   // Persons
   persons: {
     list: '/persons',
@@ -55,10 +61,11 @@ export const API_ROUTES = {
   // Users
   users: {
     list: '/users',
-    create: '/users/create'
+    create: '/users/add'
   },
   groups: {
-    list: '/groups'
+    list: '/groups',
+    add: '/groups/add'
   }
 }
 
@@ -85,7 +92,9 @@ export const {
 
 export const { list: usersList, create: usersCreate } = API_ROUTES.users
 
-export const { list: groupsList } = API_ROUTES.groups
+export const { list: groupsList, add: groupsAdd } = API_ROUTES.groups
+
+export const { list: typesList, add: typesAdd } = API_ROUTES.types
 
 // WebSocket URL helpers for data and live
 export function getDataWebSocketUrl() {

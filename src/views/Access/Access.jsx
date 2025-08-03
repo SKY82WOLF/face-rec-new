@@ -19,7 +19,7 @@ import {
 } from '@mui/material'
 
 import SEO from '@/components/SEO'
-import ReportCard from './AccessReportCard'
+import AccessReportCard from './AccessReportCard'
 import AccessAddModal from './AccessAddModal'
 import { useGetPersons } from '@/hooks/usePersons'
 import { useTranslation } from '@/translations/useTranslation'
@@ -77,7 +77,7 @@ function AccessContent({ initialPage = 1, initialper_page = 10 }) {
           ) : personsData?.data?.length > 0 ? (
             personsData.data.map((person, index) => (
               <Grid sx={{ display: 'flex', flexGrow: 1, minWidth: '330px' }} xs={12} sm={6} md={4} key={person.id}>
-                <ReportCard
+                <AccessReportCard
                   reportData={{
                     id: person.id,
                     first_name: person.first_name,

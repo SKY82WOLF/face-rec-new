@@ -4,7 +4,7 @@ import { useEffect, useMemo } from 'react'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
-import { getGroups, createGroup, updateGroup, deleteGroup } from '@/api/groups'
+import { getGroups, getGroupDetail, createGroup, updateGroup, deleteGroup } from '@/api/groups'
 
 const useGroups = ({ page = 1, per_page = 10, sort_by = 'id', sort_order = 'asc' } = {}) => {
   const queryClient = useQueryClient()
@@ -136,4 +136,34 @@ const useGroups = ({ page = 1, per_page = 10, sort_by = 'id', sort_order = 'asc'
   }
 }
 
+// Hook for getting a single group's details
+const useGroupDetail = groupId => {
+  const {
+    data: group,
+    isLoading,
+    isError,
+    refetch
+  } = useQuery({
+    queryKey: ['group', groupId],
+    queryFn: async () => {
+      if (!groupId) return null
+      const response = await getGroupDetail(groupId)
+
+      // Extract the group data from the response structure
+      return response.results || response
+    },
+    enabled: !!groupId,
+    staleTime: 5000,
+    gcTime: 120000
+  })
+
+  return {
+    group,
+    isLoading,
+    isError,
+    refetchGroup: refetch
+  }
+}
+
+export { useGroupDetail }
 export default useGroups

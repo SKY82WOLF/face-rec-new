@@ -44,7 +44,7 @@ const StyledReportCard = styled(Card)(({ theme, mode }) => ({
   }
 }))
 
-const ReportCard = ({ reportData, allReports }) => {
+const AccessReportCard = ({ reportData, allReports }) => {
   const { t } = useTranslation()
   const { settings } = useSettings()
   const [open, setOpen] = useState(false)
@@ -237,4 +237,4 @@ const ReportCard = ({ reportData, allReports }) => {
   )
 }
 
-export default ReportCard
+export default AccessReportCard

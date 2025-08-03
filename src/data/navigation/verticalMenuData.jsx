@@ -17,6 +17,11 @@ const useVerticalMenuData = () => {
       icon: 'tabler-lock-cog'
     },
     {
+      label: t('sidebar.reports'),
+      href: '/report',
+      icon: 'tabler-receipt'
+    },
+    {
       label: t('sidebar.users'),
       href: '/users',
       icon: 'tabler-users'
@@ -30,7 +35,7 @@ const useVerticalMenuData = () => {
       label: t('sidebar.profile'),
       href: '/profile',
       icon: 'tabler-user'
-    },
+    }
   ]
 }
 
