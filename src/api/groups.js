@@ -1,4 +1,4 @@
-import { groupsList } from '@/configs/routes'
+import { groupsAdd, groupsList } from '@/configs/routes'
 import axiosInstance from './axios'
 
 export const getGroups = async ({ page = 1, per_page = 10 }) => {
@@ -16,9 +16,20 @@ export const getGroups = async ({ page = 1, per_page = 10 }) => {
   }
 }
 
-export const createGroup = async data => {
+export const getGroupDetail = async id => {
   try {
-    const response = await axiosInstance.post(groupsList, data, {
+    const response = await axiosInstance.get(`${groupsList}/${id}`)
+
+    return response
+  } catch (error) {
+    throw error.response || error.message
+  }
+}
+
+export const createGroup = async data => {
+  // data: { name: string, permissions: array of permission ids }
+  try {
+    const response = await axiosInstance.post(groupsAdd, data, {
       headers: {
         'Content-Type': 'application/json'
       }
@@ -31,6 +42,7 @@ export const createGroup = async data => {
 }
 
 export const updateGroup = async ({ id, data }) => {
+  // data: { name: string, permissions: array of permission ids }
   try {
     const response = await axiosInstance.put(`${groupsList}/${id}`, data, {
       headers: {

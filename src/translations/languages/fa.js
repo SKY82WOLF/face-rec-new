@@ -25,7 +25,10 @@ const fa = {
     create: 'ایجاد',
     update: 'بروزرسانی',
     select: 'انتخاب',
-    logout: 'خروج'
+    logout: 'خروج',
+    ok: 'تأیید',
+    cancel: 'انصراف',
+    to: 'تا'
   },
 
   // Not Found Page
@@ -88,7 +91,39 @@ const fa = {
     downloadCardAsImage: 'دانلود گزارش',
     downloadProfileImage: 'دانلود تصویر پروفایل',
     downloadLastImage: 'دانلود تصویر آخرین تردد',
-    fullName: 'نام و نام خانوادگی'
+    fullName: 'نام و نام خانوادگی',
+
+    // Add any missing keys for Reports modals/filters
+    filter: 'فیلتر',
+    reset: 'بازنشانی',
+    edit: 'ویرایش',
+    save: 'ذخیره',
+    close: 'بستن',
+    previous: 'قبلی',
+    next: 'بعدی',
+    search: 'جستجو',
+    sortBy: 'مرتب‌سازی بر اساس',
+    sortOrder: 'ترتیب',
+    ascending: 'صعودی',
+    descending: 'نزولی',
+    itemsPerPage: 'تعداد در هر صفحه',
+    noReports: 'گزارشی موجود نیست',
+    loading: 'در حال بارگذاری...',
+
+    // For edit modal
+    editReport: 'ویرایش گزارش',
+    submit: 'ارسال',
+    from: 'از',
+    to: 'تا',
+    dateRange: 'بازه تاریخ',
+
+    // For detail modal
+    reportDetails: 'جزئیات گزارش',
+
+    // For filters
+    filters: 'فیلترها',
+    applyFilters: 'اعمال فیلترها',
+    clearFilters: 'پاک کردن فیلترها'
   },
 
   access: {
@@ -215,6 +250,7 @@ const fa = {
     id: 'شناسه',
     name: 'نام گروه',
     groupName: 'نام گروه',
+    users: 'کاربران',
     createdAt: 'تاریخ ایجاد',
     updatedAt: 'تاریخ بروزرسانی',
     actions: 'عملیات',
@@ -235,6 +271,37 @@ const fa = {
     deleteConfirmation: 'تأیید حذف',
     loading: 'درحال بارگزاری گروه ها',
     noData: 'گروهی یافت نشد',
+
+    // Permissions management
+    permissions: 'دسترسی‌ها',
+    assignedPermissions: 'دسترسی‌های تخصیص داده شده',
+    permissionCategories: 'دسته‌بندی‌های دسترسی',
+    permissionsTree: 'درخت دسترسی‌ها',
+    noPermissionsAvailable: 'هیچ دسترسی‌ای موجود نیست',
+    noPermissionsAssigned: 'هیچ دسترسی‌ای تخصیص داده نشده است',
+    noUsersAssigned: 'هیچ کاربری تخصیص داده نشده است',
+    groupDetails: 'جزئیات گروه',
+    groupInfo: 'اطلاعات گروه',
+    groupToDelete: 'گروه برای حذف',
+    deleteWarning: 'این عملیات غیرقابل بازگشت است و تمام دسترسی‌های مرتبط با این گروه حذف خواهند شد.',
+
+    // TreeView related translations
+    treeView: {
+      selectPermissions: 'انتخاب دسترسی‌ها',
+      selectedPermissions: 'دسترسی‌ انتخاب شده',
+      expandAll: 'باز کردن همه',
+      collapseAll: 'بستن همه',
+      searchPermissions: 'جستجو در دسترسی‌ها',
+      noPermissionsFound: 'دسترسی‌ای یافت نشد',
+      selectAll: 'انتخاب همه',
+      deselectAll: 'لغو انتخاب همه',
+      permissionCount: '{count} دسترسی انتخاب شده',
+      categoryCount: '{count} دسته‌بندی',
+      permissionDetails: 'جزئیات دسترسی',
+      permissionName: 'نام دسترسی',
+      permissionCode: 'کد دسترسی',
+      permissionCategory: 'دسته‌بندی دسترسی'
+    },
 
     // Sort fields
     sortFields: {
@@ -262,7 +329,8 @@ const fa = {
     analytics: 'تحلیل‌ها',
     notifications: 'اعلان‌ها',
     live: 'پخش زنده',
-    access: 'اشخاص مجاز'
+    access: 'اشخاص مجاز',
+    reports: 'گزارش‌ها' // Added missing translation
   },
 
   // Navbar
@@ -377,7 +445,8 @@ const fa = {
     passwordChanged: 'رمز عبور با موفقیت تغییر کرد',
     profileUpdated: 'پروفایل با موفقیت بروزرسانی شد',
     sessionExpired: 'جلسه شما منقضی شده است. لطفاً دوباره وارد شوید',
-    networkError: 'خطای شبکه. لطفاً اتصال خود را بررسی کنید'
+    networkError: 'خطای شبکه. لطفاً اتصال خود را بررسی کنید',
+    error: 'خطایی رخ داده است'
   }
 }
 

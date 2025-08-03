@@ -13,7 +13,7 @@ const PaginationControls = ({
 }) => {
   return (
     <Box sx={commonStyles.paginationContainer}>
-      <FormControl sx={commonStyles.formControl}>
+      <FormControl size='medium' sx={commonStyles.formControl}>
         <InputLabel>{itemsPerPageLabel}</InputLabel>
         <Select value={per_page} onChange={onPerPageChange} label={itemsPerPageLabel}>
           {per_pageOptions.map(option => (

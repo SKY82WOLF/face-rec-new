@@ -34,13 +34,16 @@ import {
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
+import VisibilityIcon from '@mui/icons-material/Visibility'
 import SortIcon from '@mui/icons-material/Sort'
 
 import SEO from '@/components/SEO'
 import { useTranslation } from '@/translations/useTranslation'
 import useGroups from '@/hooks/useGroups'
-import GroupsAdd from './GroupsAdd'
-import GroupsUpdate from './GroupsUpdate'
+import GroupsAdd from './GroupsAddModal'
+import GroupsUpdate from './GroupsUpdateModal'
+import GroupDetail from './GroupDetail'
+import GroupDeleteModal from './GroupDeleteModal'
 import ShamsiDateTime from '@/components/ShamsiDateTimer'
 import PageHeader from '@/components/ui/PageHeader'
 import EmptyState from '@/components/ui/EmptyState'
@@ -71,6 +74,7 @@ function GroupsContent({ initialPage = 1, initialper_page = 10 }) {
   const [openAddModal, setOpenAddModal] = useState(false)
   const [openEditModal, setOpenEditModal] = useState(false)
   const [openDeleteModal, setOpenDeleteModal] = useState(false)
+  const [openDetailModal, setOpenDetailModal] = useState(false)
   const [selectedGroup, setSelectedGroup] = useState(null)
 
   const [sort_by, setSortBy] = useState('id')
@@ -128,6 +132,16 @@ function GroupsContent({ initialPage = 1, initialper_page = 10 }) {
 
   const handleCloseDeleteModal = () => {
     setOpenDeleteModal(false)
+    setSelectedGroup(null)
+  }
+
+  const handleOpenDetailModal = group => {
+    setSelectedGroup(group)
+    setOpenDetailModal(true)
+  }
+
+  const handleCloseDetailModal = () => {
+    setOpenDetailModal(false)
     setSelectedGroup(null)
   }
 
@@ -191,6 +205,7 @@ function GroupsContent({ initialPage = 1, initialper_page = 10 }) {
                       <TableRow>
                         <TableCell sx={{ textAlign: 'center' }}>{t('groups.id')}</TableCell>
                         <TableCell sx={{ textAlign: 'center' }}>{t('groups.name')}</TableCell>
+                        <TableCell sx={{ textAlign: 'center' }}>{t('groups.users')}</TableCell>
                         <TableCell sx={{ textAlign: 'center' }}>{t('groups.createdAt')}</TableCell>
                         <TableCell sx={{ textAlign: 'center' }}>{t('groups.updatedAt')}</TableCell>
                         <TableCell sx={{ textAlign: 'center' }}>{t('groups.actions')}</TableCell>
@@ -208,6 +223,14 @@ function GroupsContent({ initialPage = 1, initialper_page = 10 }) {
                             </Typography>
                           </TableCell>
                           <TableCell sx={{ textAlign: 'center' }}>
+                            <Chip
+                              label={group.users ? group.users.length : 0}
+                              size='small'
+                              color='secondary'
+                              variant='outlined'
+                            />
+                          </TableCell>
+                          <TableCell sx={{ textAlign: 'center' }}>
                             <ShamsiDateTime dateTime={formatDateForShamsi(group.created_at)} />
                           </TableCell>
                           <TableCell sx={{ textAlign: 'center' }}>
@@ -215,6 +238,11 @@ function GroupsContent({ initialPage = 1, initialper_page = 10 }) {
                           </TableCell>
                           <TableCell sx={{ textAlign: 'center' }}>
                             <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                              <Tooltip title={t('common.view')}>
+                                <IconButton onClick={() => handleOpenDetailModal(group)} color='info' size='small'>
+                                  <VisibilityIcon />
+                                </IconButton>
+                              </Tooltip>
                               <Tooltip title={t('groups.edit')}>
                                 <IconButton onClick={() => handleOpenEditModal(group)} color='primary' size='small'>
                                   <EditIcon />
@@ -248,10 +276,16 @@ function GroupsContent({ initialPage = 1, initialper_page = 10 }) {
                       <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
                         {t('groups.createdAt')}: <ShamsiDateTime dateTime={formatDateForShamsi(group.created_at)} />
                       </Typography>
+                      <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
+                        {t('groups.users')}: {group.users ? group.users.length : 0}
+                      </Typography>
                       <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
                         {t('groups.updatedAt')}: <ShamsiDateTime dateTime={formatDateForShamsi(group.updated_at)} />
                       </Typography>
                       <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                        <IconButton onClick={() => handleOpenDetailModal(group)} color='info' size='small'>
+                          <VisibilityIcon />
+                        </IconButton>
                         <IconButton onClick={() => handleOpenEditModal(group)} color='primary' size='small'>
                           <EditIcon />
                         </IconButton>
@@ -275,34 +309,22 @@ function GroupsContent({ initialPage = 1, initialper_page = 10 }) {
                   justifyContent: 'space-between'
                 }}
               >
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems='center'>
-                  <FormControl size='small' sx={{ minWidth: 120 }}>
-                    <InputLabel>{t('groups.sortBy')}</InputLabel>
-                    <Select
-                      value={sort_by}
-                      label={t('groups.sortBy')}
-                      onChange={handleSortByChange}
-                      startAdornment={<SortIcon sx={{ mr: 1 }} />}
-                    >
-                      {SORT_FIELDS.map(field => (
-                        <MenuItem key={field.value} value={field.value}>
-                          {t(`groups.sortFields.${field.value}`)}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                <FormControl size='medium' sx={{ minWidth: 120 }}>
+                  <InputLabel>{t('groups.sortBy')}</InputLabel>
+                  <Select
+                    value={sort_by}
+                    label={t('groups.sortBy')}
+                    onChange={handleSortByChange}
+                    startAdornment={<SortIcon sx={{ mr: 1 }} />}
+                  >
+                    {SORT_FIELDS.map(field => (
+                      <MenuItem key={field.value} value={field.value}>
+                        {t(`groups.sortFields.${field.value}`)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
 
-                  <FormControl size='small' sx={{ minWidth: 120 }}>
-                    <InputLabel>{t('groups.sortOrder')}</InputLabel>
-                    <Select value={sort_order} label={t('groups.sortOrder')} onChange={handleSortOrderChange}>
-                      {SORT_ORDERS.map(order => (
-                        <MenuItem key={order.value} value={order.value}>
-                          {t(`groups.sortOrders.${order.value}`)}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Stack>
                 <PaginationControls
                   page={page}
                   total={total || 0}
@@ -312,6 +334,17 @@ function GroupsContent({ initialPage = 1, initialper_page = 10 }) {
                   onPerPageChange={handlePerPageChange}
                   itemsPerPageLabel={t('groups.itemsPerPage')}
                 />
+
+                <FormControl size='medium' sx={{ minWidth: 120 }}>
+                  <InputLabel>{t('groups.sortOrder')}</InputLabel>
+                  <Select value={sort_order} label={t('groups.sortOrder')} onChange={handleSortOrderChange}>
+                    {SORT_ORDERS.map(order => (
+                      <MenuItem key={order.value} value={order.value}>
+                        {t(`groups.sortOrders.${order.value}`)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               </Box>
             </>
           )}
@@ -331,18 +364,18 @@ function GroupsContent({ initialPage = 1, initialper_page = 10 }) {
       />
 
       {/* Delete Confirmation Modal */}
-      <Dialog open={openDeleteModal} onClose={handleCloseDeleteModal} maxWidth='sm' fullWidth>
-        <DialogTitle>{t('groups.deleteConfirmation')}</DialogTitle>
-        <DialogContent>
-          <Typography>{t('groups.confirmDeleteMessage', { name: selectedGroup?.name })}</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDeleteModal}>{t('groups.cancel')}</Button>
-          <Button onClick={handleDeleteGroup} variant='contained' color='error'>
-            {t('groups.delete')}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <GroupDeleteModal
+        open={openDeleteModal}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleDeleteGroup}
+        group={selectedGroup}
+        isLoading={isLoading}
+      />
+
+      {/* Group Detail Modal */}
+      {selectedGroup?.id && (
+        <GroupDetail open={openDetailModal} onClose={handleCloseDetailModal} groupId={selectedGroup.id} />
+      )}
     </Box>
   )
 }
