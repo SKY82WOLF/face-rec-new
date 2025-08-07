@@ -19,8 +19,11 @@ import LockOpenIcon from '@mui/icons-material/LockOpen'
 import DeleteIcon from '@mui/icons-material/Delete'
 import Info from '@mui/icons-material/Info'
 
+import { useSelector } from 'react-redux'
+
 import { useTranslation } from '@/translations/useTranslation'
 import { useDeletePerson } from '@/hooks/usePersons'
+import { selectGenderTypes, selectAccessTypes } from '@/store/slices/typesSlice'
 import { useSettings } from '@core/hooks/useSettings'
 
 // Import the new modal components
@@ -51,11 +54,23 @@ const AccessReportCard = ({ reportData, allReports }) => {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [editOpen, setEditOpen] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
-  const [isAllowed, setIsAllowed] = useState(reportData.access === 'allowed')
+  const [isAllowed, setIsAllowed] = useState(reportData.access_id?.id === 5)
   const [modalData, setModalData] = useState(reportData)
   const [formData, setFormData] = useState({})
 
   const deletePersonMutation = useDeletePerson()
+
+  // Get types data
+  const genderTypes = useSelector(selectGenderTypes)
+  const accessTypes = useSelector(selectAccessTypes)
+
+  // Helper function to get type title by ID
+  const getTypeTitle = (types, id) => {
+    if (!types?.data || !id) return t('reportCard.unknown')
+    const type = types.data.find(type => type.id === id)
+
+    return type?.translate?.trim() || type?.title?.trim() || t('reportCard.unknown')
+  }
 
   // Get current mode from settings
   const getCurrentMode = () => {
@@ -82,14 +97,16 @@ const AccessReportCard = ({ reportData, allReports }) => {
       first_name: data.first_name || '',
       last_name: data.last_name || '',
       national_code: data.national_code || '',
-      gender: data.gender ?? '',
-      access: data.access || 'not_allowed',
+      gender_id: data.gender_id || '',
+      access_id: data.access_id || '',
       person_image: data.person_image || null,
-      last_image: data.last_image || null,
-      date: data.date || null,
+      last_person_image: data.last_person_image || null,
+      last_person_report_id: data.last_person_report_id,
+      person_id: data.person_id,
+      created_at: data.created_at || null,
       index
     })
-    setIsAllowed(data.access === 'allowed')
+    setIsAllowed(data.access_id?.id === 5)
   }
 
   const handleOpen = () => {
@@ -101,9 +118,15 @@ const AccessReportCard = ({ reportData, allReports }) => {
   const handleClose = () => setOpen(false)
 
   const handleEditOpen = () => {
+    // Check if this is an update (person has an ID and access_id is not unknown) or add (no ID or unknown access)
+    const accessId = modalData.access_id?.id || modalData.access_id
+    const isUnknown = accessId === 7 || accessId === 'unknown' || !accessId
+
     setFormData({
       ...modalData,
-      access: isAllowed // Ensure access is boolean in formData
+      access: isAllowed, // Ensure access is boolean in formData
+      // If unknown access, don't pass the ID to trigger add mode
+      id: isUnknown ? undefined : modalData.id
     })
     setEditOpen(true)
     setOpen(false)
@@ -132,7 +155,7 @@ const AccessReportCard = ({ reportData, allReports }) => {
     }
   }
 
-  const displayImage = reportData.person_image || reportData.last_image || '/images/avatars/1.png'
+  const displayImage = reportData.person_image || reportData.last_person_image || '/images/avatars/1.png'
 
   return (
     <>
@@ -149,24 +172,22 @@ const AccessReportCard = ({ reportData, allReports }) => {
               {`${reportData.first_name || ''} ${reportData.last_name || ''}`}
             </Typography>
             <Typography variant='body2' color='textSecondary'>
-              {t('reportCard.id')}: {reportData.id || t('reportCard.unknown')}
+              {t('reportCard.id')}: {reportData.person_id || t('reportCard.unknown')}
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant='body2' color='textSecondary' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              {reportData.gender === false ? (
-                <>
-                  {t('reportCard.male')}
-                  <i className='tabler-gender-male' style={{ color: 'rgb(0, 83, 255)' }} />
-                </>
-              ) : reportData.gender === true ? (
-                <>
-                  {t('reportCard.female')}
-                  <i className='tabler-gender-female' style={{ color: '#ff1dc8' }} />
-                </>
-              ) : (
-                t('reportCard.unknown')
-              )}
+              {genderTypes.loading
+                ? t('reportCard.loading')
+                : (() => {
+                    const genderId = reportData.gender_id?.id || reportData.gender_id
+
+                    if (genderId && genderTypes?.data) {
+                      return <span>{getTypeTitle(genderTypes, genderId)}</span>
+                    }
+
+                    return t('reportCard.unknown')
+                  })()}
             </Typography>
           </Box>
         </Box>
@@ -177,7 +198,17 @@ const AccessReportCard = ({ reportData, allReports }) => {
             color={isAllowed ? 'success.main' : 'error.main'}
             sx={{ display: 'flex', alignItems: 'center', mr: 1 }}
           >
-            {isAllowed ? t('reportCard.allowed') : t('reportCard.notAllowed')}
+            {accessTypes.loading
+              ? t('reportCard.loading')
+              : (() => {
+                  const accessId = reportData.access_id?.id || reportData.access_id
+
+                  if (accessId && accessTypes?.data) {
+                    return getTypeTitle(accessTypes, accessId)
+                  }
+
+                  return t('reportCard.unknown')
+                })()}
             {isAllowed ? <LockOpenIcon sx={{ fontSize: 16, ml: 0.5 }} /> : <LockIcon sx={{ fontSize: 16, ml: 0.5 }} />}
           </Typography>
           <Button variant='outlined' size='small' onClick={handleOpen} startIcon={<Info />}>

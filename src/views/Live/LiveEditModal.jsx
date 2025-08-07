@@ -44,8 +44,9 @@ const modalStyle = mode => ({
   border: `1px solid ${mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)'}`
 })
 
-const AddModal = ({ open, onClose, onSubmit, initialData, mode }) => {
+const LiveEditModal = ({ open, onClose, onSubmit, initialData, mode }) => {
   const { t } = useTranslation()
+  const [selectedImage, setSelectedImage] = useState(null)
 
   // Get types data
   const genderTypes = useSelector(selectGenderTypes)
@@ -55,34 +56,70 @@ const AddModal = ({ open, onClose, onSubmit, initialData, mode }) => {
     first_name: '',
     last_name: '',
     national_code: '',
-    gender_id: initialData?.gender_id?.id ?? '',
-    access_id: initialData?.access_id?.id ?? 7, // Default to unknown
-    person_image: initialData?.person_image || null,
-    last_person_image: initialData?.last_person_image || null,
-    feature_vector: initialData?.feature_vector || '',
-    last_person_report_id: initialData?.last_person_report_id || '',
-    person_id: initialData?.person_id || '',
-    image_quality: initialData?.image_quality || ''
+    gender_id: '',
+    access_id: 6,
+    person_image: null,
+    last_person_image: null,
+    feature_vector: '',
+    last_person_report_id: '',
+    person_id: '',
+    image_quality: ''
   })
 
   const fileInputRef = useRef(null)
 
+  // Initialize form data when modal opens
+  useEffect(() => {
+    if (open && initialData) {
+      setFormData({
+        first_name: initialData.first_name || '',
+        last_name: initialData.last_name || '',
+        national_code: initialData.national_code || '',
+        gender_id: initialData.gender_id?.id || initialData.gender_id || '',
+        access_id: initialData.access_id?.id || initialData.access_id || 7,
+        person_image: null,
+        last_person_image: initialData.last_person_image || null,
+        feature_vector: initialData.feature_vector || '',
+        last_person_report_id: initialData.last_person_report_id || '',
+        person_id: initialData.person_id || '',
+        image_quality: initialData.image_quality || ''
+      })
+
+      // Set preview image from initialData
+      if (initialData.person_image) {
+        console.log('initialData.person_image', initialData.person_image)
+        setSelectedImage(initialData.person_image)
+      }
+    }
+  }, [open, initialData])
+
   const handleInputChange = e => {
-    const { name, value, checked } = e.target
+    const { name, value } = e.target
 
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'access_id' ? value : value
+      [name]: value
     }))
   }
-
-  const [imagePreview, setImagePreview] = useState(null)
 
   const handleImageUpload = event => {
     const file = event.target.files[0]
 
     if (file) {
-      setImagePreview(URL.createObjectURL(file))
+      // Validate file type and size
+      if (!file.type.startsWith('image/')) {
+        alert(t('reportCard.invalidImageType'))
+
+        return
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        alert(t('reportCard.imageTooLarge'))
+
+        return
+      }
+
+      setSelectedImage(URL.createObjectURL(file))
       setFormData(prev => ({
         ...prev,
         person_image: file
@@ -92,12 +129,12 @@ const AddModal = ({ open, onClose, onSubmit, initialData, mode }) => {
 
   // Get the image source for the avatar
   const getImageSource = () => {
-    if (imagePreview) {
-      return imagePreview
+    if (selectedImage) {
+      return selectedImage
     }
 
-    if (formData.last_person_image && typeof formData.last_person_image === 'string') {
-      return formData.last_person_image
+    if (formData.person_image && typeof formData.person_image === 'string') {
+      return formData.person_image
     }
 
     return '/images/avatars/1.png'
@@ -132,8 +169,8 @@ const AddModal = ({ open, onClose, onSubmit, initialData, mode }) => {
     let profileImage = formData.person_image // Use the newly uploaded image if available
 
     // If no new image is uploaded and initialData.last_person_image is a URL, convert it to File
-    if (!profileImage && initialData?.last_person_image) {
-      profileImage = await urlToFile(initialData.last_person_image, 'profile_image.jpg')
+    if (!profileImage && initialData?.person_image) {
+      profileImage = await urlToFile(initialData.person_image, 'profile_image.jpg')
       console.log('Converted URL to File:', profileImage)
     }
 
@@ -160,38 +197,24 @@ const AddModal = ({ open, onClose, onSubmit, initialData, mode }) => {
     }
 
     // Log submitData for debugging
-    console.log('submitData:', submitData)
+    console.log('edit submitData:', submitData)
 
     try {
       await onSubmit(submitData)
-
-      // Reset form after successful submission
-      setFormData({
-        first_name: '',
-        last_name: '',
-        national_code: '',
-        gender_id: '',
-        access_id: 7, // Reset to default
-        person_image: null,
-        feature_vector: '',
-        last_person_report_id: '',
-        image_quality: ''
-      })
-      setImagePreview(null)
     } catch (error) {
-      console.error('Submission failed:', error)
-      alert(t('reportCard.submissionFailed'))
+      console.error('Update failed:', error)
+      alert(t('reportCard.updateFailed'))
     }
   }
 
   // Clean up URL.createObjectURL to prevent memory leaks
   useEffect(() => {
     return () => {
-      if (imagePreview && imagePreview.startsWith('blob:')) {
-        URL.revokeObjectURL(imagePreview)
+      if (selectedImage && selectedImage.startsWith('blob:')) {
+        URL.revokeObjectURL(selectedImage)
       }
     }
-  }, [imagePreview])
+  }, [selectedImage])
 
   return (
     <Modal
@@ -200,10 +223,16 @@ const AddModal = ({ open, onClose, onSubmit, initialData, mode }) => {
       closeAfterTransition
       slots={{ backdrop: Backdrop }}
       slotProps={{ backdrop: { timeout: 500 } }}
+      disableAutoFocus
+      sx={{
+        '&:focus': {
+          outline: 'none'
+        }
+      }}
     >
       <Fade in={open}>
         <Box sx={modalStyle(mode)}>
-          <Typography variant='h6'>{t('reportCard.addToAllowed')}</Typography>
+          <Typography variant='h6'>{t('reportCard.editPerson')}</Typography>
           <Box sx={{ mt: 3 }}>
             <Box sx={{ textAlign: 'center', mb: 3 }}>
               <Avatar
@@ -281,14 +310,14 @@ const AddModal = ({ open, onClose, onSubmit, initialData, mode }) => {
                 ))}
               </Select>
             </FormControl>
-            <FormControl fullWidth margin='normal'>
-              <InputLabel>{t('access.addPersonModal.access')}</InputLabel>
+            <FormControl margin='normal' fullWidth style={{ mb: 2, mt: '16px' }}>
+              <InputLabel id='access-label'>{t('reportCard.access')}</InputLabel>
               <Select
+                labelId='access-label'
                 name='access_id'
                 value={formData.access_id}
                 onChange={handleInputChange}
-                label={t('access.addPersonModal.access')}
-                required
+                label={t('reportCard.access')}
               >
                 {accessTypes?.data
                   ?.filter(type => type.id !== 7)
@@ -305,7 +334,7 @@ const AddModal = ({ open, onClose, onSubmit, initialData, mode }) => {
               {t('reportCard.cancel')}
             </Button>
             <Button variant='contained' onClick={handleFormSubmit}>
-              {t('reportCard.add')}
+              {t('reportCard.update')}
             </Button>
           </Box>
         </Box>
@@ -314,4 +343,4 @@ const AddModal = ({ open, onClose, onSubmit, initialData, mode }) => {
   )
 }
 
-export default AddModal
+export default LiveEditModal

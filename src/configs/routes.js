@@ -5,7 +5,7 @@ export let origin = typeof window !== 'undefined' ? window.location.origin : 'ht
 export let protocol = typeof window !== 'undefined' ? window.location.protocol : 'http:'
 
 // API URLs
-export let frontUrl, backendUrl
+export let frontUrl, backendUrl, backendImgUrl
 
 if (process.env.NEXT_PUBLIC_API_MODE === 'production') {
   // In production, use the device's IP address
@@ -13,6 +13,7 @@ if (process.env.NEXT_PUBLIC_API_MODE === 'production') {
 
   frontUrl = `http://${deviceIP}`
   backendUrl = `http://${deviceIP}:8585/api`
+  backendImgUrl = `http://${deviceIP}:8585/`
 } else if (process.env.NEXT_PUBLIC_API_MODE === 'remote') {
   // In remote mode, use the specified IP from environment variable
   const remoteIP = process.env.NEXT_PUBLIC_REMOTE_API_IP
@@ -21,12 +22,14 @@ if (process.env.NEXT_PUBLIC_API_MODE === 'production') {
     console.error('NEXT_PUBLIC_REMOTE_API_IP is not set in environment variables')
     frontUrl = 'http://localhost'
     backendUrl = 'http://localhost/api'
+    backendImgUrl = 'http://localhost/'
   } else {
     // Use the full URL from the environment variable
     backendUrl = remoteIP
 
     // Remove /api from the end to get the frontend URL
     frontUrl = remoteIP.replace('/api', '')
+    backendImgUrl = remoteIP.replace('/api', '')
   }
 } else {
   // Default to production mode if no mode is specified
@@ -34,6 +37,7 @@ if (process.env.NEXT_PUBLIC_API_MODE === 'production') {
 
   frontUrl = `http://${deviceIP}`
   backendUrl = `http://${deviceIP}:8585/api`
+  backendImgUrl = `http://${deviceIP}:8585/`
 }
 
 // API Routes
@@ -72,6 +76,10 @@ export const API_ROUTES = {
 // Helper function to get full API URL
 export const getApiUrl = route => {
   return `${backendUrl}${route}`
+}
+
+export const getBackendImgUrl = () => {
+  return `${backendImgUrl}`
 }
 
 // Helper function to get full frontend URL

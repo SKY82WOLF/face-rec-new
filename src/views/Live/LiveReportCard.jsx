@@ -6,11 +6,15 @@ import LockIcon from '@mui/icons-material/Lock'
 import LockOpenIcon from '@mui/icons-material/LockOpen'
 import Info from '@mui/icons-material/Info'
 
+import { useSelector } from 'react-redux'
+
 import { useTranslation } from '@/translations/useTranslation'
-import { useAddPerson } from '@/hooks/usePersons'
+import { useAddPerson, useUpdatePerson } from '@/hooks/usePersons'
+import { selectGenderTypes, selectAccessTypes } from '@/store/slices/typesSlice'
 import { useSettings } from '@core/hooks/useSettings'
 import ShamsiDateTime from '@/components/ShamsiDateTimer'
 import AddModal from './LiveAddModal'
+import LiveEditModal from './LiveEditModal'
 import LiveDetailModal from './LiveDetailModal'
 import { commonStyles } from '@/@core/styles/commonStyles'
 
@@ -38,9 +42,22 @@ const LiveReportCard = ({ reportData, allReports }) => {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [addOpen, setAddOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
-  const [isAllowed, setIsAllowed] = useState(reportData.access)
   const [modalData, setModalData] = useState(reportData)
   const addPersonMutation = useAddPerson()
+  const updatePersonMutation = useUpdatePerson()
+  const [personModalType, setPersonModalType] = useState(null) // 'add' | 'edit' | null
+
+  // Get types data
+  const genderTypes = useSelector(selectGenderTypes)
+  const accessTypes = useSelector(selectAccessTypes)
+
+  // Helper function to get type title by ID
+  const getTypeTitle = (types, id) => {
+    if (!types?.data || !id) return t('reportCard.unknown')
+    const type = types.data.find(type => type.id === id)
+
+    return type?.translate?.trim() || type?.title?.trim() || t('reportCard.unknown')
+  }
 
   const getCurrentMode = () => {
     if (settings?.mode === 'system') {
@@ -56,22 +73,29 @@ const LiveReportCard = ({ reportData, allReports }) => {
 
   const currentMode = getCurrentMode()
 
+  // Helper to determine if access is allowed (access_id === 5 means allowed)
+  const isAccessAllowed = accessId => {
+    const id = accessId?.id || accessId
+
+    return id === 5
+  }
+
   const setReportDataByIndex = index => {
     const data = allReports[index]
 
     setCurrentIndex(index)
     setModalData({
-      id: data.id || '',
       first_name: data.first_name || '',
       last_name: data.last_name || '',
       national_code: data.national_code || '',
-      gender: data.gender ?? '',
-      access: data.access || false,
-      profile_image: data.profile_image || null,
-      last_image: data.last_image || null,
+      gender_id: data.gender_id || '',
+      access_id: data.access_id || '',
+      person_image: data.person_image || null,
+      last_person_image: data.last_person_image || null,
+      person_id: data.person_id || '',
       index: data.index,
       feature_vector: data.feature_vector,
-      report_id: data.report_id,
+      last_person_report_id: data.last_person_report_id,
       date: data.date
     })
   }
@@ -108,7 +132,12 @@ const LiveReportCard = ({ reportData, allReports }) => {
 
   const handleSubmit = async formData => {
     try {
-      await addPersonMutation.mutateAsync(formData)
+      // Check if this is an update (person has an ID and access_id is not unknown) or add (no ID or unknown access)
+      const accessId = modalData.access_id?.id || modalData.access_id
+      const isUnknown = accessId === 7 || accessId === 'unknown' || !accessId
+
+      await updatePersonMutation.mutateAsync({ id: modalData.person_id, data: formData })
+
       handleAddClose()
       handleEditClose()
     } catch (error) {
@@ -124,7 +153,31 @@ const LiveReportCard = ({ reportData, allReports }) => {
     }
   }
 
-  const displayImage = reportData.last_image || reportData.profile_image || '/images/avatars/1.png'
+  const displayImage = reportData.last_person_image || reportData.person_image || '/images/avatars/1.png'
+
+  // Helper to determine if access is unknown
+  const isUnknownAccess = accessId => {
+    return accessId === 7 || accessId === 'unknown' || !accessId
+  }
+
+  // Unified handler for opening the correct modal
+  const handlePersonModalOpen = () => {
+    const accessId = reportData.access_id?.id || reportData.access_id
+
+    if (isUnknownAccess(accessId)) {
+      setPersonModalType('add')
+    } else {
+      setPersonModalType('edit')
+    }
+
+    setOpen(false)
+  }
+
+  const handlePersonModalClose = () => setPersonModalType(null)
+
+  // Get access status for current report
+  const accessId = reportData.access_id?.id || reportData.access_id
+  const isAllowed = isAccessAllowed(accessId)
 
   return (
     <>
@@ -141,24 +194,22 @@ const LiveReportCard = ({ reportData, allReports }) => {
               {`${reportData.first_name || ''} ${reportData.last_name || ''}`}
             </Typography>
             <Typography variant='body1' color='textSecondary'>
-              <ShamsiDateTime dateTime={modalData.date} format='time' />
+              <ShamsiDateTime dateTime={modalData.date} format='time' disableTimeConversion />
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant='body2' color='textSecondary' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              {reportData.gender === false ? (
-                <>
-                  {t('reportCard.male')}
-                  <i className='tabler-gender-male' style={{ color: 'rgb(0, 83, 255)' }} />
-                </>
-              ) : reportData.gender === true ? (
-                <>
-                  {t('reportCard.female')}
-                  <i className='tabler-gender-female' style={{ color: '#ff1dc8' }} />
-                </>
-              ) : (
-                t('reportCard.unknown')
-              )}
+              {genderTypes.loading
+                ? t('reportCard.loading')
+                : (() => {
+                    const genderId = reportData.gender_id?.id || reportData.gender_id
+
+                    if (genderId && genderTypes?.data) {
+                      return <>{getTypeTitle(genderTypes, genderId)}</>
+                    }
+
+                    return t('reportCard.unknown')
+                  })()}
             </Typography>
           </Box>
         </Box>
@@ -169,11 +220,21 @@ const LiveReportCard = ({ reportData, allReports }) => {
             color={isAllowed ? 'success.main' : 'error.main'}
             sx={{ display: 'flex', alignItems: 'center', mr: 1 }}
           >
-            {isAllowed ? t('reportCard.allowed') : t('reportCard.notAllowed')}
+            {accessTypes.loading
+              ? t('reportCard.loading')
+              : (() => {
+                  const accessId = reportData.access_id?.id || reportData.access_id
+
+                  if (accessId && accessTypes?.data) {
+                    return getTypeTitle(accessTypes, accessId)
+                  }
+
+                  return t('reportCard.unknown')
+                })()}
             {isAllowed ? <LockOpenIcon sx={{ fontSize: 16, ml: 0.5 }} /> : <LockIcon sx={{ fontSize: 16, ml: 0.5 }} />}
           </Typography>
           <Typography variant='body2' color='textSecondary'>
-            {t('reportCard.id')}: {reportData.id || t('reportCard.unknown')}
+            {t('reportCard.id')}: {reportData.person_id || t('reportCard.unknown')}
           </Typography>
           <Button variant='outlined' size='small' onClick={handleOpen} startIcon={<Info />}>
             {t('reportCard.details')}
@@ -189,49 +250,52 @@ const LiveReportCard = ({ reportData, allReports }) => {
         currentIndex={currentIndex}
         allReports={allReports}
         onNavigate={handleNavigate}
-        onAddPerson={handleAddOpen}
-        onEditPerson={handleEditOpen}
+        onPersonModalOpen={handlePersonModalOpen}
         mode={currentMode}
       />
 
       {/* Add Modal */}
       <AddModal
-        open={addOpen}
-        onClose={handleAddClose}
+        open={personModalType === 'add'}
+        onClose={handlePersonModalClose}
         onSubmit={handleSubmit}
         initialData={{
           id: modalData.id,
           first_name: modalData.first_name || '',
           last_name: modalData.last_name || '',
           national_code: modalData.national_code || '',
-          gender: modalData.gender ?? '',
-          access: modalData.access || false,
-          profile_image: modalData.profile_image || null,
+          gender_id: modalData.gender_id || '',
+          access_id: modalData.access_id || '',
+          person_image: modalData.person_image || null,
+          last_person_image: modalData.last_person_image || null,
           feature_vector: modalData.feature_vector,
-          report_id: modalData.report_id,
+          last_person_report_id: modalData.last_person_report_id,
+          person_id: modalData.person_id,
           image_quality: modalData.image_quality
         }}
         mode={currentMode}
       />
 
       {/* Edit Modal */}
-      {/* <EditModal
-          open={editOpen}
-          onClose={handleEditClose}
-          onSubmit={handleSubmit}
-          initialData={{
-            id: modalData.id,
-            first_name: modalData.first_name || '',
-            last_name: modalData.last_name || '',
-            national_code: modalData.national_code || '',
-            gender: modalData.gender ?? '',
-            access: modalData.access || false,
-            profile_image: modalData.profile_image || null,
-            feature_vector: modalData.feature_vector,
-            report_id: modalData.report_id
-          }}
-          mode={currentMode}
-        /> */}
+      <LiveEditModal
+        open={personModalType === 'edit'}
+        onClose={handlePersonModalClose}
+        onSubmit={handleSubmit}
+        initialData={{
+          id: modalData.id,
+          first_name: modalData.first_name || '',
+          last_name: modalData.last_name || '',
+          national_code: modalData.national_code || '',
+          gender_id: modalData.gender_id || '',
+          access_id: modalData.access_id || '',
+          person_image: modalData.person_image || null,
+          last_person_image: modalData.last_person_image || null,
+          feature_vector: modalData.feature_vector,
+          last_person_report_id: modalData.last_person_report_id,
+          image_quality: modalData.image_quality
+        }}
+        mode={currentMode}
+      />
     </>
   )
 }

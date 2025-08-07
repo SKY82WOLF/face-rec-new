@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useEffect } from 'react'
 
 import { Modal, Fade, Backdrop, Box, Typography, Button, Avatar, Divider, IconButton, Grid } from '@mui/material'
 import { styled } from '@mui/system'
@@ -13,8 +13,11 @@ import EditIcon from '@mui/icons-material/Edit'
 
 import * as htmlToImage from 'html-to-image'
 
+import { useSelector } from 'react-redux'
+
 import { useTranslation } from '@/translations/useTranslation'
 import { useSettings } from '@core/hooks/useSettings'
+import { selectGenderTypes, selectAccessTypes } from '@/store/slices/typesSlice'
 import ShamsiDateTime from '@/components/ShamsiDateTimer'
 import { commonStyles } from '@/@core/styles/commonStyles'
 
@@ -32,12 +35,40 @@ const LiveDetailModal = ({
   currentIndex,
   allReports,
   onNavigate,
-  onAddPerson,
-  onEditPerson,
+  onPersonModalOpen,
   mode
 }) => {
   const { t } = useTranslation()
   const modalRef = useRef(null)
+
+  // Get types data
+  const genderTypes = useSelector(selectGenderTypes)
+  const accessTypes = useSelector(selectAccessTypes)
+
+  // Helper function to get type title by ID
+  const getTypeTitle = (types, id) => {
+    if (!types?.data || !id) return t('reportCard.unknown')
+    const type = types.data.find(type => type.id === id)
+
+    return type?.translate?.trim() || type?.title?.trim() || t('reportCard.unknown')
+  }
+
+  // Keyboard navigation: left/right arrow to navigate reports
+  useEffect(() => {
+    if (!open) return
+
+    const handleKeyDown = event => {
+      if (event.key === 'ArrowRight' && currentIndex > 0) {
+        onNavigate(-1)
+      } else if (event.key === 'ArrowLeft' && currentIndex < allReports.length - 1) {
+        onNavigate(1)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [open, currentIndex, allReports.length, onNavigate])
 
   // Download image from URL
   const handleDownloadImage = (url, filename) => {
@@ -73,31 +104,77 @@ const LiveDetailModal = ({
       .catch(err => console.error('Download card image failed:', err))
   }
 
+  // Helper to determine if access is unknown
+  const isUnknownAccess = accessId => {
+    return accessId === 7 || accessId === 'unknown' || !accessId
+  }
+
+  // Helper to determine if access is allowed (access_id === 5 means allowed)
+  const isAccessAllowed = accessId => {
+    const id = accessId?.id || accessId
+
+    return id === 5
+  }
+
+  const accessId = modalData.access_id?.id || modalData.access_id
+  const isAdd = isUnknownAccess(accessId) || modalData.id <= 0
+  const isAllowed = isAccessAllowed(accessId)
+
+  // Function to handle opening add/edit modal
+  const handlePersonModalOpen = () => {
+    if (isAdd) {
+      // Open add modal
+      onPersonModalOpen('add')
+    } else {
+      // Open edit modal
+      onPersonModalOpen('edit')
+    }
+  }
+
+  const genderValue = genderTypes.loading
+    ? t('reportCard.loading')
+    : (() => {
+        const genderId = modalData.gender_id?.id || modalData.gender_id
+
+        if (genderId && genderTypes?.data) {
+          return <>{getTypeTitle(genderTypes, genderId)}</>
+        }
+
+        return t('reportCard.unknown')
+      })()
+
+  const accessValue = accessTypes.loading
+    ? t('reportCard.loading')
+    : (() => {
+        const accessId = modalData.access_id?.id || modalData.access_id
+
+        if (accessId && accessTypes?.data) {
+          return getTypeTitle(accessTypes, accessId)
+        }
+
+        return t('reportCard.unknown')
+      })()
+
   // Data for the details table in the modal
   const modalInfo = [
     { label: t('reportCard.fullName'), value: `${modalData.first_name || ''} ${modalData.last_name || ''}` },
     { label: t('reportCard.nationalCode'), value: modalData.national_code || t('reportCard.unknown') },
-    { label: t('reportCard.id'), value: modalData.id || t('reportCard.unknown') },
+    { label: t('reportCard.id'), value: modalData.person_id || t('reportCard.unknown') },
     {
       label: t('reportCard.gender'),
-      value:
-        modalData.gender === false
-          ? t('reportCard.male')
-          : modalData.gender === true
-            ? t('reportCard.female')
-            : t('reportCard.unknown')
+      value: genderValue
     },
     { label: t('reportCard.date'), value: <ShamsiDateTime dateTime={modalData.date} format='date' /> },
-    { label: t('reportCard.time'), value: <ShamsiDateTime dateTime={modalData.date} format='time' /> },
+    { label: t('reportCard.time'), value: <ShamsiDateTime dateTime={modalData.date} format='time' disableTimeConversion /> },
     {
       label: t('reportCard.status'),
       value: (
         <>
-          {modalData.access ? t('reportCard.allowed') : t('reportCard.notAllowed')}
-          {modalData.access ? <LockOpenIcon sx={{ fontSize: 20, ml: 1 }} /> : <LockIcon sx={{ fontSize: 20, ml: 1 }} />}
+          {accessValue}
+          {isAllowed ? <LockOpenIcon sx={{ fontSize: 20, ml: 1 }} /> : <LockIcon sx={{ fontSize: 20, ml: 1 }} />}
         </>
       ),
-      valueColor: modalData.access ? 'success.main' : 'error.main'
+      valueColor: isAllowed ? 'success.main' : 'error.main'
     }
   ]
 
@@ -128,7 +205,7 @@ const LiveDetailModal = ({
                 <Typography variant='subtitle1'>{t('reportCard.userImage')}</Typography>
                 <Avatar
                   variant='rounded'
-                  src={modalData.profile_image || '/images/avatars/1.png'}
+                  src={modalData.person_image || '/images/avatars/1.png'}
                   alt={modalData.first_name}
                   sx={{
                     width: '100%',
@@ -149,7 +226,7 @@ const LiveDetailModal = ({
                 <Typography variant='subtitle1'>{t('reportCard.apiImage')}</Typography>
                 <Avatar
                   variant='rounded'
-                  src={modalData.last_image || '/images/avatars/1.png'}
+                  src={modalData.last_person_image || '/images/avatars/1.png'}
                   alt={modalData.first_name}
                   sx={{
                     width: '100%',
@@ -214,9 +291,7 @@ const LiveDetailModal = ({
               }}
               variant='outlined'
               color='secondary'
-              onClick={() =>
-                handleDownloadImage(modalData.profile_image || '/images/avatars/1.png', 'profile_image.png')
-              }
+              onClick={() => handleDownloadImage(modalData.person_image || '/images/avatars/1.png', 'person_image.png')}
             >
               {t('reportCard.downloadProfileImage')}
             </Button>
@@ -229,7 +304,9 @@ const LiveDetailModal = ({
               }}
               variant='outlined'
               color='secondary'
-              onClick={() => handleDownloadImage(modalData.last_image || '/images/avatars/1.png', 'last_image.png')}
+              onClick={() =>
+                handleDownloadImage(modalData.last_person_image || '/images/avatars/1.png', 'last_image.png')
+              }
             >
               {t('reportCard.downloadLastImage')}
             </Button>
@@ -254,10 +331,10 @@ const LiveDetailModal = ({
             </Button>
             <Button
               variant='contained'
-              onClick={modalData.id <= 0 ? onAddPerson : onEditPerson}
-              startIcon={modalData.id <= 0 ? <PersonAddIcon /> : <EditIcon />}
+              onClick={handlePersonModalOpen}
+              startIcon={isAdd ? <PersonAddIcon /> : <EditIcon />}
             >
-              {modalData.id <= 0 ? t('reportCard.addToAllowed') : t('reportCard.editInfo')}
+              {isAdd ? t('reportCard.addToAllowed') : t('reportCard.editInfo')}
             </Button>
           </Box>
         </Box>

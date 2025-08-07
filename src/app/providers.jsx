@@ -7,22 +7,32 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 import storee from '@/store'
+import { useTypesReduxSync } from '@/hooks/useTypes'
+
+// 1. Create a new component that will be rendered *inside* the QueryClientProvider
+function SyncAndRenderChildren({ children }) {
+  // Now, this hook is called in a component that is a child of QueryClientProvider,
+  // so it has access to the client context.
+  useTypesReduxSync()
+
+  return <>{children}</>
+}
 
 export default function Providers({ children }) {
+  // This part remains the same. We are just creating the client instance.
   const [queryClient] = useState(
     () =>
       new QueryClient({
         defaultOptions: {
           queries: {
             staleTime: 60 * 1000,
-            gcTime:30 * 10000,
+            gcTime: 30 * 10000,
             refetchOnWindowFocus: true
           }
         }
       })
   )
 
-  // 👇 Ensure the Devtools mounts only after client render
   const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
@@ -32,9 +42,10 @@ export default function Providers({ children }) {
   return (
     <ReduxProvider store={storee}>
       <QueryClientProvider client={queryClient}>
-        {children}
+        {/* 2. Use the new component here */}
+        <SyncAndRenderChildren>{children}</SyncAndRenderChildren>
 
-        {/* ✅ Devtools must be outside layout containers to avoid positioning issues */}
+        {/* Devtools can stay here */}
         {process.env.NODE_ENV === 'development' && isClient && (
           <div
             id='__react-query-devtools__'

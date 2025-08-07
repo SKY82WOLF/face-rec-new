@@ -67,6 +67,17 @@ const shouldShowToast = (requestKey, config, isError = false) => {
     return false
   }
 
+  // Don't show toast for types API endpoints
+  const isTypesRequest = () => {
+    const url = config.url || ''
+
+    return url.includes('/types')
+  }
+
+  if (isTypesRequest()) {
+    return false
+  }
+
   return true
 }
 

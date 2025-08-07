@@ -83,9 +83,12 @@ function AccessContent({ initialPage = 1, initialper_page = 10 }) {
                     first_name: person.first_name,
                     last_name: person.last_name,
                     national_code: person.national_code,
-                    access: person.access,
-                    gender: person.gender,
+                    access_id: person.access_id,
+                    gender_id: person.gender_id,
                     person_image: person.person_image,
+                    last_person_image: person.last_person_image,
+                    last_person_report_id: person.last_person_report_id,
+                    person_id: person.person_id,
                     index: index,
                     date: person.updated_at
                   }}

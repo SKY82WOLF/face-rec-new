@@ -19,8 +19,11 @@ import {
 import { styled } from '@mui/system'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 
+import { useSelector } from 'react-redux'
+
 import { useTranslation } from '@/translations/useTranslation'
-import { useAddPerson } from '@/hooks/usePersons'
+import { useUpdatePerson } from '@/hooks/usePersons'
+import { selectGenderTypes, selectAccessTypes } from '@/store/slices/typesSlice'
 import { useSettings } from '@core/hooks/useSettings'
 import { commonStyles } from '@/@core/styles/commonStyles'
 
@@ -48,7 +51,11 @@ const AccessEditModal = ({ open, onClose, formData, setFormData, isAllowed, setI
   const { settings } = useSettings()
   const fileInputRef = useRef(null)
 
-  const addPersonMutation = useAddPerson()
+  const updatePersonMutation = useUpdatePerson()
+
+  // Get types data
+  const genderTypes = useSelector(selectGenderTypes)
+  const accessTypes = useSelector(selectAccessTypes)
 
   // Get current mode from settings
   const getCurrentMode = () => {
@@ -66,52 +73,96 @@ const AccessEditModal = ({ open, onClose, formData, setFormData, isAllowed, setI
 
   const currentMode = getCurrentMode()
 
+  // Helper function to extract ID from object or return the value itself
+  const extractId = value => {
+    if (value && typeof value === 'object' && value.id !== undefined) {
+      return value.id
+    }
+
+    return value
+  }
+
+  // Ensure formData has proper ID values for selects
+  const normalizedFormData = {
+    ...formData,
+    gender_id: extractId(formData.gender_id) || '',
+    access_id: extractId(formData.access_id) || ''
+  }
+
+  console.log('normalizedFormData', normalizedFormData)
+
   const handleInputChange = e => {
     const { name, value } = e.target
 
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: name === 'gender_id' || name === 'access_id' ? Number(value) : value
     }))
   }
 
   const handleStatusChange = event => {
+    const newAccessId = event.target.checked ? 5 : 6 // 5 = allowed, 6 = not allowed
+
     setIsAllowed(event.target.checked)
     setFormData(prev => ({
       ...prev,
-      access: event.target.checked // Store as boolean
+      access_id: newAccessId
     }))
   }
+
+  const [imagePreview, setImagePreview] = useState(null)
 
   const handleImageUpload = event => {
     const file = event.target.files[0]
 
     if (file) {
-      const reader = new FileReader()
-
-      reader.onloadend = () => {
-        setFormData(prev => ({
-          ...prev,
-          person_image: reader.result
-        }))
-      }
-
-      reader.readAsDataURL(file)
+      setImagePreview(URL.createObjectURL(file))
+      setFormData(prev => ({
+        ...prev,
+        person_image: file
+      }))
     }
   }
 
   const handleSubmit = async () => {
     try {
+      // Normalize gender_id and access_id before submission
+      const normalizedGenderId = extractId(formData.gender_id)
+      const normalizedAccessId = extractId(formData.access_id)
+
       const submitData = {
         ...formData,
-        access: isAllowed ? 'allowed' : 'not_allowed' // Convert to string for API
+        gender_id: normalizedGenderId,
+        access_id: normalizedAccessId
       }
 
-      await addPersonMutation.mutateAsync(submitData)
+      // Only include person_image if it's actually a file (new upload)
+      if (formData.person_image instanceof File) {
+        submitData.person_image = formData.person_image
+      } else {
+        // Remove person_image field if it's not a new file upload
+        delete submitData.person_image
+      }
+
+      await updatePersonMutation.mutateAsync({ id: formData.person_id, data: submitData })
+
       onClose()
     } catch (error) {
-      console.error('Failed to add person:', error)
+      console.error('Failed to add/update person:', error)
     }
+  }
+
+  // Get the image source for the avatar
+  const getImageSource = () => {
+    if (imagePreview) {
+      return imagePreview
+    }
+
+    if (formData.person_image && typeof formData.person_image === 'string') {
+      return formData.person_image
+    }
+
+    return '/images/defaultAvatar.png'
   }
 
   return (
@@ -124,12 +175,14 @@ const AccessEditModal = ({ open, onClose, formData, setFormData, isAllowed, setI
     >
       <Fade in={open}>
         <Box sx={editModalStyle(currentMode)}>
-          <Typography variant='h6'>{t('reportCard.addToAllowed')}</Typography>
+          <Typography variant='h6'>
+            {formData.id ? t('reportCard.editPerson') : t('reportCard.addToAllowed')}
+          </Typography>
           <Box sx={{ mt: 3 }}>
             <Box sx={{ textAlign: 'center', mb: 3 }}>
               <Avatar
                 variant='rounded'
-                src={formData.person_image || '/images/defaultAvatar.png'}
+                src={getImageSource()}
                 alt={formData.first_name}
                 sx={{ width: 150, height: 150, mx: 'auto', mb: 2 }}
               />
@@ -165,31 +218,47 @@ const AccessEditModal = ({ open, onClose, formData, setFormData, isAllowed, setI
               onChange={handleInputChange}
               sx={{ mb: 2 }}
             />
-            <FormControl fullWidth sx={{ mb: 2 }}>
+            <FormControl margin='normal' fullWidth style={{ mb: 2, mt: '16px' }}>
               <InputLabel id='gender-label'>{t('reportCard.gender')}</InputLabel>
               <Select
                 labelId='gender-label'
-                name='gender'
-                value={formData.gender ?? ''} // Use nullish coalescing for undefined/null
+                name='gender_id'
+                value={normalizedFormData.gender_id || ''}
                 onChange={handleInputChange}
                 label={t('reportCard.gender')}
               >
-                <MenuItem value={false}>{t('reportCard.male')}</MenuItem>
-                <MenuItem value={true}>{t('reportCard.female')}</MenuItem>
+                {genderTypes?.data?.map(type => (
+                  <MenuItem key={type.id} value={type.id}>
+                    {type.translate?.trim() || type.title?.trim()}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
-            <FormControlLabel
-              control={<Switch checked={isAllowed} onChange={handleStatusChange} />}
-              label={isAllowed ? t('reportCard.allowed') : t('reportCard.notAllowed')}
-              sx={{ mb: 2 }}
-            />
+            <FormControl margin='normal' fullWidth style={{ mb: 2, mt: '16px' }}>
+              <InputLabel id='access-label'>{t('reportCard.access')}</InputLabel>
+              <Select
+                labelId='access-label'
+                name='access_id'
+                value={normalizedFormData.access_id || ''}
+                onChange={handleInputChange}
+                label={t('reportCard.access')}
+              >
+                {accessTypes?.data
+                  ?.filter(type => type.id !== 7)
+                  .map(type => (
+                    <MenuItem key={type.id} value={type.id}>
+                      {type.translate?.trim() || type.title?.trim()}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
           </Box>
           <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
             <Button variant='outlined' onClick={onClose}>
               {t('reportCard.cancel')}
             </Button>
             <Button variant='contained' onClick={handleSubmit}>
-              {t('reportCard.add')}
+              {formData.id ? t('reportCard.update') : t('reportCard.add')}
             </Button>
           </Box>
         </Box>

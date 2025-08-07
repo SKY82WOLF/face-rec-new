@@ -72,14 +72,18 @@ const fa = {
     female: 'خانم',
     unknown: 'نامشخص',
     status: 'وضعیت',
+    access: 'دسترسی',
     allowed: 'مجاز',
     notAllowed: 'غیر مجاز',
     details: 'جزئیات',
     editInfo: 'ویرایش اطلاعات',
     addToAllowed: 'اضافه کردن به لیست مجاز',
-    saveChanges: 'ذخیره تغییرات',
-    add: 'اضافه کردن',
+    editPerson: 'ویرایش شخص',
+    update: 'بروزرسانی',
+    add: 'افزودن',
     cancel: 'انصراف',
+    fillRequiredFields: 'لطفاً تمام فیلدهای ضروری را پر کنید',
+    updateFailed: 'بروزرسانی انجام نشد',
     userImage: 'تصویر آپلود شده',
     apiImage: 'آخرین تردد',
     uploadImage: 'آپلود تصویر',
@@ -92,6 +96,8 @@ const fa = {
     downloadProfileImage: 'دانلود تصویر پروفایل',
     downloadLastImage: 'دانلود تصویر آخرین تردد',
     fullName: 'نام و نام خانوادگی',
+    invalidImageType: 'نوع فایل نامعتبر است. لطفاً یک تصویر انتخاب کنید.',
+    imageTooLarge: 'حجم فایل بسیار بزرگ است. حداکثر 5 مگابایت مجاز است.',
 
     // Add any missing keys for Reports modals/filters
     filter: 'فیلتر',
@@ -149,7 +155,8 @@ const fa = {
       cancel: 'انصراف',
       add: 'افزودن',
       allowed: 'مجاز',
-      notAllowed: 'غیر مجاز'
+      notAllowed: 'غیر مجاز',
+      access: 'دسترسی'
     }
   },
 
