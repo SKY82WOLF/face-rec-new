@@ -65,7 +65,9 @@ export const API_ROUTES = {
   // Users
   users: {
     list: '/users',
-    create: '/users/add'
+    create: '/users/add',
+    update: '/users/',
+    delete: '/users/'
   },
   groups: {
     list: '/groups',
@@ -98,7 +100,7 @@ export const {
   changeStatus: personsChangeStatus
 } = API_ROUTES.persons
 
-export const { list: usersList, create: usersCreate } = API_ROUTES.users
+export const { list: usersList, create: usersCreate, update: usersUpdate, delete: usersDelete } = API_ROUTES.users
 
 export const { list: groupsList, add: groupsAdd } = API_ROUTES.groups
 

@@ -24,7 +24,11 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Stack
+  Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
@@ -33,7 +37,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import SEO from '@/components/SEO'
 import { useTranslation } from '@/translations/useTranslation'
 import useUsers from '@/hooks/useUsers'
-import UserDetailModal from '@/components/UserDetailModal'
+import UserDetailModal from '@/views/Users/UserDetailModal'
 import AddUserModal from './AddUserModal'
 import PageHeader from '@/components/ui/PageHeader'
 import EmptyState from '@/components/ui/EmptyState'
@@ -51,13 +55,15 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
 
   const [openAddModal, setOpenAddModal] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [userToDelete, setUserToDelete] = useState(null)
 
   const { page, per_page, handlePageChange, handlePerPageChange, perPageOptions } = usePagination(
     initialPage,
     initialper_page
   )
 
-  const { users = [], total, isLoading, addUser } = useUsers({ page, per_page })
+  const { users = [], total, isLoading, addUser, deleteUser } = useUsers({ page, per_page })
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams)
@@ -77,6 +83,30 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
     await addUser(userData)
   }
 
+  const handleDeleteClick = user => {
+    setUserToDelete(user)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (userToDelete) {
+      await deleteUser(userToDelete.id)
+      setDeleteDialogOpen(false)
+      setUserToDelete(null)
+    }
+  }
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false)
+    setUserToDelete(null)
+  }
+
+  const getFullName = user => {
+    const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim()
+
+    return fullName || user.username
+  }
+
   return (
     <Box sx={commonStyles.pageContainer}>
       <SEO
@@ -85,6 +115,21 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
         keywords='مدیریت کاربران, کاربران, سیستم تشخیص چهره دیانا'
       />
       <UserDetailModal open={!!selectedUser} onClose={() => setSelectedUser(null)} user={selectedUser} />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel}>
+        <DialogTitle>{t('users.deleteUser')}</DialogTitle>
+        <DialogContent>
+          <Typography>{t('users.deleteConfirm', { name: userToDelete ? getFullName(userToDelete) : '' })}</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel}>{t('common.cancel')}</Button>
+          <Button onClick={handleDeleteConfirm} color='error' variant='contained'>
+            {t('common.delete')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <PageHeader
         title={t('users.title')}
         actionButton={t('users.addUser')}
@@ -108,6 +153,7 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
                         <TableCell sx={{ textAlign: 'center' }}>{t('users.fullName')}</TableCell>
                         <TableCell sx={{ textAlign: 'center' }}>{t('users.username')}</TableCell>
                         <TableCell sx={{ textAlign: 'center' }}>{t('users.email')}</TableCell>
+                        <TableCell sx={{ textAlign: 'center' }}>{t('users.phoneNumber')}</TableCell>
                         <TableCell sx={{ textAlign: 'center' }}>{t('users.status')}</TableCell>
                         <TableCell sx={{ textAlign: 'center' }}>{t('users.actions')}</TableCell>
                       </TableRow>
@@ -115,12 +161,13 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
                     <TableBody>
                       {users.map(user => (
                         <TableRow key={user.id} hover>
-                          <TableCell sx={{ justifyContent:'center', textAlign: 'center' }}>
-                            <Avatar src={user.avatar || '/images/avatars/1.png'} alt={user.full_name} />
+                          <TableCell sx={{ display: 'flex', justifyContent: 'center', textAlign: 'center' }}>
+                            <Avatar src={user.avatar || '/images/avatars/1.png'} alt={getFullName(user)} />
                           </TableCell>
-                          <TableCell sx={{ textAlign: 'center' }}>{user.full_name}</TableCell>
+                          <TableCell sx={{ textAlign: 'center' }}>{getFullName(user)}</TableCell>
                           <TableCell sx={{ textAlign: 'center' }}>{user.username}</TableCell>
-                          <TableCell sx={{ textAlign: 'center' }}>{user.email}</TableCell>
+                          <TableCell sx={{ textAlign: 'center' }}>{user.email || '-'}</TableCell>
+                          <TableCell sx={{ textAlign: 'center' }}>{user.phone_number || '-'}</TableCell>
                           <TableCell sx={{ textAlign: 'center' }}>
                             <Typography
                               variant='body2'
@@ -139,7 +186,11 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
                               >
                                 <EditIcon />
                               </IconButton>
-                              <IconButton color='error' aria-label={t('users.deleteUser')}>
+                              <IconButton
+                                color='error'
+                                aria-label={t('users.deleteUser')}
+                                onClick={() => handleDeleteClick(user)}
+                              >
                                 <DeleteIcon />
                               </IconButton>
                             </Box>
@@ -168,14 +219,14 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
                     >
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
                         <Avatar
-                          alt={user.full_name}
+                          alt={getFullName(user)}
                           src={user.avatar || '/images/avatars/1.png'}
                           sx={{ width: 60, height: 60 }}
                         />
                         <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                             <i className='tabler-user' style={{ marginRight: '8px' }} />
-                            <Typography variant='body2'>{user.full_name}</Typography>
+                            <Typography variant='body2'>{getFullName(user)}</Typography>
                           </Box>
                           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                             <i className='tabler-at' style={{ marginRight: '8px' }} />
@@ -183,7 +234,7 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
                           </Box>
                           <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             <i className='tabler-mail' style={{ marginRight: '8px' }} />
-                            <Typography variant='caption'>{user.email}</Typography>
+                            <Typography variant='caption'>{user.email || '-'}</Typography>
                           </Box>
                         </Box>
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
@@ -213,7 +264,11 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
                             >
                               <EditIcon />
                             </IconButton>
-                            <IconButton color='error' aria-label={t('users.deleteUser')}>
+                            <IconButton
+                              color='error'
+                              aria-label={t('users.deleteUser')}
+                              onClick={() => handleDeleteClick(user)}
+                            >
                               <DeleteIcon />
                             </IconButton>
                           </Box>
@@ -229,7 +284,7 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
       </Card>
       {users?.length > 0 && (
         <PaginationControls
-              page={page}
+          page={page}
           total={total || 0}
           per_page={per_page}
           per_pageOptions={perPageOptions}

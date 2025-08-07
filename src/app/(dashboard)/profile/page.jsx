@@ -14,6 +14,9 @@ import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
+import CircularProgress from '@mui/material/CircularProgress'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import Switch from '@mui/material/Switch'
 
 // Component Imports
 import CustomTextField from '@core/components/mui/TextField'
@@ -24,34 +27,71 @@ import { useTranslation } from '@/translations/useTranslation'
 // SEO Component
 import SEO from '@/components/SEO'
 
+// API imports
+import { getUser, updateUser } from '@/api/users'
+
 const ProfilePage = () => {
   const { t } = useTranslation()
 
   // States
-  const [userData, setUserData] = useState({
-    fullName: 'جان دو',
-    username: 'johndoe',
-    email: 'admin@vuexy.com',
-    avatar: '/images/avatars/1.png',
-    role: 'مدیر',
-    status: 'فعال',
-    phone: '+1 (123) 456-7890',
-    address: '123 خیابان اصلی، نیویورک، NY 10001',
-    bio: 'توسعه‌دهنده فرانت‌اند با تخصص در React، Next.js و Material UI.'
-  })
-
+  const [userData, setUserData] = useState(null)
   const [activeTab, setActiveTab] = useState(0)
   const [mounted, setMounted] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
-  const [formData, setFormData] = useState(userData)
+  const [formData, setFormData] = useState({})
   const [isPasswordShown, setIsPasswordShown] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [fetchingUser, setFetchingUser] = useState(true)
 
-  // Handle mounting
+  // Handle mounting and fetch user data
   useEffect(() => {
-    setMounted(true)
+    const fetchUserData = async () => {
+      try {
+        setFetchingUser(true)
+
+        // Get user from localStorage
+        const storedUser = localStorage.getItem('user')
+
+        if (!storedUser) {
+          console.error('No user data found in localStorage')
+
+          return
+        }
+
+        const user = JSON.parse(storedUser)
+
+        if (!user.id) {
+          console.error('No user ID found in localStorage')
+
+          return
+        }
+
+        // Fetch user data from API
+        const response = await getUser(user.id)
+
+        const fetchedUser = response.results || response
+
+        setUserData(fetchedUser)
+        setFormData({
+          username: fetchedUser.username || '',
+          email: fetchedUser.email || '',
+          first_name: fetchedUser.first_name || '',
+          last_name: fetchedUser.last_name || '',
+          phone_number: fetchedUser.phone_number || '',
+          is_active: fetchedUser.is_active || false
+        })
+      } catch (error) {
+        console.error('Error fetching user data:', error)
+      } finally {
+        setFetchingUser(false)
+        setMounted(true)
+      }
+    }
+
+    fetchUserData()
   }, [])
 
   // Handle tab change
@@ -63,21 +103,52 @@ const ProfilePage = () => {
   const handleInputChange = e => {
     const { name, value } = e.target
 
-    setFormData({
-      ...formData,
-      [name]: value
-    })
+    // For phone number, only allow digits and limit to 11 characters
+    if (name === 'phone_number') {
+      const numericValue = value.replace(/\D/g, '').slice(0, 11)
+
+      setFormData(prev => ({ ...prev, [name]: numericValue }))
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }))
+    }
   }
 
   // Handle save
-  const handleSave = () => {
-    setUserData(formData)
-    setIsEditing(false)
+  const handleSave = async () => {
+    try {
+      setLoading(true)
+
+      const updateData = {
+        username: formData.username,
+        email: formData.email,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        phone_number: formData.phone_number,
+        is_active: Boolean(formData.is_active)
+      }
+
+      await updateUser(userData.id, updateData)
+
+      // Update local user data
+      setUserData(prev => ({ ...prev, ...updateData }))
+      setIsEditing(false)
+    } catch (error) {
+      console.error('Error updating user:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   // Handle cancel
   const handleCancel = () => {
-    setFormData(userData)
+    setFormData({
+      username: userData?.username || '',
+      email: userData?.email || '',
+      first_name: userData?.first_name || '',
+      last_name: userData?.last_name || '',
+      phone_number: userData?.phone_number || '',
+      is_active: userData?.is_active || false
+    })
     setIsEditing(false)
   }
 
@@ -107,28 +178,30 @@ const ProfilePage = () => {
     setConfirmPassword('')
   }
 
-  // Handle file upload for avatar
-  const handleAvatarChange = e => {
-    const file = e.target.files[0]
-
-    if (file) {
-      const reader = new FileReader()
-
-      reader.onload = e => {
-        setFormData({
-          ...formData,
-          avatar: e.target.result
-        })
-      }
-
-      reader.readAsDataURL(file)
-    }
-  }
-
   // Don't render until mounted
   if (!mounted) {
     return null
   }
+
+  if (fetchingUser) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+        <CircularProgress />
+      </Box>
+    )
+  }
+
+  if (!userData) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+        <Typography variant='h6' color='text.secondary'>
+          {t('messages.error')}
+        </Typography>
+      </Box>
+    )
+  }
+
+  const fullName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username
 
   return (
     <Box className='flex flex-col gap-6'>
@@ -169,47 +242,16 @@ const ProfilePage = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
             <Box sx={{ position: 'relative' }}>
               <Avatar
-                src={isEditing ? formData.avatar : userData.avatar}
-                alt={userData.fullName}
+                src={userData.avatar || '/images/avatars/1.png'}
+                alt={fullName}
                 sx={{ width: 120, height: 120, mb: 2 }}
               />
-              {isEditing && (
-                <Box
-                  component='label'
-                  htmlFor='avatar-upload'
-                  sx={{
-                    position: 'absolute',
-                    bottom: 10,
-                    right: 0,
-                    bgcolor: 'primary.main',
-                    borderRadius: '50%',
-                    width: 32,
-                    height: 32,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <i className='tabler-camera' style={{ color: 'white', fontSize: '1.2rem' }} />
-                  <input
-                    type='file'
-                    id='avatar-upload'
-                    accept='image/*'
-                    style={{ display: 'none' }}
-                    onChange={handleAvatarChange}
-                  />
-                </Box>
-              )}
             </Box>
 
             <Box sx={{ textAlign: 'center', width: '100%' }}>
-              <Typography variant='h5'>{userData.fullName}</Typography>
+              <Typography variant='h5'>{fullName}</Typography>
               <Typography variant='body2' color='text.secondary'>
                 @{userData.username}
-              </Typography>
-              <Typography variant='body2' color='text.secondary' sx={{ mt: 1 }}>
-                {userData.role}
               </Typography>
 
               {!isEditing && (
@@ -232,19 +274,21 @@ const ProfilePage = () => {
                 <Typography variant='body2' color='text.secondary'>
                   {t('profile.status')}
                 </Typography>
-                <Typography variant='body2'>{userData.status}</Typography>
+                <Typography variant='body2' color={userData.is_active ? 'success.main' : 'error.main'}>
+                  {t(`users.statusOptions.${userData.is_active ? 'active' : 'inactive'}`)}
+                </Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                 <Typography variant='body2' color='text.secondary'>
                   {t('profile.email')}
                 </Typography>
-                <Typography variant='body2'>{userData.email}</Typography>
+                <Typography variant='body2'>{userData.email || '-'}</Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                 <Typography variant='body2' color='text.secondary'>
                   {t('profile.phone')}
                 </Typography>
-                <Typography variant='body2'>{userData.phone}</Typography>
+                <Typography variant='body2'>{userData.phone_number || '-'}</Typography>
               </Box>
             </Box>
           </Box>
@@ -269,33 +313,30 @@ const ProfilePage = () => {
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                   <CustomTextField
-                    label={t('profile.fullName')}
-                    name='fullName'
-                    value={isEditing ? formData.fullName : userData.fullName}
+                    label={t('users.firstName')}
+                    name='first_name'
+                    value={isEditing ? formData.first_name : userData.first_name || ''}
                     onChange={handleInputChange}
                     disabled={!isEditing}
                     fullWidth
-                    required
                     sx={{ flex: { xs: '1 0 100%', sm: '1 0 calc(50% - 16px)' } }}
                   />
                   <CustomTextField
-                    label={t('profile.username')}
-                    name='username'
-                    value={isEditing ? formData.username : userData.username}
+                    label={t('users.lastName')}
+                    name='last_name'
+                    value={isEditing ? formData.last_name : userData.last_name || ''}
                     onChange={handleInputChange}
                     disabled={!isEditing}
                     fullWidth
-                    required
                     sx={{ flex: { xs: '1 0 100%', sm: '1 0 calc(50% - 16px)' } }}
                   />
                 </Box>
 
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                   <CustomTextField
-                    label={t('profile.email')}
-                    name='email'
-                    type='email'
-                    value={isEditing ? formData.email : userData.email}
+                    label={t('users.username')}
+                    name='username'
+                    value={isEditing ? formData.username : userData.username || ''}
                     onChange={handleInputChange}
                     disabled={!isEditing}
                     fullWidth
@@ -303,45 +344,64 @@ const ProfilePage = () => {
                     sx={{ flex: { xs: '1 0 100%', sm: '1 0 calc(50% - 16px)' } }}
                   />
                   <CustomTextField
-                    label={t('profile.phone')}
-                    name='phone'
-                    value={isEditing ? formData.phone : userData.phone}
+                    label={t('users.email')}
+                    name='email'
+                    type='email'
+                    value={isEditing ? formData.email : userData.email || ''}
                     onChange={handleInputChange}
                     disabled={!isEditing}
                     fullWidth
-                    required
                     sx={{ flex: { xs: '1 0 100%', sm: '1 0 calc(50% - 16px)' } }}
                   />
                 </Box>
 
                 <CustomTextField
-                  label={t('profile.address')}
-                  name='address'
-                  value={isEditing ? formData.address : userData.address}
+                  label={t('users.phoneNumber')}
+                  name='phone_number'
+                  value={isEditing ? formData.phone_number : userData.phone_number || ''}
                   onChange={handleInputChange}
                   disabled={!isEditing}
                   fullWidth
-                  required
-                />
-
-                <CustomTextField
-                  label={t('profile.bio')}
-                  name='bio'
-                  value={isEditing ? formData.bio : userData.bio}
-                  onChange={handleInputChange}
-                  disabled={!isEditing}
-                  fullWidth
-                  multiline
-                  rows={4}
+                  error={formData.phone_number?.length > 0 && formData.phone_number?.length !== 11}
+                  helperText={
+                    formData.phone_number?.length > 0 && formData.phone_number?.length !== 11
+                      ? t('users.phoneNumberFormat')
+                      : ''
+                  }
+                  slotProps={{
+                    input: {
+                      inputMode: 'numeric',
+                      pattern: '[0-9]*',
+                      maxLength: 11
+                    }
+                  }}
                 />
 
                 {isEditing && (
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={formData.is_active}
+                        onChange={e => setFormData(prev => ({ ...prev, is_active: e.target.checked }))}
+                        disabled={loading}
+                      />
+                    }
+                    label={t(`users.statusOptions.${formData.is_active ? 'active' : 'inactive'}`)}
+                    sx={{ mb: 1 }}
+                  />
+                )}
+
+                {isEditing && (
                   <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
-                    <Button variant='outlined' onClick={handleCancel}>
+                    <Button variant='outlined' onClick={handleCancel} disabled={loading}>
                       {t('common.cancel')}
                     </Button>
-                    <Button variant='contained' onClick={handleSave}>
-                      {t('profile.saveChanges')}
+                    <Button
+                      variant='contained'
+                      onClick={handleSave}
+                      disabled={loading || (formData.phone_number?.length > 0 && formData.phone_number?.length !== 11)}
+                    >
+                      {loading ? <CircularProgress size={24} /> : t('profile.saveChanges')}
                     </Button>
                   </Box>
                 )}

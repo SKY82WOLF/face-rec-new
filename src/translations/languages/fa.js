@@ -28,6 +28,7 @@ const fa = {
     logout: 'خروج',
     ok: 'تأیید',
     cancel: 'انصراف',
+    delete: 'حذف',
     to: 'تا'
   },
 
@@ -167,13 +168,17 @@ const fa = {
     addUser: 'افزودن کاربر',
     editUser: 'ویرایش کاربر',
     deleteUser: 'حذف کاربر',
+    deleteConfirm: 'آیا از حذف کاربر "{name}" اطمینان دارید؟',
     confirmDelete: 'آیا از حذف این کاربر اطمینان دارید؟',
     avatar: 'تصویر پروفایل',
     fullName: 'نام و نام خانوادگی',
+    firstName: 'نام',
+    lastName: 'نام خانوادگی',
     username: 'نام کاربری',
     email: 'ایمیل',
     password: 'رمز عبور',
     phone: 'شماره تماس',
+    phoneNumber: 'شماره تماس',
     address: 'آدرس',
     bio: 'درباره',
     role: 'نقش',
@@ -193,6 +198,8 @@ const fa = {
     userDetail: 'جزئیات کاربر',
     noData: 'کاربری یافت نشد',
     loading: 'درحال بارگزاری کاربرها',
+    passwordMinLength: 'رمز عبور باید حداقل ۸ کاراکتر باشد',
+    phoneNumberFormat: 'شماره تماس باید دقیقاً ۱۱ رقم باشد',
 
     // New translations
     roleOptions: {

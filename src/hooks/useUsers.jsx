@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
-import { getUsers, createUser } from '@/api/users'
+import { getUsers, getUser, createUser, updateUser, deleteUser } from '@/api/users'
 
 const useUsers = ({ page = 1, per_page = 10 } = {}) => {
   const queryClient = useQueryClient()
@@ -75,8 +75,22 @@ const useUsers = ({ page = 1, per_page = 10 } = {}) => {
     }
   }, [page, per_page, data?.total, queryClient])
 
-  const mutation = useMutation({
+  const createMutation = useMutation({
     mutationFn: createUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+    }
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => updateUser(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+    }
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] })
     }
@@ -87,8 +101,11 @@ const useUsers = ({ page = 1, per_page = 10 } = {}) => {
     total: data.total,
     isLoading,
     isError,
-    addUser: mutation.mutateAsync,
-    refetchUsers: refetch
+    addUser: createMutation.mutateAsync,
+    editUser: updateMutation.mutateAsync,
+    deleteUser: deleteMutation.mutateAsync,
+    refetchUsers: refetch,
+    loading: createMutation.isPending || updateMutation.isPending || deleteMutation.isPending
   }
 }
 

@@ -11,7 +11,8 @@ import {
   Box,
   Avatar,
   FormControlLabel,
-  Switch
+  Switch,
+  FormHelperText
 } from '@mui/material'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 
@@ -24,17 +25,26 @@ const AddUserModal = ({ open, onClose, onSubmit, isLoading = false }) => {
   const [selectedImage, setSelectedImage] = useState(null)
 
   const [newUser, setNewUser] = useState({
-    full_name: '',
     username: '',
     email: '',
     password: '',
+    first_name: '',
+    last_name: '',
+    phone_number: '',
     is_active: false
   })
 
   const handleInputChange = e => {
     const { name, value } = e.target
 
-    setNewUser(prev => ({ ...prev, [name]: value }))
+    // For phone number, only allow digits and limit to 11 characters
+    if (name === 'phone_number') {
+      const numericValue = value.replace(/\D/g, '').slice(0, 11)
+
+      setNewUser(prev => ({ ...prev, [name]: numericValue }))
+    } else {
+      setNewUser(prev => ({ ...prev, [name]: value }))
+    }
   }
 
   const handleImageUpload = event => {
@@ -50,28 +60,43 @@ const AddUserModal = ({ open, onClose, onSubmit, isLoading = false }) => {
 
   const handleSubmit = async e => {
     e.preventDefault()
-    const formData = new FormData()
 
-    formData.append('full_name', newUser.full_name)
-    formData.append('username', newUser.username)
-    formData.append('email', newUser.email)
-    formData.append('password', newUser.password)
-    formData.append('is_active', newUser.is_active)
-
-    if (newUser.avatar) {
-      formData.append('avatar', newUser.avatar)
+    const userData = {
+      username: newUser.username,
+      email: newUser.email,
+      password: newUser.password,
+      first_name: newUser.first_name,
+      last_name: newUser.last_name,
+      phone_number: newUser.phone_number,
+      is_active: newUser.is_active
     }
 
-    await onSubmit(formData)
+    if (newUser.avatar) {
+      const formData = new FormData()
+
+      formData.append('avatar', newUser.avatar)
+
+      // Append all other fields as strings
+      Object.keys(userData).forEach(key => {
+        formData.append(key, userData[key])
+      })
+
+      await onSubmit(formData)
+    } else {
+      await onSubmit(userData)
+    }
+
     handleClose()
   }
 
   const handleClose = () => {
     setNewUser({
-      full_name: '',
       username: '',
       email: '',
       password: '',
+      first_name: '',
+      last_name: '',
+      phone_number: '',
       is_active: false
     })
     setSelectedImage(null)
@@ -84,23 +109,13 @@ const AddUserModal = ({ open, onClose, onSubmit, isLoading = false }) => {
       <form onSubmit={handleSubmit}>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', p: 0 }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, mb: 2 }}>
+            {/* <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, mb: 2 }}>
               <Avatar src={selectedImage || '/images/avatars/1.png'} alt='Preview' sx={{ width: 100, height: 100 }} />
               <Button component='label' variant='outlined' startIcon={<CloudUploadIcon />} disabled={isLoading}>
                 {t('users.uploadAvatar')}
                 <input type='file' hidden onChange={handleImageUpload} accept='image/*' />
               </Button>
-            </Box>
-            <CustomTextField
-              label={t('users.fullName')}
-              name='full_name'
-              value={newUser.full_name}
-              onChange={handleInputChange}
-              fullWidth
-              required
-              disabled={isLoading}
-              sx={{ mb: 2 }}
-            />
+            </Box> */}
             <CustomTextField
               label={t('users.username')}
               name='username'
@@ -131,6 +146,50 @@ const AddUserModal = ({ open, onClose, onSubmit, isLoading = false }) => {
               fullWidth
               required
               disabled={isLoading}
+              error={newUser.password.length > 0 && newUser.password.length < 8}
+              helperText={
+                newUser.password.length > 0 && newUser.password.length < 8 ? t('users.passwordMinLength') : ''
+              }
+              sx={{ mb: 2 }}
+            />
+            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+              <CustomTextField
+                label={t('users.firstName')}
+                name='first_name'
+                value={newUser.first_name}
+                onChange={handleInputChange}
+                fullWidth
+                disabled={isLoading}
+              />
+              <CustomTextField
+                label={t('users.lastName')}
+                name='last_name'
+                value={newUser.last_name}
+                onChange={handleInputChange}
+                fullWidth
+                disabled={isLoading}
+              />
+            </Box>
+            <CustomTextField
+              label={t('users.phoneNumber')}
+              name='phone_number'
+              value={newUser.phone_number}
+              onChange={handleInputChange}
+              fullWidth
+              disabled={isLoading}
+              error={newUser.phone_number.length > 0 && newUser.phone_number.length !== 11}
+              helperText={
+                newUser.phone_number.length > 0 && newUser.phone_number.length !== 11
+                  ? t('users.phoneNumberFormat')
+                  : ''
+              }
+              slotProps={{
+                input: {
+                  inputMode: 'numeric',
+                  pattern: '[0-9]*',
+                  maxLength: 11
+                }
+              }}
               sx={{ mb: 2 }}
             />
             <FormControlLabel
@@ -155,10 +214,11 @@ const AddUserModal = ({ open, onClose, onSubmit, isLoading = false }) => {
             variant='contained'
             disabled={
               isLoading ||
-              !newUser.full_name.trim() ||
               !newUser.username.trim() ||
               !newUser.email.trim() ||
-              !newUser.password.trim()
+              !newUser.password.trim() ||
+              (newUser.password.length > 0 && newUser.password.length < 8) ||
+              (newUser.phone_number.length > 0 && newUser.phone_number.length !== 11)
             }
           >
             {isLoading ? t('common.loading') : t('users.add')}
