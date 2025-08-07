@@ -29,7 +29,10 @@ const fa = {
     ok: 'تأیید',
     cancel: 'انصراف',
     delete: 'حذف',
-    to: 'تا'
+    to: 'تا',
+    error: 'خطا',
+    success: 'موفقیت',
+    reset: 'بازنشانی'
   },
 
   // Not Found Page
@@ -117,20 +120,24 @@ const fa = {
     noReports: 'گزارشی موجود نیست',
     loading: 'در حال بارگذاری...',
 
-    // For edit modal
-    editReport: 'ویرایش گزارش',
-    submit: 'ارسال',
-    from: 'از',
+    // New keys for person reports
+    personId: 'شناسه شخص',
+    camera: 'دوربین',
+    confidence: 'دقت',
+    fiqa: 'کیفیت تصویر',
+    similarityScore: 'امتیاز شباهت',
+    createdAt: 'تاریخ ایجاد',
+    updatedAt: 'تاریخ بروزرسانی',
+    detectedImage: 'تصویر تشخیص داده شده',
+    personImage: 'تصویر شخص',
+    downloadDetectedImage: 'دانلود تصویر تشخیص',
+    downloadPersonImage: 'دانلود تصویر شخص',
+    boundingBox: 'محدوده تشخیص',
+    min: 'حداقل',
+    max: 'حداکثر',
     to: 'تا',
-    dateRange: 'بازه تاریخ',
-
-    // For detail modal
-    reportDetails: 'جزئیات گزارش',
-
-    // For filters
-    filters: 'فیلترها',
-    applyFilters: 'اعمال فیلترها',
-    clearFilters: 'پاک کردن فیلترها'
+    loading: 'در حال بارگذاری...',
+    unknown: 'نامشخص'
   },
 
   access: {

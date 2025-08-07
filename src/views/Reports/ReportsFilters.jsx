@@ -10,34 +10,49 @@ import {
   Select,
   Stack,
   Typography,
-  Card
+  Card,
+  Slider
 } from '@mui/material'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDateFnsJalali } from '@mui/x-date-pickers/AdapterDateFnsJalali'
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
 
+import { useSelector } from 'react-redux'
+
 import { useTranslation } from '@/translations/useTranslation'
+import { useGetPersons } from '@/hooks/usePersons'
+import { selectGenderTypes } from '@/store/slices/typesSlice'
 import { commonStyles } from '@/@core/styles/commonStyles'
 
 const FILTERS_KEY = 'reports_filters'
 
 const defaultFilters = {
-  name: '',
-  national_code: '',
-  status: '',
+  // API filters (sent to backend)
+  gender_id: '',
+  camera_id: '',
+  person_id: '',
+
+  // Manual filters (client-side)
   date_from: null,
   date_to: null
 }
 
-const statusOptions = [
-  { value: '', label: '' },
-  { value: 'allowed', label: 'reportCard.allowed' },
-  { value: 'not_allowed', label: 'reportCard.notAllowed' }
+const cameraOptions = [
+  { value: '', label: 'common.select' },
+  { value: '1', label: 'Camera 1' },
+  { value: '2', label: 'Camera 2' },
+  { value: '3', label: 'Camera 3' }
 ]
 
 const ReportsFilters = ({ onFilter }) => {
   const { t } = useTranslation()
   const [filters, setFilters] = useState(defaultFilters)
+
+  // Get types data
+  const genderTypes = useSelector(selectGenderTypes)
+
+  // Get persons for selection
+  const { data: personsData } = useGetPersons({ page: 1, per_page: 100 })
 
   useEffect(() => {
     const saved = sessionStorage.getItem(FILTERS_KEY)
@@ -55,51 +70,83 @@ const ReportsFilters = ({ onFilter }) => {
     setFilters(prev => ({ ...prev, [name]: value }))
   }
 
+  const handleSliderChange = (name, value) => {
+    setFilters(prev => ({ ...prev, [name]: value }))
+  }
+
   const handleSubmit = e => {
     e.preventDefault()
-    sessionStorage.setItem(FILTERS_KEY, JSON.stringify(filters))
-    onFilter(filters)
+
+    // Convert empty strings to null for proper filtering
+    const processedFilters = {
+      ...filters,
+      gender_id: filters.gender_id || '',
+      camera_id: filters.camera_id || '',
+      person_id: filters.person_id || '',
+      date_from: filters.date_from || null,
+      date_to: filters.date_to || null
+    }
+
+    sessionStorage.setItem(FILTERS_KEY, JSON.stringify(processedFilters))
+    onFilter(processedFilters)
   }
 
   const handleReset = () => {
-    setFilters(defaultFilters)
+    const resetFilters = {
+      gender_id: '',
+      camera_id: '',
+      person_id: '',
+      date_from: null,
+      date_to: null
+    }
+
+    setFilters(resetFilters)
     sessionStorage.removeItem(FILTERS_KEY)
-    onFilter(defaultFilters)
+    onFilter(resetFilters)
   }
 
   return (
     <Card elevation={1} sx={{ mb: 2, p: 2, borderRadius: 2 }}>
-      <Box
-        component='form'
-        onSubmit={handleSubmit}
-        sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}
-      >
-        <TextField
-          label={t('reportCard.name')}
-          name='name'
-          value={filters.name}
-          onChange={handleChange}
-          size='small'
-          sx={{ minWidth: 150 }}
-        />
-        <TextField
-          label={t('reportCard.nationalCode')}
-          name='national_code'
-          value={filters.national_code}
-          onChange={handleChange}
-          size='small'
-          sx={{ minWidth: 150 }}
-        />
-        <FormControl size='small' sx={{ minWidth: 120 }}>
-          <InputLabel>{t('reportCard.status')}</InputLabel>
-          <Select name='status' value={filters.status} onChange={handleChange} label={t('reportCard.status')}>
-            {statusOptions.map(opt => (
-              <MenuItem key={opt.value} value={opt.value}>
-                {opt.value ? t(opt.label) : t('common.select')}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+      <Box component='form' onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {/* API Filters Row */}
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
+          <FormControl size='small' sx={{ minWidth: 120 }}>
+            <InputLabel>{t('reportCard.gender')}</InputLabel>
+            <Select name='gender_id' value={filters.gender_id} onChange={handleChange} label={t('reportCard.gender')}>
+              <MenuItem value=''>{t('common.select')}</MenuItem>
+              {genderTypes?.data?.map(type => (
+                <MenuItem key={type.id} value={type.id}>
+                  {type.translate?.trim() || type.title?.trim()}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl size='small' sx={{ minWidth: 120 }}>
+            <InputLabel>{t('reportCard.camera')}</InputLabel>
+            <Select name='camera_id' value={filters.camera_id} onChange={handleChange} label={t('reportCard.camera')}>
+              {cameraOptions.map(opt => (
+                <MenuItem key={opt.value} value={opt.value}>
+                  {opt.value ? opt.label : t('common.select')}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl size='small' sx={{ minWidth: 150 }}>
+            <InputLabel>{t('reportCard.personId')}</InputLabel>
+            <Select name='person_id' value={filters.person_id} onChange={handleChange} label={t('reportCard.personId')}>
+              <MenuItem value=''>{t('common.select')}</MenuItem>
+              {personsData?.data?.map(person => (
+                <MenuItem key={person.id} value={person.id}>
+                  {person.first_name} {person.last_name} (ID: {person.id})
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+
+        {/* Date Range Row */}
         <LocalizationProvider
           dateAdapter={AdapterDateFnsJalali}
           localeText={{ okButtonLabel: t('common.ok'), cancelButtonLabel: t('common.cancel') }}
@@ -122,12 +169,16 @@ const ReportsFilters = ({ onFilter }) => {
             />
           </Stack>
         </LocalizationProvider>
-        <Button type='submit' variant='contained' sx={{ minWidth: 100 }}>
-          {t('common.search')}
-        </Button>
-        <Button onClick={handleReset} sx={{ minWidth: 80 }}>
-          {t('common.reset') || 'بازنشانی'}
-        </Button>
+
+        {/* Action Buttons */}
+        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+          <Button type='submit' variant='contained' sx={{ minWidth: 100 }}>
+            {t('common.search')}
+          </Button>
+          <Button onClick={handleReset} sx={{ minWidth: 80 }}>
+            {t('common.reset') || 'بازنشانی'}
+          </Button>
+        </Box>
       </Box>
     </Card>
   )

@@ -5,7 +5,7 @@ export let origin = typeof window !== 'undefined' ? window.location.origin : 'ht
 export let protocol = typeof window !== 'undefined' ? window.location.protocol : 'http:'
 
 // API URLs
-export let frontUrl, backendUrl, backendImgUrl
+export let frontUrl, backendUrl, backendImgUrl, backendImgUrl2
 
 if (process.env.NEXT_PUBLIC_API_MODE === 'production') {
   // In production, use the device's IP address
@@ -30,6 +30,7 @@ if (process.env.NEXT_PUBLIC_API_MODE === 'production') {
     // Remove /api from the end to get the frontend URL
     frontUrl = remoteIP.replace('/api', '')
     backendImgUrl = remoteIP.replace('/api', '')
+    backendImgUrl2 = remoteIP.replace(':8585/api', '')
   }
 } else {
   // Default to production mode if no mode is specified
@@ -62,6 +63,15 @@ export const API_ROUTES = {
     changeStatus: '/persons/change/status'
   },
 
+  // Person Reports
+  personReports: {
+    list: '/Person_Reports',
+    detail: '/Person_Reports/',
+    update: '/Person_Reports/',
+    delete: '/Person_Reports/',
+    personReports: '/persons/Person_Reports'
+  },
+
   // Users
   users: {
     list: '/users',
@@ -82,6 +92,10 @@ export const getApiUrl = route => {
 
 export const getBackendImgUrl = () => {
   return `${backendImgUrl}`
+}
+
+export const getBackendImgUrl2 = () => {
+  return `${backendImgUrl2}`
 }
 
 // Helper function to get full frontend URL

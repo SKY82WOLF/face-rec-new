@@ -1,14 +1,19 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 
-import { Box, Typography, Button, Modal, Fade, Backdrop, Avatar, Divider, IconButton, Grid } from '@mui/material'
+import { Box, Typography, Button, Modal, Fade, Backdrop, Avatar, Divider, IconButton, Grid, Chip } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore'
-import LockIcon from '@mui/icons-material/Lock'
-import LockOpenIcon from '@mui/icons-material/LockOpen'
+import CameraAltIcon from '@mui/icons-material/CameraAlt'
+import PersonIcon from '@mui/icons-material/Person'
 import * as htmlToImage from 'html-to-image'
 
+import { useSelector } from 'react-redux'
+
 import { useTranslation } from '@/translations/useTranslation'
+import { getBackendImgUrl2 } from '@/configs/routes'
+import { selectGenderTypes } from '@/store/slices/typesSlice'
+import ShamsiDateTime from '@/components/ShamsiDateTimer'
 import { commonStyles } from '@/@core/styles/commonStyles'
 
 const modalStyle = {
@@ -21,27 +26,83 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
   const { t } = useTranslation()
   const modalRef = useRef(null)
 
-  // Info table similar to AccessDetailModal
+  // Get types data
+  const genderTypes = useSelector(selectGenderTypes)
+
+  // Helper function to get type title by ID
+  const getTypeTitle = (types, id) => {
+    if (!types?.data || !id) return t('reportCard.unknown')
+    const type = types.data.find(type => type.id === id)
+
+    return type?.translate?.trim() || type?.title?.trim() || t('reportCard.unknown')
+  }
+
+  // Get proper image URLs
+  const backendImgUrl = getBackendImgUrl2()
+  const detectedImageUrl = reportData.image_url ? `${backendImgUrl}/${reportData.image_url}` : '/images/avatars/1.png'
+
+  const personImageUrl = reportData.person_image_url
+    ? `${backendImgUrl}/${reportData.person_image_url}`
+    : '/images/avatars/1.png'
+
+  const confidencePercentage = Math.round((reportData.confidence || 0) * 100)
+  const fiqaPercentage = Math.round((reportData.fiqa || 0) * 100)
+
+  const getConfidenceColor = confidence => {
+    if (confidence >= 0.8) return 'success'
+    if (confidence >= 0.6) return 'warning'
+
+    return 'error'
+  }
+
+  const getFiqaColor = fiqa => {
+    if (fiqa >= 0.4) return 'success'
+    if (fiqa >= 0.3) return 'warning'
+
+    return 'error'
+  }
+
+  // Info table with actual API data
   const modalInfo = [
-    { label: t('reportCard.fullName'), value: `${reportData.first_name || ''} ${reportData.last_name || ''}` },
-    { label: t('reportCard.nationalCode'), value: reportData.national_code || t('reportCard.unknown') },
     { label: t('reportCard.id'), value: reportData.id || t('reportCard.unknown') },
-    { label: t('reportCard.date'), value: reportData.date || t('reportCard.unknown') },
+    { label: t('reportCard.personId'), value: reportData.person_id || t('reportCard.unknown') },
     {
-      label: t('reportCard.status'),
-      value: (
-        <>
-          {reportData.status === 'allowed' ? t('reportCard.allowed') : t('reportCard.notAllowed')}
-          {reportData.status === 'allowed' ? (
-            <LockOpenIcon sx={{ fontSize: 20, ml: 1 }} />
-          ) : (
-            <LockIcon sx={{ fontSize: 20, ml: 1 }} />
-          )}
-        </>
-      ),
-      valueColor: reportData.status === 'allowed' ? 'success.main' : 'error.main'
+      label: t('reportCard.gender'),
+      value: genderTypes.loading ? t('reportCard.loading') : getTypeTitle(genderTypes, reportData.gender_id)
+    },
+    { label: t('reportCard.camera'), value: `Camera ${reportData.camera_id || 'Unknown'}` },
+    {
+      label: t('reportCard.confidence'),
+      value: `${confidencePercentage}%`,
+      valueColor: getConfidenceColor(reportData.confidence)
+    },
+    { label: t('reportCard.fiqa'), value: `${fiqaPercentage}%`, valueColor: getFiqaColor(reportData.fiqa) },
+    { label: t('reportCard.similarityScore'), value: reportData.similarity_score || t('reportCard.unknown') },
+    {
+      label: t('reportCard.createdAt'),
+      value: <ShamsiDateTime dateTime={reportData.created_at} format='dateTime' />
+    },
+    {
+      label: t('reportCard.updatedAt'),
+      value: <ShamsiDateTime dateTime={reportData.updated_at} format='dateTime' />
     }
   ]
+
+  useEffect(() => {
+    if (!open) return
+
+    const handleKeyDown = event => {
+      if (event.key === 'ArrowRight' && currentIndex > 0) {
+        onNavigate(-1)
+      } else if (event.key === 'ArrowLeft' && currentIndex < allReports.length - 1) {
+        onNavigate(1)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [open, currentIndex, allReports.length, onNavigate])
 
   // Download helpers
   const handleDownloadImage = (url, filename) => {
@@ -83,9 +144,14 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
       closeAfterTransition
       slots={{ backdrop: Backdrop }}
       slotProps={{ backdrop: { timeout: 500 } }}
+      sx={{
+        '&:focus': {
+          outline: 'none'
+        }
+      }}
     >
       <Fade in={open}>
-        <Box sx={modalStyle} ref={modalRef}>
+        <Box sx={{ ...modalStyle, '&:focus': { outline: 'none' } }} ref={modalRef}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <IconButton disabled={currentIndex === 0} onClick={() => onNavigate(-1)}>
               <NavigateNextIcon />
@@ -100,11 +166,11 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
           <Grid justifyContent={'center'} container spacing={3}>
             <Grid item xs={6}>
               <Box sx={{ textAlign: 'center', mb: 2 }}>
-                <Typography variant='subtitle1'>{t('reportCard.userImage')}</Typography>
+                <Typography variant='subtitle1'>{t('reportCard.detectedImage')}</Typography>
                 <Avatar
                   variant='rounded'
-                  src={reportData.person_image || '/images/avatars/1.png'}
-                  alt={reportData.first_name}
+                  src={detectedImageUrl}
+                  alt={`Person ${reportData.person_id}`}
                   sx={{
                     width: { xs: 100, sm: 140, md: 200 },
                     height: { xs: 100, sm: 140, md: 200 },
@@ -118,11 +184,11 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
             </Grid>
             <Grid item xs={6}>
               <Box sx={{ textAlign: 'center', mb: 2 }}>
-                <Typography variant='subtitle1'>{t('reportCard.apiImage')}</Typography>
+                <Typography variant='subtitle1'>{t('reportCard.personImage')}</Typography>
                 <Avatar
                   variant='rounded'
-                  src={reportData.last_image || '/images/avatars/1.png'}
-                  alt={reportData.first_name}
+                  src={personImageUrl}
+                  alt={`Person ${reportData.person_id}`}
                   sx={{
                     width: { xs: 100, sm: 140, md: 200 },
                     height: { xs: 100, sm: 140, md: 200 },
@@ -135,6 +201,47 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
               </Box>
             </Grid>
           </Grid>
+
+          {/* Bounding Box Info */}
+          {reportData.bounding_box && (
+            <Box
+              sx={{
+                mt: 2,
+                p: 2,
+                bgcolor: 'background.paper',
+                borderRadius: 1,
+                border: '1px solid',
+                borderColor: 'divider'
+              }}
+            >
+              <Typography variant='subtitle2' gutterBottom>
+                {t('reportCard.boundingBox')}
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={3}>
+                  <Typography variant='caption' color='textSecondary'>
+                    X: {reportData.bounding_box.x}
+                  </Typography>
+                </Grid>
+                <Grid item xs={3}>
+                  <Typography variant='caption' color='textSecondary'>
+                    Y: {reportData.bounding_box.y}
+                  </Typography>
+                </Grid>
+                <Grid item xs={3}>
+                  <Typography variant='caption' color='textSecondary'>
+                    W: {reportData.bounding_box.w}
+                  </Typography>
+                </Grid>
+                <Grid item xs={3}>
+                  <Typography variant='caption' color='textSecondary'>
+                    H: {reportData.bounding_box.h}
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Box>
+          )}
+
           {/* Info Table */}
           <Box sx={{ mt: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1, overflow: 'hidden' }}>
             {modalInfo.map((item, index) => (
@@ -166,22 +273,42 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
           {/* Download Buttons */}
           <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
             <Button
+              sx={{
+                '&:hover': {
+                  color: 'primary.main',
+                  borderColor: 'primary.main'
+                }
+              }}
               variant='outlined'
               color='secondary'
-              onClick={() =>
-                handleDownloadImage(reportData.person_image || '/images/avatars/1.png', 'person_image.png')
-              }
+              onClick={() => handleDownloadImage(detectedImageUrl, 'detected_image.png')}
             >
-              {t('reportCard.downloadProfileImage')}
+              {t('reportCard.downloadDetectedImage')}
             </Button>
             <Button
               variant='outlined'
               color='secondary'
-              onClick={() => handleDownloadImage(reportData.last_image || '/images/avatars/1.png', 'last_image.png')}
+              onClick={() => handleDownloadImage(personImageUrl, 'person_image.png')}
+              sx={{
+                '&:hover': {
+                  color: 'primary.main',
+                  borderColor: 'primary.main'
+                }
+              }}
             >
-              {t('reportCard.downloadLastImage')}
+              {t('reportCard.downloadPersonImage')}
             </Button>
-            <Button variant='outlined' color='secondary' onClick={handleDownloadCardImage}>
+            <Button
+              variant='outlined'
+              color='secondary'
+              onClick={handleDownloadCardImage}
+              sx={{
+                '&:hover': {
+                  color: 'primary.main',
+                  borderColor: 'primary.main'
+                }
+              }}
+            >
               {t('reportCard.downloadCardAsImage')}
             </Button>
           </Box>

@@ -8,43 +8,19 @@ import EmptyState from '@/components/ui/EmptyState'
 import LoadingState from '@/components/ui/LoadingState'
 import PaginationControls from '@/components/ui/PaginationControls'
 import usePagination from '@/hooks/usePagination'
+import usePersonReports from '@/hooks/usePersonReports'
 import { commonStyles } from '@/@core/styles/commonStyles'
 import { useTranslation } from '@/translations/useTranslation'
 import ReportsFilters from './ReportsFilters'
 import ReportCard from './ReportCard'
 import ReportsDetailModal from './ReportsDetailModal'
 
-// Mock data generator
-const generateMockReports = () => {
-  const statuses = ['allowed', 'not_allowed']
-  const names = ['علی', 'حسین', 'زهرا', 'مریم', 'رضا', 'سارا']
-  const lastNames = ['محمدی', 'حسینی', 'کریمی', 'جعفری', 'رضایی', 'کاظمی']
-  const reports = []
-
-  for (let i = 1; i <= 42; i++) {
-    const status = statuses[Math.floor(Math.random() * statuses.length)]
-    const first_name = names[Math.floor(Math.random() * names.length)]
-    const last_name = lastNames[Math.floor(Math.random() * lastNames.length)]
-
-    reports.push({
-      id: i,
-      first_name,
-      last_name,
-      national_code: '00' + (100000000 + i),
-      status,
-      date: `2024-06-${((i % 30) + 1).toString().padStart(2, '0')}`,
-      person_image: '',
-      last_image: ''
-    })
-  }
-
-  return reports
-}
-
 const SORT_FIELDS = [
-  { value: 'date', label: 'reportCard.date' },
-  { value: 'first_name', label: 'reportCard.name' },
-  { value: 'status', label: 'reportCard.status' }
+  { value: 'created_at', label: 'reportCard.date' },
+  { value: 'person_id', label: 'reportCard.personId' },
+  { value: 'confidence', label: 'reportCard.confidence' },
+  { value: 'fiqa', label: 'reportCard.fiqa' },
+  { value: 'camera_id', label: 'reportCard.camera' }
 ]
 
 const SORT_ORDERS = [
@@ -54,49 +30,71 @@ const SORT_ORDERS = [
 
 function ReportsContent() {
   const { t } = useTranslation()
-  const [allReports] = useState(generateMockReports())
-  const [filteredReports, setFilteredReports] = useState(allReports)
-  const [sortBy, setSortBy] = useState('date')
+
+  const [filters, setFilters] = useState({
+    // API filters (sent to backend)
+    gender_id: '',
+    camera_id: '',
+    person_id: '',
+
+    // Manual filters (client-side)
+    date_from: null,
+    date_to: null
+  })
+
+  const [sortBy, setSortBy] = useState('created_at')
   const [sortOrder, setSortOrder] = useState('desc')
   const { page, per_page, handlePageChange, handlePerPageChange, perPageOptions } = usePagination(1, 10)
 
   // Modal state for detail modal
   const [openDetailIndex, setOpenDetailIndex] = useState(null)
 
-  // Filtering
-  const handleFilter = filters => {
-    let filtered = allReports
+  // Use the real API hook - only send API filters
+  const { reports, total, isLoading, isError, refetchReports } = usePersonReports({
+    page,
+    per_page,
+    gender_id: filters.gender_id ? parseInt(filters.gender_id) : null,
+    camera_id: filters.camera_id ? parseInt(filters.camera_id) : null,
+    person_id: filters.person_id ? parseInt(filters.person_id) : null
+  })
 
-    if (filters.name) {
-      filtered = filtered.filter(r => (r.first_name + ' ' + r.last_name).includes(filters.name))
-    }
+  // Apply manual filters (client-side) - only date filtering
+  const applyManualFilters = reports => {
+    let filtered = reports || []
 
-    if (filters.national_code) {
-      filtered = filtered.filter(r => r.national_code.includes(filters.national_code))
-    }
-
-    if (filters.status) {
-      filtered = filtered.filter(r => r.status === filters.status)
-    }
-
+    // Manual date filtering
     if (filters.date_from) {
-      filtered = filtered.filter(r => r.date >= filters.date_from)
+      const fromDate = new Date(filters.date_from)
+
+      filtered = filtered.filter(r => {
+        const reportDate = new Date(r.created_at)
+
+        return reportDate >= fromDate
+      })
     }
 
     if (filters.date_to) {
-      filtered = filtered.filter(r => r.date <= filters.date_to)
+      const toDate = new Date(filters.date_to)
+
+      filtered = filtered.filter(r => {
+        const reportDate = new Date(r.created_at)
+
+        return reportDate <= toDate
+      })
     }
 
-    setFilteredReports(filtered)
-    setOpenDetailIndex(null) // close modal on filter change
+    return filtered
   }
+
+  // Apply manual filters to the reports
+  const filteredReports = applyManualFilters(reports)
 
   // Sorting
   const sortedReports = [...filteredReports].sort((a, b) => {
     let aValue = a[sortBy]
     let bValue = b[sortBy]
 
-    if (sortBy === 'date') {
+    if (sortBy === 'created_at') {
       aValue = new Date(aValue)
       bValue = new Date(bValue)
     }
@@ -113,8 +111,11 @@ function ReportsContent() {
     }
   })
 
-  // Pagination
-  const pagedReports = sortedReports.slice((page - 1) * per_page, page * per_page)
+  // Filtering
+  const handleFilter = newFilters => {
+    setFilters(newFilters)
+    setOpenDetailIndex(null) // close modal on filter change
+  }
 
   // Navigation logic for detail modal
   const handleOpenDetail = idx => setOpenDetailIndex(idx)
@@ -124,14 +125,22 @@ function ReportsContent() {
     if (openDetailIndex === null) return
     const newIndex = openDetailIndex + direction
 
-    if (newIndex >= 0 && newIndex < pagedReports.length) {
+    if (newIndex >= 0 && newIndex < sortedReports.length) {
       setOpenDetailIndex(newIndex)
     }
   }
 
+  if (isLoading) {
+    return <LoadingState message={t('common.loading')} />
+  }
+
+  if (isError) {
+    return <EmptyState message={t('common.error')} />
+  }
+
   return (
     <Box sx={commonStyles.pageContainer}>
-      <SEO title={t('groups.title')} description={t('groups.title')} keywords={t('groups.groups')} />
+      <SEO title={t('live.reports')} description={t('live.reports')} keywords={t('live.reports')} />
       <PageHeader underlineWidth={90} title={t('live.reports')} />
       <ReportsFilters onFilter={handleFilter} />
       <Box elevation={0} sx={{ borderRadius: 2, boxShadow: 1, mt: 0, mb: 2 }}>
@@ -141,12 +150,12 @@ function ReportsContent() {
           p={2}
           sx={{ overflowY: 'auto', maxHeight: 'calc(100vh - 250px)', justifyContent: 'center' }}
         >
-          {pagedReports.length === 0 ? (
+          {sortedReports.length === 0 ? (
             <Grid item xs={12}>
               <EmptyState message={t('live.noReports')} />
             </Grid>
           ) : (
-            pagedReports.map((report, idx) => (
+            sortedReports.map((report, idx) => (
               <Grid sx={{ display: 'flex', flexGrow: 1, minWidth: '330px' }} item xs={12} sm={6} md={4} key={report.id}>
                 <ReportCard reportData={report} allReports={sortedReports} onOpenDetail={() => handleOpenDetail(idx)} />
               </Grid>
@@ -154,10 +163,10 @@ function ReportsContent() {
           )}
         </Grid>
       </Box>
-      {sortedReports.length > 0 && (
+      {total > 0 && (
         <PaginationControls
           page={page}
-          total={sortedReports.length}
+          total={total}
           per_page={per_page}
           per_pageOptions={perPageOptions}
           onPageChange={handlePageChange}
@@ -166,12 +175,12 @@ function ReportsContent() {
         />
       )}
       {/* Single detail modal for navigation */}
-      {openDetailIndex !== null && pagedReports[openDetailIndex] && (
+      {openDetailIndex !== null && sortedReports[openDetailIndex] && (
         <ReportsDetailModal
           open={true}
           onClose={handleCloseDetail}
-          reportData={pagedReports[openDetailIndex]}
-          allReports={pagedReports}
+          reportData={sortedReports[openDetailIndex]}
+          allReports={sortedReports}
           currentIndex={openDetailIndex}
           onNavigate={handleNavigateDetail}
         />

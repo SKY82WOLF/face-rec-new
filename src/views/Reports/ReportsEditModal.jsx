@@ -15,12 +15,11 @@ import {
   DialogActions
 } from '@mui/material'
 
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { AdapterDateFnsJalali } from '@mui/x-date-pickers/AdapterDateFnsJalali'
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
+import { useSelector } from 'react-redux'
 
 import { commonStyles } from '@/@core/styles/commonStyles'
 import { useTranslation } from '@/translations/useTranslation'
+import { selectGenderTypes } from '@/store/slices/typesSlice'
 
 const modalStyle = {
   ...commonStyles.modalContainer,
@@ -28,14 +27,22 @@ const modalStyle = {
   maxWidth: 500
 }
 
-const statusOptions = [
-  { value: 'allowed', label: 'reportCard.allowed' },
-  { value: 'not_allowed', label: 'reportCard.notAllowed' }
+const cameraOptions = [
+  { value: 1, label: 'Camera 1' },
+  { value: 2, label: 'Camera 2' },
+  { value: 3, label: 'Camera 3' }
 ]
 
 const ReportsEditModal = ({ open, onClose, reportData }) => {
   const { t } = useTranslation()
-  const [form, setForm] = useState({ ...reportData })
+
+  // Get types data
+  const genderTypes = useSelector(selectGenderTypes)
+
+  const [form, setForm] = useState({
+    gender_id: reportData?.gender_id || '',
+    camera_id: reportData?.camera_id || ''
+  })
 
   const handleChange = e => {
     const { name, value } = e.target
@@ -63,49 +70,39 @@ const ReportsEditModal = ({ open, onClose, reportData }) => {
           <Typography variant='h6' mb={2}>
             {t('common.edit')}
           </Typography>
-          <TextField
-            label={t('reportCard.name')}
-            name='first_name'
-            value={form.first_name || ''}
-            onChange={handleChange}
-            fullWidth
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            label={t('reportCard.lastName')}
-            name='last_name'
-            value={form.last_name || ''}
-            onChange={handleChange}
-            fullWidth
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            label={t('reportCard.nationalCode')}
-            name='national_code'
-            value={form.national_code || ''}
-            onChange={handleChange}
-            fullWidth
-            sx={{ mb: 2 }}
-          />
+
           <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel>{t('reportCard.status')}</InputLabel>
-            <Select name='status' value={form.status || ''} onChange={handleChange} label={t('reportCard.status')}>
-              {statusOptions.map(opt => (
-                <MenuItem key={opt.value} value={opt.value}>
-                  {t(opt.label)}
+            <InputLabel>{t('reportCard.gender')}</InputLabel>
+            <Select
+              name='gender_id'
+              value={form.gender_id || ''}
+              onChange={handleChange}
+              label={t('reportCard.gender')}
+            >
+              {genderTypes?.data?.map(type => (
+                <MenuItem key={type.id} value={type.id}>
+                  {type.translate?.trim() || type.title?.trim()}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
-          <LocalizationProvider dateAdapter={AdapterDateFnsJalali}>
-            <DateTimePicker
-              label={t('reportCard.date')}
-              value={form.date ? new Date(form.date) : null}
-              onChange={value => setForm(prev => ({ ...prev, date: value ? value.toISOString() : '' }))}
-              ampm={false}
-              slotProps={{ textField: { fullWidth: true, sx: { mb: 2 } } }}
-            />
-          </LocalizationProvider>
+
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel>{t('reportCard.camera')}</InputLabel>
+            <Select
+              name='camera_id'
+              value={form.camera_id || ''}
+              onChange={handleChange}
+              label={t('reportCard.camera')}
+            >
+              {cameraOptions.map(opt => (
+                <MenuItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
           <DialogActions sx={{ justifyContent: 'flex-end', gap: 2 }}>
             <Button onClick={onClose}>{t('common.cancel')}</Button>
             <Button type='submit' variant='contained'>
