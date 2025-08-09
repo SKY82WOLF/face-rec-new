@@ -95,6 +95,10 @@ const CameraDetailModal = ({ open, onClose, camera }) => {
                   </TableCell>
                 </TableRow>
                 <TableRow>
+                  <TableCell sx={{ fontWeight: 600 }}>{t('cameras.id')}</TableCell>
+                  <TableCell>{camera.id}</TableCell>
+                </TableRow>
+                <TableRow>
                   <TableCell sx={{ fontWeight: 600 }}>{t('cameras.isActive')}</TableCell>
                   <TableCell>{getActiveChip(!!camera.is_active)}</TableCell>
                 </TableRow>

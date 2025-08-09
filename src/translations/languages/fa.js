@@ -281,6 +281,7 @@ const fa = {
     camUrl: 'آدرس دوربین',
     camUser: 'نام کاربری دوربین',
     camPassword: 'رمز عبور دوربین',
+    id: 'شناسه',
     isActive: 'وضعیت',
     createdAt: 'تاریخ ایجاد',
     updatedAt: 'تاریخ بروزرسانی',
