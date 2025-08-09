@@ -82,6 +82,13 @@ export const API_ROUTES = {
   groups: {
     list: '/groups',
     add: '/groups/add'
+  },
+  cameras: {
+    list: '/cameras',
+    detail: '/cameras/',
+    add: '/cameras/add',
+    update: '/cameras/',
+    delete: '/cameras/'
   }
 }
 
@@ -117,6 +124,14 @@ export const {
 export const { list: usersList, create: usersCreate, update: usersUpdate, delete: usersDelete } = API_ROUTES.users
 
 export const { list: groupsList, add: groupsAdd } = API_ROUTES.groups
+
+export const {
+  list: camerasList,
+  detail: camerasDetail,
+  add: camerasAdd,
+  update: camerasUpdate,
+  delete: camerasDelete
+} = API_ROUTES.cameras
 
 export const { list: typesList, add: typesAdd } = API_ROUTES.types
 

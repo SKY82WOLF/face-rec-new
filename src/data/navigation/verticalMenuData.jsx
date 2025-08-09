@@ -27,6 +27,11 @@ const useVerticalMenuData = () => {
       icon: 'tabler-users'
     },
     {
+      label: t('cameras.title'),
+      href: '/cameras',
+      icon: 'tabler-camera'
+    },
+    {
       label: t('groups.groups'),
       href: '/groups',
       icon: 'tabler-users-group'

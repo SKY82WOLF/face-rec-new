@@ -266,6 +266,52 @@ const fa = {
     addGroup: 'افزودن گروه',
     editGroup: 'ویرایش گروه',
     deleteGroup: 'حذف گروه',
+    confirmDelete: 'آیا از حذف این گروه اطمینان دارید؟'
+  },
+
+  //cameras
+  cameras: {
+    title: 'مدیریت دوربین‌ها',
+    addCamera: 'افزودن دوربین',
+    editCamera: 'ویرایش دوربین',
+    deleteCamera: 'حذف دوربین',
+    deleteConfirm: 'آیا از حذف دوربین "{name}" اطمینان دارید؟',
+    confirmDelete: 'آیا از حذف این دوربین اطمینان دارید؟',
+    name: 'نام دوربین',
+    camUrl: 'آدرس دوربین',
+    camUser: 'نام کاربری دوربین',
+    camPassword: 'رمز عبور دوربین',
+    isActive: 'وضعیت',
+    createdAt: 'تاریخ ایجاد',
+    updatedAt: 'تاریخ بروزرسانی',
+    status: 'وضعیت',
+    actions: 'عملیات',
+    noData: 'دوربینی یافت نشد',
+    loading: 'درحال بارگزاری دوربین‌ها',
+    cameraDetail: 'جزئیات دوربین',
+    add: 'افزودن',
+    edit: 'ویرایش',
+    save: 'ذخیره',
+    cancel: 'انصراف',
+    nameRequired: 'نام دوربین الزامی است',
+    camUrlRequired: 'آدرس دوربین الزامی است',
+    camUserRequired: 'نام کاربری دوربین الزامی است',
+    camPasswordRequired: 'رمز عبور دوربین الزامی است',
+    statusOptions: {
+      active: 'فعال',
+      inactive: 'غیرفعال',
+      offline: 'آفلاین',
+      online: 'آنلاین'
+    }
+  },
+
+  //groups
+  groups: {
+    groups: 'گروه ها',
+    title: 'مدیریت گروه‌ها',
+    addGroup: 'افزودن گروه',
+    editGroup: 'ویرایش گروه',
+    deleteGroup: 'حذف گروه',
     confirmDelete: 'آیا از حذف این گروه اطمینان دارید؟',
     confirmDeleteMessage: 'آیا از حذف گروه "{name}" اطمینان دارید؟ این عملیات قابل بازگشت نیست.',
     id: 'شناسه',
