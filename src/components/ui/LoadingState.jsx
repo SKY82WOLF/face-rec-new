@@ -2,7 +2,7 @@ import { Box, CircularProgress, Typography } from '@mui/material'
 
 import { commonStyles } from '@/@core/styles/commonStyles'
 
-const LoadingState = ({ message = 'Loading...', minHeight = 200 }) => {
+const LoadingState = ({ message = 'در حال بارگذاری...', minHeight = 200 }) => {
   return (
     <Box sx={{ ...commonStyles.loadingContainer, minHeight }}>
       <CircularProgress />
