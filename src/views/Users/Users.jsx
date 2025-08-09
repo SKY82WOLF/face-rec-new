@@ -10,21 +10,8 @@ import {
   Typography,
   Button,
   IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Avatar,
   CircularProgress,
-  Pagination,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Stack,
+  Chip,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -33,6 +20,7 @@ import {
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
+import PersonIcon from '@mui/icons-material/Person'
 
 import SEO from '@/components/SEO'
 import { useTranslation } from '@/translations/useTranslation'
@@ -57,6 +45,7 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
   const [selectedUser, setSelectedUser] = useState(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [userToDelete, setUserToDelete] = useState(null)
+  const [hoveredId, setHoveredId] = useState(null)
 
   const { page, per_page, handlePageChange, handlePerPageChange, perPageOptions } = usePagination(
     initialPage,
@@ -135,148 +124,164 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
         actionButton={t('users.addUser')}
         actionButtonProps={{ onClick: handleOpenAddModal, startIcon: <AddIcon /> }}
       />
-      <Card elevation={0} sx={commonStyles.transparentCard}>
-        <Box sx={{ display: 'contents', p: { xs: 2, sm: 4 } }}>
+      <Card
+        elevation={0}
+        sx={{ ...commonStyles.transparentCard, overflow: 'visible', backgroundColor: '#00000000', boxShadow: 'none' }}
+      >
+        <Box sx={{ display: 'contents', p: { xs: 2, sm: 4 }, overflow: 'visible' }}>
           {isLoading ? (
             <LoadingState message={t('users.loading')} />
           ) : users.length === 0 ? (
             <EmptyState message={t('users.noData')} />
           ) : (
             <>
-              {/* Desktop Table */}
-              <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-                <TableContainer component={Paper} elevation={0}>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell sx={{ textAlign: 'center' }}>{t('users.avatar')}</TableCell>
-                        <TableCell sx={{ textAlign: 'center' }}>{t('users.fullName')}</TableCell>
-                        <TableCell sx={{ textAlign: 'center' }}>{t('users.username')}</TableCell>
-                        <TableCell sx={{ textAlign: 'center' }}>{t('users.email')}</TableCell>
-                        <TableCell sx={{ textAlign: 'center' }}>{t('users.phoneNumber')}</TableCell>
-                        <TableCell sx={{ textAlign: 'center' }}>{t('users.status')}</TableCell>
-                        <TableCell sx={{ textAlign: 'center' }}>{t('users.actions')}</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {users.map(user => (
-                        <TableRow key={user.id} hover>
-                          <TableCell sx={{ display: 'flex', justifyContent: 'center', textAlign: 'center' }}>
-                            <Avatar src={user.avatar || '/images/avatars/1.png'} alt={getFullName(user)} />
-                          </TableCell>
-                          <TableCell sx={{ textAlign: 'center' }}>{getFullName(user)}</TableCell>
-                          <TableCell sx={{ textAlign: 'center' }}>{user.username}</TableCell>
-                          <TableCell sx={{ textAlign: 'center' }}>{user.email || '-'}</TableCell>
-                          <TableCell sx={{ textAlign: 'center' }}>{user.phone_number || '-'}</TableCell>
-                          <TableCell sx={{ textAlign: 'center' }}>
-                            <Typography
-                              variant='body2'
-                              color={user.is_active ? 'success.main' : 'error.main'}
-                              sx={{ fontWeight: 600 }}
-                            >
-                              {t(`users.statusOptions.${user.is_active ? 'active' : 'inactive'}`)}
-                            </Typography>
-                          </TableCell>
-                          <TableCell sx={{ textAlign: 'center' }}>
-                            <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
-                              <IconButton
-                                onClick={() => setSelectedUser(user)}
-                                color='primary'
-                                aria-label={t('users.editUser')}
-                              >
-                                <EditIcon />
-                              </IconButton>
-                              <IconButton
-                                color='error'
-                                aria-label={t('users.deleteUser')}
-                                onClick={() => handleDeleteClick(user)}
-                              >
-                                <DeleteIcon />
-                              </IconButton>
-                            </Box>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Box>
-
-              {/* Mobile Cards */}
-              <Box sx={{ display: { xs: 'block', md: 'none' } }}>
-                <Stack spacing={2}>
-                  {users.map(user => (
-                    <Card
-                      key={user.id}
-                      variant='outlined'
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: {
+                    xs: 'repeat(auto-fill, minmax(260px, 1fr))',
+                    sm: 'repeat(auto-fill, minmax(280px, 1fr))'
+                  },
+                  gap: 3,
+                  alignItems: 'stretch',
+                  overflow: 'visible'
+                }}
+              >
+                {users.map(user => (
+                  <Card
+                    key={user.id}
+                    elevation={0}
+                    onMouseEnter={() => setHoveredId(user.id)}
+                    onMouseLeave={() => setHoveredId(null)}
+                    onClick={() => setSelectedUser(user)}
+                    sx={{
+                      borderRadius: 2,
+                      width: '100%',
+                      aspectRatio: '16 / 9',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      boxShadow: '5 8px 32px rgba(0,0,0,0.08)',
+                      transform: 'translateY(0)',
+                      transition: 'box-shadow .25s ease, transform .25s ease',
+                      '&:hover': {
+                        transform: 'translateY(-8px)',
+                        boxShadow: '0 24px 54px rgba(0,0,0,0.2)',
+                        zIndex: 2,
+                        cursor: 'pointer'
+                      }
+                    }}
+                  >
+                    {user.avatar ? (
+                      <Box
+                        component='img'
+                        src={user.avatar}
+                        alt={getFullName(user)}
+                        sx={{
+                          display: 'block',
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          bgcolor: 'background.default'
+                        }}
+                      />
+                    ) : (
+                      <Box
+                        sx={{
+                          width: '100%',
+                          height: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: 'background.default'
+                        }}
+                      >
+                        <PersonIcon sx={{ fontSize: 72, color: 'primary.main', opacity: 0.6 }} />
+                      </Box>
+                    )}
+                    <Box
                       sx={{
-                        p: 2,
+                        position: 'absolute',
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        p: 1.5,
                         display: 'flex',
-                        justifyContent: 'space-between',
                         alignItems: 'center',
-                        mb: 1
+                        gap: 1,
+                        background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 100%)',
+                        borderBottomLeftRadius: 'inherit',
+                        borderBottomRightRadius: 'inherit',
+                        display: 'flex',
+                        flexDirection: 'row',
+                        justifyContent: 'space-between'
                       }}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-                        <Avatar
-                          alt={getFullName(user)}
-                          src={user.avatar || '/images/avatars/1.png'}
-                          sx={{ width: 60, height: 60 }}
-                        />
-                        <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                            <i className='tabler-user' style={{ marginRight: '8px' }} />
-                            <Typography variant='body2'>{getFullName(user)}</Typography>
-                          </Box>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                            <i className='tabler-at' style={{ marginRight: '8px' }} />
-                            <Typography variant='body2'>{user.username}</Typography>
-                          </Box>
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <i className='tabler-mail' style={{ marginRight: '8px' }} />
-                            <Typography variant='caption'>{user.email || '-'}</Typography>
-                          </Box>
-                        </Box>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              border: '1px solid',
-                              borderColor: 'divider',
-                              borderRadius: 1,
-                              px: 1
-                            }}
-                          >
-                            <i
-                              className={user.is_active ? 'tabler-lock-open' : 'tabler-lock'}
-                              style={{ color: user.is_active ? 'green' : 'red', marginRight: '5px' }}
-                            />
-                            <Typography variant='body2' color={user.is_active ? 'green' : 'red'}>
-                              {t(`users.statusOptions.${user.is_active ? 'active' : 'inactive'}`)}
-                            </Typography>
-                          </Box>
-                          <Box>
-                            <IconButton
-                              onClick={() => setSelectedUser(user)}
-                              color='primary'
-                              aria-label={t('users.editUser')}
-                            >
-                              <EditIcon />
-                            </IconButton>
-                            <IconButton
-                              color='error'
-                              aria-label={t('users.deleteUser')}
-                              onClick={() => handleDeleteClick(user)}
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </Box>
-                        </Box>
+                      <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'row', gap: 1 }}>
+                        <PersonIcon sx={{ fontSize: 20, color: 'primary.main' }} />
+                        <Typography
+                          variant='subtitle2'
+                          sx={{
+                            fontSize: 16,
+                            fontWeight: 600,
+                            flexGrow: 1,
+                            color: 'primary.main',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          {getFullName(user)}
+                        </Typography>
                       </Box>
-                    </Card>
-                  ))}
-                </Stack>
+                      <Chip
+                        size='small'
+                        label={t(`users.statusOptions.${user.is_active ? 'active' : 'inactive'}`)}
+                        color={user.is_active ? 'success' : 'error'}
+                        variant='outlined'
+                      />
+                    </Box>
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: 10,
+                        right: 10,
+                        display: 'flex',
+                        gap: 0.5,
+                        bgcolor: 'rgba(17,17,17,0.35)',
+                        backdropFilter: 'blur(6px)',
+                        borderRadius: 999,
+                        p: 0.5,
+                        opacity: hoveredId === user.id ? 1 : 0,
+                        transform: hoveredId === user.id ? 'translateY(0)' : 'translateY(-6px)',
+                        transition: 'opacity .2s ease, transform .2s ease',
+                        pointerEvents: hoveredId === user.id ? 'auto' : 'none'
+                      }}
+                    >
+                      <IconButton
+                        size='small'
+                        onClick={e => {
+                          e.stopPropagation()
+                          setSelectedUser(user)
+                        }}
+                        sx={{ color: 'common.white' }}
+                        aria-label={t('users.editUser')}
+                      >
+                        <EditIcon fontSize='small' />
+                      </IconButton>
+                      <IconButton
+                        size='small'
+                        sx={{ color: 'error.light' }}
+                        aria-label={t('users.deleteUser')}
+                        onClick={e => {
+                          e.stopPropagation()
+                          handleDeleteClick(user)
+                        }}
+                      >
+                        <DeleteIcon fontSize='small' />
+                      </IconButton>
+                    </Box>
+                  </Card>
+                ))}
               </Box>
             </>
           )}

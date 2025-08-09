@@ -264,7 +264,7 @@ function GroupsContent({ initialPage = 1, initialper_page = 10 }) {
                         <Typography
                           variant='subtitle2'
                           sx={{
-                            color: 'common.white',
+                            color: 'text.groupText',
                             fontWeight: 700,
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',

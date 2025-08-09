@@ -143,13 +143,8 @@ function ReportsContent() {
       <SEO title={t('live.reports')} description={t('live.reports')} keywords={t('live.reports')} />
       <PageHeader underlineWidth={90} title={t('live.reports')} />
       <ReportsFilters onFilter={handleFilter} />
-      <Box elevation={0} sx={{ borderRadius: 2, boxShadow: 1, mt: 0, mb: 2 }}>
-        <Grid
-          container
-          spacing={2}
-          p={2}
-          sx={{ overflowY: 'auto', maxHeight: 'calc(100vh - 250px)', justifyContent: 'center' }}
-        >
+      <Box elevation={0} sx={{ borderRadius: 2, mt: 0, mb: 2, backgroundColor: '#00000000' }}>
+        <Grid container spacing={2} p={2} sx={{ justifyContent: 'center' }}>
           {sortedReports.length === 0 ? (
             <Grid item xs={12}>
               <EmptyState message={t('live.noReports')} />

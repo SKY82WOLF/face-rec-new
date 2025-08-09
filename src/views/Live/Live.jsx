@@ -125,7 +125,7 @@ const LiveContent = () => {
                   </Grid>
                 ))
               ) : (
-                <Grid justifyContent={'center'} item xs={12}>
+                <Grid sx={{ display: 'flex', justifyContent: 'center' }} item xs={12}>
                   <EmptyState message={t('live.noReports')} minHeight={120} />
                 </Grid>
               )}

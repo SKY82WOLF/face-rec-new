@@ -161,7 +161,7 @@ function CamerasContent({ initialPage = 1, initialper_page = 10 }) {
       />
       <Card
         elevation={0}
-        sx={{ ...commonStyles.transparentCard, overflow: 'visible', boxShadow: 'none', '&:focus': { outline: 'none' } }}
+        sx={{ ...commonStyles.transparentCard, overflow: 'visible', backgroundColor: '#00000000', boxShadow: 'none', '&:focus': { outline: 'none' } }}
       >
         <Box sx={{ display: 'contents', p: { xs: 2, sm: 4 }, overflow: 'visible' }}>
           {isLoading ? (

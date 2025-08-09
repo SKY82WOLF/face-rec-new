@@ -63,7 +63,7 @@ function AccessContent({ initialPage = 1, initialper_page = 10 }) {
         actionButtonProps={{ onClick: handleOpenAddModal }}
         underlineWidth={130}
       />
-      <Card elevation={0} sx={commonStyles.transparentCard}>
+      <Card elevation={0} sx={{ ...commonStyles.transparentCard, backgroundColor: '#00000000', boxShadow: 'none' }}>
         <Grid
           p={2}
           container

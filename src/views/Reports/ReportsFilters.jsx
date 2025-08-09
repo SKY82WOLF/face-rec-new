@@ -11,7 +11,8 @@ import {
   Stack,
   Typography,
   Card,
-  Slider
+  Slider,
+  Grid
 } from '@mui/material'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDateFnsJalali } from '@mui/x-date-pickers/AdapterDateFnsJalali'
@@ -106,68 +107,100 @@ const ReportsFilters = ({ onFilter }) => {
   }
 
   return (
-    <Card elevation={1} sx={{ mb: 2, p: 2, borderRadius: 2 }}>
-      <Box component='form' onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {/* API Filters Row */}
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
-          <FormControl size='small' sx={{ minWidth: 120 }}>
-            <InputLabel>{t('reportCard.gender')}</InputLabel>
-            <Select name='gender_id' value={filters.gender_id} onChange={handleChange} label={t('reportCard.gender')}>
-              <MenuItem value=''>{t('common.select')}</MenuItem>
-              {genderTypes?.data?.map(type => (
-                <MenuItem key={type.id} value={type.id}>
-                  {type.translate?.trim() || type.title?.trim()}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+    <Card elevation={1} sx={{ mb: 2, p: 2, borderRadius: 2, width: '100%' }}>
+      <Box
+        component='form'
+        onSubmit={handleSubmit}
+        sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}
+      >
+        {/* API Filters Row - full width using CSS Grid */}
+        <Box
+          sx={{
+            width: '100%',
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))', md: 'repeat(3, minmax(0, 1fr))' },
+            gap: 2
+          }}
+        >
+          <Box>
+            <FormControl size='small' fullWidth>
+              <InputLabel>{t('reportCard.gender')}</InputLabel>
+              <Select name='gender_id' value={filters.gender_id} onChange={handleChange} label={t('reportCard.gender')}>
+                <MenuItem value=''>{t('common.select')}</MenuItem>
+                {genderTypes?.data?.map(type => (
+                  <MenuItem key={type.id} value={type.id}>
+                    {type.translate?.trim() || type.title?.trim()}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
 
-          <FormControl size='small' sx={{ minWidth: 120 }}>
-            <InputLabel>{t('reportCard.camera')}</InputLabel>
-            <Select name='camera_id' value={filters.camera_id} onChange={handleChange} label={t('reportCard.camera')}>
-              {cameraOptions.map(opt => (
-                <MenuItem key={opt.value} value={opt.value}>
-                  {opt.value ? opt.label : t('common.select')}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Box>
+            <FormControl size='small' fullWidth>
+              <InputLabel>{t('reportCard.camera')}</InputLabel>
+              <Select name='camera_id' value={filters.camera_id} onChange={handleChange} label={t('reportCard.camera')}>
+                {cameraOptions.map(opt => (
+                  <MenuItem key={opt.value} value={opt.value}>
+                    {opt.value ? opt.label : t('common.select')}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
 
-          <FormControl size='small' sx={{ minWidth: 150 }}>
-            <InputLabel>{t('reportCard.personId')}</InputLabel>
-            <Select name='person_id' value={filters.person_id} onChange={handleChange} label={t('reportCard.personId')}>
-              <MenuItem value=''>{t('common.select')}</MenuItem>
-              {personsData?.data?.map(person => (
-                <MenuItem key={person.id} value={person.id}>
-                  {person.first_name} {person.last_name} (ID: {person.id})
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Box>
+            <FormControl size='small' fullWidth>
+              <InputLabel>{t('reportCard.personId')}</InputLabel>
+              <Select
+                name='person_id'
+                value={filters.person_id}
+                onChange={handleChange}
+                label={t('reportCard.personId')}
+              >
+                <MenuItem value=''>{t('common.select')}</MenuItem>
+                {personsData?.data?.map(person => (
+                  <MenuItem key={person.id} value={person.id}>
+                    {person.first_name} {person.last_name} (ID: {person.id})
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
         </Box>
 
-        {/* Date Range Row */}
+        {/* Date Range Row - full width */}
         <LocalizationProvider
           dateAdapter={AdapterDateFnsJalali}
           localeText={{ okButtonLabel: t('common.ok'), cancelButtonLabel: t('common.cancel') }}
         >
-          <Stack direction='row' alignItems='center' spacing={1}>
-            <DateTimePicker
-              label={t('reportCard.date') + ' (از)'}
-              value={filters.date_from ? new Date(filters.date_from) : null}
-              onChange={value => handleDateChange('date_from', value ? value.toISOString() : '')}
-              ampm={false}
-              slotProps={{ textField: { size: 'small', sx: { minWidth: 170 } } }}
-            />
-            <Typography sx={{ mx: 1 }}>{t('reportCard.to')}</Typography>
-            <DateTimePicker
-              label={t('reportCard.date') + ' (تا)'}
-              value={filters.date_to ? new Date(filters.date_to) : null}
-              onChange={value => handleDateChange('date_to', value ? value.toISOString() : '')}
-              ampm={false}
-              slotProps={{ textField: { size: 'small', sx: { minWidth: 170 } } }}
-            />
-          </Stack>
+          <Box
+            sx={{
+              width: '100%',
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' },
+              gap: 2
+            }}
+          >
+            <Box>
+              <DateTimePicker
+                label={t('reportCard.date') + ' (از)'}
+                value={filters.date_from ? new Date(filters.date_from) : null}
+                onChange={value => handleDateChange('date_from', value ? value.toISOString() : '')}
+                ampm={false}
+                slotProps={{ textField: { size: 'small', fullWidth: true } }}
+              />
+            </Box>
+            <Box>
+              <DateTimePicker
+                label={t('reportCard.date') + ' (تا)'}
+                value={filters.date_to ? new Date(filters.date_to) : null}
+                onChange={value => handleDateChange('date_to', value ? value.toISOString() : '')}
+                ampm={false}
+                slotProps={{ textField: { size: 'small', fullWidth: true } }}
+              />
+            </Box>
+          </Box>
         </LocalizationProvider>
 
         {/* Action Buttons */}
