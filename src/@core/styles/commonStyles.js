@@ -82,7 +82,8 @@ export const commonStyles = {
   // Card styles
   transparentCard: {
     elevation: 0,
-    backgroundColor: { xs: '#00000000' }
+    
+    // backgroundColor: { xs: '#00000000' }
   },
 
   // Table styles

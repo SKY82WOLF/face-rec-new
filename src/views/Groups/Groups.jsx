@@ -10,24 +10,15 @@ import {
   Typography,
   Button,
   IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   CircularProgress,
-  Pagination,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  Stack,
   Chip,
   Tooltip
 } from '@mui/material'
@@ -35,6 +26,7 @@ import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import VisibilityIcon from '@mui/icons-material/Visibility'
+import GroupIcon from '@mui/icons-material/Group'
 import SortIcon from '@mui/icons-material/Sort'
 
 import SEO from '@/components/SEO'
@@ -79,6 +71,7 @@ function GroupsContent({ initialPage = 1, initialper_page = 10 }) {
 
   const [sort_by, setSortBy] = useState('id')
   const [sort_order, setSortOrder] = useState('asc')
+  const [hoveredId, setHoveredId] = useState(null)
 
   const { page, per_page, handlePageChange, handlePerPageChange, perPageOptions } = usePagination(
     initialPage,
@@ -189,7 +182,7 @@ function GroupsContent({ initialPage = 1, initialper_page = 10 }) {
         actionButton={t('groups.addGroup')}
         actionButtonProps={{ onClick: handleOpenAddModal, startIcon: <AddIcon /> }}
       />
-      <Card elevation={0} sx={commonStyles.transparentCard}>
+      <Card elevation={0} sx={{ ...commonStyles.transparentCard, backgroundColor: '#00000000', overflow: 'visible',boxShadow:'none' }}>
         <Box sx={{ display: 'contents', p: { xs: 2, sm: 4 } }}>
           {isLoading ? (
             <LoadingState message={t('groups.loading')} />
@@ -197,105 +190,149 @@ function GroupsContent({ initialPage = 1, initialper_page = 10 }) {
             <EmptyState message={t('groups.noData')} />
           ) : (
             <>
-              {/* Desktop Table */}
-              <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-                <TableContainer component={Paper} elevation={0}>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell sx={{ textAlign: 'center' }}>{t('groups.id')}</TableCell>
-                        <TableCell sx={{ textAlign: 'center' }}>{t('groups.name')}</TableCell>
-                        <TableCell sx={{ textAlign: 'center' }}>{t('groups.users')}</TableCell>
-                        <TableCell sx={{ textAlign: 'center' }}>{t('groups.createdAt')}</TableCell>
-                        <TableCell sx={{ textAlign: 'center' }}>{t('groups.updatedAt')}</TableCell>
-                        <TableCell sx={{ textAlign: 'center' }}>{t('groups.actions')}</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {groups.map(group => (
-                        <TableRow key={group.id} hover>
-                          <TableCell sx={{ textAlign: 'center' }}>
-                            <Chip label={group.id} size='small' color='primary' />
-                          </TableCell>
-                          <TableCell sx={{ textAlign: 'center' }}>
-                            <Typography variant='body1' fontWeight={500}>
-                              {group.name}
-                            </Typography>
-                          </TableCell>
-                          <TableCell sx={{ textAlign: 'center' }}>
-                            <Chip
-                              label={group.users ? group.users.length : 0}
-                              size='small'
-                              color='secondary'
-                              variant='outlined'
-                            />
-                          </TableCell>
-                          <TableCell sx={{ textAlign: 'center' }}>
-                            <ShamsiDateTime dateTime={formatDateForShamsi(group.created_at)} />
-                          </TableCell>
-                          <TableCell sx={{ textAlign: 'center' }}>
-                            <ShamsiDateTime dateTime={formatDateForShamsi(group.updated_at)} />
-                          </TableCell>
-                          <TableCell sx={{ textAlign: 'center' }}>
-                            <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
-                              <Tooltip title={t('common.view')}>
-                                <IconButton onClick={() => handleOpenDetailModal(group)} color='info' size='small'>
-                                  <VisibilityIcon />
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title={t('groups.edit')}>
-                                <IconButton onClick={() => handleOpenEditModal(group)} color='primary' size='small'>
-                                  <EditIcon />
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title={t('groups.delete')}>
-                                <IconButton onClick={() => handleOpenDeleteModal(group)} color='error' size='small'>
-                                  <DeleteIcon />
-                                </IconButton>
-                              </Tooltip>
-                            </Box>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Box>
+              {/* Responsive Card Grid - auto-fill remaining space */}
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: {
+                    xs: 'repeat(auto-fill, minmax(260px, 1fr))',
+                    sm: 'repeat(auto-fill, minmax(280px, 1fr))'
+                  },
+                  gap: 5,
+                  alignItems: 'stretch',
+                      overflow: 'visible',
+                  backgroundColor:'#00000000'
+                }}
+              >
+                {groups.map(group => (
+                  <Card
+                    key={group.id}
+                    elevation={0}
+                    onMouseEnter={() => setHoveredId(group.id)}
+                    onMouseLeave={() => setHoveredId(null)}
+                    onClick={() => handleOpenDetailModal(group)}
+                    sx={{
+                      borderRadius: 2,
+                      height: 220,
+                      position: 'relative',
+                      overflow: 'hidden',
+                      boxShadow: '0 8px 22px rgba(0,0,0,0.08)',
+                      transform: 'translateY(0)',
+                      transition: 'box-shadow .25s ease, transform .25s ease',
+                      backgroundColor: 'background.paper',
+                      '&:hover': {
+                        transform: 'translateY(-8px)',
+                        boxShadow: '0 24px 44px rgba(0,0,0,0.2)',
+                        zIndex: 2,
+                        cursor: 'pointer'
+                      }
+                    }}
+                  >
+                    {/* Watermark icon to avoid emptiness */}
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        inset: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        pointerEvents: 'none'
+                      }}
+                    >
+                      <GroupIcon sx={{ fontSize: 140, color: 'primary.main', opacity: 0.6 }} />
+                    </Box>
 
-              {/* Mobile Cards */}
-              <Box sx={{ display: { xs: 'block', md: 'none' } }}>
-                <Stack spacing={2}>
-                  {groups.map(group => (
-                    <Card key={group.id} sx={{ p: 2 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Typography variant='h6' fontWeight={500}>
+                    {/* Bottom overlay info bar (like cameras) */}
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        p: 1.5,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.5) 100%)',
+                        display: 'flex',
+                        flexDirection: 'row',
+                        justifyContent: 'space-between'
+                      }}
+                    >
+                      <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'row', gap: 1 }}>
+                        <GroupIcon sx={{ fontSize: 20, color: 'primary.main' }} />
+                        <Typography
+                          variant='subtitle2'
+                          sx={{
+                            color: 'text.groupText',
+                            fontWeight: 700,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
                           {group.name}
                         </Typography>
-                        <Chip label={`${t('groups.id')}: ${group.id}`} size='small' color='primary' />
                       </Box>
-                      <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
-                        {t('groups.createdAt')}: <ShamsiDateTime dateTime={formatDateForShamsi(group.created_at)} />
-                      </Typography>
-                      <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
+                      <Typography variant='caption' sx={{ color: 'rgba(255,255,255,0.8)' }}>
                         {t('groups.users')}: {group.users ? group.users.length : 0}
                       </Typography>
-                      <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
-                        {t('groups.updatedAt')}: <ShamsiDateTime dateTime={formatDateForShamsi(group.updated_at)} />
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-                        <IconButton onClick={() => handleOpenDetailModal(group)} color='info' size='small'>
-                          <VisibilityIcon />
-                        </IconButton>
-                        <IconButton onClick={() => handleOpenEditModal(group)} color='primary' size='small'>
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton onClick={() => handleOpenDeleteModal(group)} color='error' size='small'>
-                          <DeleteIcon />
-                        </IconButton>
-                      </Box>
-                    </Card>
-                  ))}
-                </Stack>
+                      <Chip label={`${t('groups.id')}: ${group.id}`} size='small' color='primary' variant='outlined' />
+                    </Box>
+                    {/* Floating actions */}
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: 10,
+                        right: 10,
+                        display: 'flex',
+                        gap: 0.5,
+                        bgcolor: 'rgba(17,17,17,0.35)',
+                        backdropFilter: 'blur(6px)',
+                        borderRadius: 999,
+                        p: 0.5,
+                        opacity: hoveredId === group.id ? 1 : 0,
+                        transform: hoveredId === group.id ? 'translateY(0)' : 'translateY(-6px)',
+                        transition: 'opacity .2s ease, transform .2s ease',
+                        pointerEvents: hoveredId === group.id ? 'auto' : 'none'
+                      }}
+                    >
+                      <IconButton
+                        size='small'
+                        onClick={e => {
+                          e.stopPropagation()
+                          handleOpenDetailModal(group)
+                        }}
+                        sx={{ color: 'common.white' }}
+                        aria-label={t('common.view')}
+                      >
+                        <VisibilityIcon fontSize='small' />
+                      </IconButton>
+                      <IconButton
+                        size='small'
+                        onClick={e => {
+                          e.stopPropagation()
+                          handleOpenEditModal(group)
+                        }}
+                        sx={{ color: 'common.white' }}
+                        aria-label={t('groups.edit')}
+                      >
+                        <EditIcon fontSize='small' />
+                      </IconButton>
+                      <IconButton
+                        size='small'
+                        onClick={e => {
+                          e.stopPropagation()
+                          handleOpenDeleteModal(group)
+                        }}
+                        sx={{ color: 'error.light' }}
+                        aria-label={t('groups.delete')}
+                      >
+                        <DeleteIcon fontSize='small' />
+                      </IconButton>
+                    </Box>
+                  </Card>
+                ))}
               </Box>
 
               {/* Pagination and Controls */}
@@ -309,7 +346,7 @@ function GroupsContent({ initialPage = 1, initialper_page = 10 }) {
                   justifyContent: 'space-between'
                 }}
               >
-                <FormControl size='medium' sx={{ minWidth: 120 }}>
+                <FormControl size='medium' sx={{ mt: 2, minWidth: 120 }}>
                   <InputLabel>{t('groups.sortBy')}</InputLabel>
                   <Select
                     value={sort_by}

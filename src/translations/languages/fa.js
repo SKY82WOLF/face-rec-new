@@ -28,7 +28,11 @@ const fa = {
     logout: 'خروج',
     ok: 'تأیید',
     cancel: 'انصراف',
-    to: 'تا'
+    delete: 'حذف',
+    to: 'تا',
+    error: 'خطا',
+    success: 'موفقیت',
+    reset: 'بازنشانی'
   },
 
   // Not Found Page
@@ -72,14 +76,18 @@ const fa = {
     female: 'خانم',
     unknown: 'نامشخص',
     status: 'وضعیت',
+    access: 'دسترسی',
     allowed: 'مجاز',
     notAllowed: 'غیر مجاز',
     details: 'جزئیات',
     editInfo: 'ویرایش اطلاعات',
     addToAllowed: 'اضافه کردن به لیست مجاز',
-    saveChanges: 'ذخیره تغییرات',
-    add: 'اضافه کردن',
+    editPerson: 'ویرایش شخص',
+    update: 'بروزرسانی',
+    add: 'افزودن',
     cancel: 'انصراف',
+    fillRequiredFields: 'لطفاً تمام فیلدهای ضروری را پر کنید',
+    updateFailed: 'بروزرسانی انجام نشد',
     userImage: 'تصویر آپلود شده',
     apiImage: 'آخرین تردد',
     uploadImage: 'آپلود تصویر',
@@ -92,6 +100,8 @@ const fa = {
     downloadProfileImage: 'دانلود تصویر پروفایل',
     downloadLastImage: 'دانلود تصویر آخرین تردد',
     fullName: 'نام و نام خانوادگی',
+    invalidImageType: 'نوع فایل نامعتبر است. لطفاً یک تصویر انتخاب کنید.',
+    imageTooLarge: 'حجم فایل بسیار بزرگ است. حداکثر 5 مگابایت مجاز است.',
 
     // Add any missing keys for Reports modals/filters
     filter: 'فیلتر',
@@ -110,20 +120,24 @@ const fa = {
     noReports: 'گزارشی موجود نیست',
     loading: 'در حال بارگذاری...',
 
-    // For edit modal
-    editReport: 'ویرایش گزارش',
-    submit: 'ارسال',
-    from: 'از',
+    // New keys for person reports
+    personId: 'شناسه شخص',
+    camera: 'دوربین',
+    confidence: 'دقت',
+    fiqa: 'کیفیت تصویر',
+    similarityScore: 'امتیاز شباهت',
+    createdAt: 'تاریخ ایجاد',
+    updatedAt: 'تاریخ بروزرسانی',
+    detectedImage: 'تصویر تشخیص داده شده',
+    personImage: 'تصویر شخص',
+    downloadDetectedImage: 'دانلود تصویر تشخیص',
+    downloadPersonImage: 'دانلود تصویر شخص',
+    boundingBox: 'محدوده تشخیص',
+    min: 'حداقل',
+    max: 'حداکثر',
     to: 'تا',
-    dateRange: 'بازه تاریخ',
-
-    // For detail modal
-    reportDetails: 'جزئیات گزارش',
-
-    // For filters
-    filters: 'فیلترها',
-    applyFilters: 'اعمال فیلترها',
-    clearFilters: 'پاک کردن فیلترها'
+    loading: 'در حال بارگذاری...',
+    unknown: 'نامشخص'
   },
 
   access: {
@@ -149,7 +163,8 @@ const fa = {
       cancel: 'انصراف',
       add: 'افزودن',
       allowed: 'مجاز',
-      notAllowed: 'غیر مجاز'
+      notAllowed: 'غیر مجاز',
+      access: 'دسترسی'
     }
   },
 
@@ -160,13 +175,17 @@ const fa = {
     addUser: 'افزودن کاربر',
     editUser: 'ویرایش کاربر',
     deleteUser: 'حذف کاربر',
+    deleteConfirm: 'آیا از حذف کاربر "{name}" اطمینان دارید؟',
     confirmDelete: 'آیا از حذف این کاربر اطمینان دارید؟',
     avatar: 'تصویر پروفایل',
     fullName: 'نام و نام خانوادگی',
+    firstName: 'نام',
+    lastName: 'نام خانوادگی',
     username: 'نام کاربری',
     email: 'ایمیل',
     password: 'رمز عبور',
     phone: 'شماره تماس',
+    phoneNumber: 'شماره تماس',
     address: 'آدرس',
     bio: 'درباره',
     role: 'نقش',
@@ -186,6 +205,8 @@ const fa = {
     userDetail: 'جزئیات کاربر',
     noData: 'کاربری یافت نشد',
     loading: 'درحال بارگزاری کاربرها',
+    passwordMinLength: 'رمز عبور باید حداقل ۸ کاراکتر باشد',
+    phoneNumberFormat: 'شماره تماس باید دقیقاً ۱۱ رقم باشد',
 
     // New translations
     roleOptions: {
@@ -235,6 +256,53 @@ const fa = {
         cancel: 'انصراف',
         uploadAvatar: 'آپلود تصویر'
       }
+    }
+  },
+
+  //groups
+  groups: {
+    groups: 'گروه ها',
+    title: 'مدیریت گروه‌ها',
+    addGroup: 'افزودن گروه',
+    editGroup: 'ویرایش گروه',
+    deleteGroup: 'حذف گروه',
+    confirmDelete: 'آیا از حذف این گروه اطمینان دارید؟'
+  },
+
+  //cameras
+  cameras: {
+    title: 'مدیریت دوربین‌ها',
+    addCamera: 'افزودن دوربین',
+    editCamera: 'ویرایش دوربین',
+    deleteCamera: 'حذف دوربین',
+    deleteConfirm: 'آیا از حذف دوربین "{name}" اطمینان دارید؟',
+    confirmDelete: 'آیا از حذف این دوربین اطمینان دارید؟',
+    name: 'نام دوربین',
+    camUrl: 'آدرس دوربین',
+    camUser: 'نام کاربری دوربین',
+    camPassword: 'رمز عبور دوربین',
+    id: 'شناسه',
+    isActive: 'وضعیت',
+    createdAt: 'تاریخ ایجاد',
+    updatedAt: 'تاریخ بروزرسانی',
+    status: 'وضعیت',
+    actions: 'عملیات',
+    noData: 'دوربینی یافت نشد',
+    loading: 'درحال بارگزاری دوربین‌ها',
+    cameraDetail: 'جزئیات دوربین',
+    add: 'افزودن',
+    edit: 'ویرایش',
+    save: 'ذخیره',
+    cancel: 'انصراف',
+    nameRequired: 'نام دوربین الزامی است',
+    camUrlRequired: 'آدرس دوربین الزامی است',
+    camUserRequired: 'نام کاربری دوربین الزامی است',
+    camPasswordRequired: 'رمز عبور دوربین الزامی است',
+    statusOptions: {
+      active: 'فعال',
+      inactive: 'غیرفعال',
+      offline: 'آفلاین',
+      online: 'آنلاین'
     }
   },
 

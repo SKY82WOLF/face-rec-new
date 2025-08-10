@@ -16,7 +16,10 @@ import {
 } from '@mui/material'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 
+import { useSelector } from 'react-redux'
+
 import { useAddPerson } from '@/hooks/usePersons'
+import { selectGenderTypes, selectAccessTypes } from '@/store/slices/typesSlice'
 import { useTranslation } from '@/translations/useTranslation'
 import CustomTextField from '@/@core/components/mui/TextField'
 import { commonStyles } from '@/@core/styles/commonStyles'
@@ -25,17 +28,21 @@ const AccessAddModal = ({ open, onClose }) => {
   const { t } = useTranslation()
   const [selectedImage, setSelectedImage] = useState(null)
 
+  // Get types data
+  const genderTypes = useSelector(selectGenderTypes)
+  const accessTypes = useSelector(selectAccessTypes)
+
   const [newPerson, setNewPerson] = useState({
     first_name: '',
     last_name: '',
     national_code: '',
-    access: false,
-    gender: 1,
+    access_id: 7, // Default to unknown
+    gender_id: '',
     person_image: null,
-    last_image: '',
+    last_person_image: '',
     feature_vector: '',
     index: '',
-    report_id: '',
+    last_person_report_id: '',
     image_quality: ''
   })
 
@@ -46,7 +53,7 @@ const AccessAddModal = ({ open, onClose }) => {
 
     setNewPerson(prev => ({
       ...prev,
-      [name]: name === 'access' ? checked : value
+      [name]: name === 'access_id' ? value : value
     }))
   }
 
@@ -70,7 +77,7 @@ const AccessAddModal = ({ open, onClose }) => {
     try {
       const submitData = {
         ...newPerson,
-        access: newPerson.access ? 'allowed' : 'not_allowed'
+        access_id: newPerson.access_id
       }
 
       await addPersonMutation.mutateAsync(submitData)
@@ -85,8 +92,8 @@ const AccessAddModal = ({ open, onClose }) => {
       first_name: '',
       last_name: '',
       national_code: '',
-      access: false,
-      gender: '',
+      access_id: '', // Reset to default
+      gender_id: '',
       person_image: null
     })
     setSelectedImage(null)
@@ -170,21 +177,35 @@ const AccessAddModal = ({ open, onClose }) => {
           <FormControl fullWidth margin='normal'>
             <InputLabel>{t('access.addPersonModal.gender')}</InputLabel>
             <Select
-              name='gender'
-              value={newPerson.gender}
+              name='gender_id'
+              value={newPerson.gender_id}
               onChange={handleInputChange}
               label={t('access.addPersonModal.gender')}
               required
             >
-              <MenuItem value={false}>{t('access.addPersonModal.male')}</MenuItem>
-              <MenuItem value={true}>{t('access.addPersonModal.female')}</MenuItem>
+              {genderTypes?.data?.map(type => (
+                <MenuItem key={type.id} value={type.id}>
+                  {type.translate?.trim() || type.title?.trim()}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
-          <FormControlLabel
-            control={<Switch name='access' checked={newPerson.access} onChange={handleInputChange} color='primary' />}
-            label={newPerson.access ? t('access.addPersonModal.allowed') : t('access.addPersonModal.notAllowed')}
-            sx={{ mt: 2 }}
-          />
+          <FormControl fullWidth margin='normal'>
+            <InputLabel>{t('access.addPersonModal.access')}</InputLabel>
+            <Select
+              name='access_id'
+              value={newPerson.access_id}
+              onChange={handleInputChange}
+              label={t('access.addPersonModal.access')}
+              required
+            >
+              {accessTypes?.data?.filter(type => type.id !== 7).map(type => (
+                <MenuItem key={type.id} value={type.id}>
+                  {type.translate?.trim() || type.title?.trim()}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
             <Button onClick={handleClose}>{t('access.addPersonModal.cancel')}</Button>
             <Button type='submit' variant='contained'>

@@ -5,7 +5,7 @@ export let origin = typeof window !== 'undefined' ? window.location.origin : 'ht
 export let protocol = typeof window !== 'undefined' ? window.location.protocol : 'http:'
 
 // API URLs
-export let frontUrl, backendUrl
+export let frontUrl, backendUrl, backendImgUrl, backendImgUrl2
 
 if (process.env.NEXT_PUBLIC_API_MODE === 'production') {
   // In production, use the device's IP address
@@ -13,6 +13,7 @@ if (process.env.NEXT_PUBLIC_API_MODE === 'production') {
 
   frontUrl = `http://${deviceIP}`
   backendUrl = `http://${deviceIP}:8585/api`
+  backendImgUrl = `http://${deviceIP}:8585/`
 } else if (process.env.NEXT_PUBLIC_API_MODE === 'remote') {
   // In remote mode, use the specified IP from environment variable
   const remoteIP = process.env.NEXT_PUBLIC_REMOTE_API_IP
@@ -21,12 +22,15 @@ if (process.env.NEXT_PUBLIC_API_MODE === 'production') {
     console.error('NEXT_PUBLIC_REMOTE_API_IP is not set in environment variables')
     frontUrl = 'http://localhost'
     backendUrl = 'http://localhost/api'
+    backendImgUrl = 'http://localhost/'
   } else {
     // Use the full URL from the environment variable
     backendUrl = remoteIP
 
     // Remove /api from the end to get the frontend URL
     frontUrl = remoteIP.replace('/api', '')
+    backendImgUrl = remoteIP.replace('/api', '')
+    backendImgUrl2 = remoteIP.replace(':8585/api', '')
   }
 } else {
   // Default to production mode if no mode is specified
@@ -34,6 +38,7 @@ if (process.env.NEXT_PUBLIC_API_MODE === 'production') {
 
   frontUrl = `http://${deviceIP}`
   backendUrl = `http://${deviceIP}:8585/api`
+  backendImgUrl = `http://${deviceIP}:8585/`
 }
 
 // API Routes
@@ -58,20 +63,46 @@ export const API_ROUTES = {
     changeStatus: '/persons/change/status'
   },
 
+  // Person Reports
+  personReports: {
+    list: '/Person_Reports',
+    detail: '/Person_Reports/',
+    update: '/Person_Reports/',
+    delete: '/Person_Reports/',
+    personReports: '/persons/Person_Reports'
+  },
+
   // Users
   users: {
     list: '/users',
-    create: '/users/add'
+    create: '/users/add',
+    update: '/users/',
+    delete: '/users/'
   },
   groups: {
     list: '/groups',
     add: '/groups/add'
+  },
+  cameras: {
+    list: '/cameras',
+    detail: '/cameras/',
+    add: '/cameras/add',
+    update: '/cameras/',
+    delete: '/cameras/'
   }
 }
 
 // Helper function to get full API URL
 export const getApiUrl = route => {
   return `${backendUrl}${route}`
+}
+
+export const getBackendImgUrl = () => {
+  return `${backendImgUrl}`
+}
+
+export const getBackendImgUrl2 = () => {
+  return `${backendImgUrl2}`
 }
 
 // Helper function to get full frontend URL
@@ -90,9 +121,17 @@ export const {
   changeStatus: personsChangeStatus
 } = API_ROUTES.persons
 
-export const { list: usersList, create: usersCreate } = API_ROUTES.users
+export const { list: usersList, create: usersCreate, update: usersUpdate, delete: usersDelete } = API_ROUTES.users
 
 export const { list: groupsList, add: groupsAdd } = API_ROUTES.groups
+
+export const {
+  list: camerasList,
+  detail: camerasDetail,
+  add: camerasAdd,
+  update: camerasUpdate,
+  delete: camerasDelete
+} = API_ROUTES.cameras
 
 export const { list: typesList, add: typesAdd } = API_ROUTES.types
 

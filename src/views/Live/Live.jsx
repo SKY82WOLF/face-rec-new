@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { Typography, Box, Grid, Card } from '@mui/material'
+import TextField from '@mui/material/TextField'
 
 import SEO from '@/components/SEO'
 import { useTranslation } from '@/translations/useTranslation'
@@ -12,12 +13,18 @@ import LiveReportCard from './LiveReportCard'
 import { getLiveWebSocketUrl } from '@/configs/routes'
 import { commonStyles } from '@/@core/styles/commonStyles'
 import EmptyState from '@/components/ui/EmptyState'
+import Autocomplete from '@/@core/components/mui/Autocomplete'
+import useCameras from '@/hooks/useCameras'
 
 const LiveContent = () => {
   const { t } = useTranslation()
   const dispatch = useDispatch()
   const { reports, isConnected, error } = useSelector(state => state.websocket)
   const [isPlaying, setIsPlaying] = useState(true)
+  const [selectedCameraId, setSelectedCameraId] = useState('')
+
+  // Fetch cameras to populate selector
+  const { cameras = [], isLoading: isCamerasLoading } = useCameras({ page: 1, per_page: 100 })
 
   useEffect(() => {
     // Connect to WebSocket when component mounts
@@ -44,9 +51,25 @@ const LiveContent = () => {
       {/* Live Stream Section */}
       <Card sx={{ mb: 4, p: 4, pt: 2 }}>
         <Box>
-          <Typography textAlign={'center'} variant='h5' gutterBottom sx={commonStyles.centeredTitle}>
-            {t('live.title')}
-          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', mb: 2 }}>
+            <Typography textAlign={'center'} variant='h5' gutterBottom sx={commonStyles.centeredTitle}>
+              {t('live.title')}
+            </Typography>
+            {/* Camera Selector */}
+            <Autocomplete
+              size='small'
+              sx={{ width: 180 }}
+              options={cameras}
+              loading={isCamerasLoading}
+              value={cameras.find(cam => cam.id === selectedCameraId) || null}
+              getOptionLabel={option => option?.name || ''}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              onChange={(_, newValue) => {
+                setSelectedCameraId(newValue?.id || '')
+              }}
+              renderInput={params => <TextField {...params} label={'انتخاب دوربین'} placeholder={'انتخاب دوربین'} />}
+            />
+          </Box>
           <Box
             sx={{
               position: 'relative',
@@ -60,7 +83,7 @@ const LiveContent = () => {
             }}
           >
             <img
-              src={isPlaying ? '/images/stop-video.png' : getLiveWebSocketUrl()}
+              src={isPlaying ? '/images/stop-video.png' : `${getLiveWebSocketUrl()}${selectedCameraId || ''}`}
               alt='Live Stream Placeholder'
               onClick={handleTogglePlay}
               style={{
@@ -109,13 +132,14 @@ const LiveContent = () => {
                         first_name: report.first_name,
                         last_name: report.last_name,
                         national_code: report.national_code,
-                        access: report.access,
-                        gender: report.gender,
-                        profile_image: report.profile_image,
-                        last_image: report.last_image,
+                        access_id: report.access_id,
+                        gender_id: report.gender_id,
+                        person_image: report.person_image,
+                        last_person_image: report.last_person_image,
                         feature_vector: report.feature_vector,
                         index: report.index,
-                        report_id: report.report_id,
+                        last_person_report_id: report.last_person_report_id,
+                        person_id: report.person_id,
                         image_quality: report.image_quality,
                         date: report.date
                       }}
@@ -124,7 +148,7 @@ const LiveContent = () => {
                   </Grid>
                 ))
               ) : (
-                <Grid justifyContent={'center'} item xs={12}>
+                <Grid sx={{ display: 'flex', justifyContent: 'center' }} item xs={12}>
                   <EmptyState message={t('live.noReports')} minHeight={120} />
                 </Grid>
               )}

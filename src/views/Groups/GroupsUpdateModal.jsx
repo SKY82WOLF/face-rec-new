@@ -90,14 +90,14 @@ const GroupsUpdate = ({ open, onClose, onSubmit, group, isLoading = false }) => 
       PaperProps={{ sx: { borderRadius: 4 } }}
       dir='rtl'
     >
-      <DialogTitle sx={{ fontWeight: 700, fontSize: 22, pb: 1, backgroundColor: '#272b3f' }}>
+      <DialogTitle sx={{ fontWeight: 700, fontSize: 22, pb: 1, bgcolor: 'background.paper' }}>
         {t('groups.editGroupTitle')}
       </DialogTitle>
       <form onSubmit={handleSubmit}>
-        <DialogContent sx={{ p: 4, bgcolor: '#272b3f' }}>
+        <DialogContent sx={{ p: 4, bgcolor: 'background.paper' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {/* Group Name */}
-            <Paper elevation={1} sx={{ p: 3, borderRadius: 3, mb: 2 }}>
+            <Paper elevation={1} sx={{ p: 3, borderRadius: 3, mb: 2, border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>
               <Typography variant='subtitle1' sx={{ fontWeight: 600, mb: 2, color: 'primary.main' }}>
                 {t('groups.groupName')}
               </Typography>
@@ -112,11 +112,9 @@ const GroupsUpdate = ({ open, onClose, onSubmit, group, isLoading = false }) => 
                 sx={{ bgcolor: 'background.paper', borderRadius: 2 }}
                 inputProps={{ style: { textAlign: 'right' } }}
               />
-            </Paper>
 
-            {/* Users Selection */}
-            <Paper elevation={1} sx={{ p: 3, borderRadius: 3, mb: 2 }}>
-              <Typography variant='subtitle1' sx={{ fontWeight: 600, mb: 2, color: 'primary.main' }}>
+              {/* Users Selection */}
+              <Typography variant='subtitle1' sx={{ fontWeight: 600, mb: 2, color: 'primary.main', marginTop: 2 }}>
                 {t('groups.users')}
               </Typography>
               {usersLoading ? (
@@ -148,14 +146,9 @@ const GroupsUpdate = ({ open, onClose, onSubmit, group, isLoading = false }) => 
                   sx={{ bgcolor: 'background.paper', borderRadius: 2 }}
                 />
               )}
-            </Paper>
 
-            {/* Permissions Selection */}
-            <Paper
-              elevation={2}
-              sx={{ p: 3, borderRadius: 3, mb: 2, border: '1px solid', borderColor: 'divider', boxShadow: 2 }}
-            >
-              <Typography variant='subtitle1' sx={{ fontWeight: 600, mb: 2, color: 'primary.main' }}>
+              {/* Permissions Selection */}
+              <Typography variant='subtitle1' sx={{ fontWeight: 600, mb: 2, color: 'primary.main', marginTop: 2 }}>
                 {t('groups.permissions')}
               </Typography>
               {permissionsLoading ? (
@@ -178,7 +171,7 @@ const GroupsUpdate = ({ open, onClose, onSubmit, group, isLoading = false }) => 
           </Box>
         </DialogContent>
         <DialogActions
-          sx={{ px: 4, pb: 3, pt: 0, justifyContent: 'space-between', gap: 2, backgroundColor: '#272b3f' }}
+          sx={{ px: 4, pb: 3, pt: 0, justifyContent: 'space-between', gap: 2, bgcolor: 'background.paper' }}
         >
           <Button onClick={handleClose} variant='outlined' color='error' sx={{ minWidth: 120 }} disabled={isLoading}>
             {t('groups.cancel')}

@@ -72,7 +72,8 @@ const colorSchemes = skin => {
           secondary: `rgb(var(--mui-mainColorChannels-light) / 0.7)`,
           disabled: `rgb(var(--mui-mainColorChannels-light) / 0.4)`,
           primaryChannel: 'var(--mui-mainColorChannels-light)',
-          secondaryChannel: 'var(--mui-mainColorChannels-light)'
+          secondaryChannel: 'var(--mui-mainColorChannels-light)',
+          groupText: '#414141'
         },
         divider: `rgb(var(--mui-mainColorChannels-light) / 0.12)`,
         dividerChannel: 'var(--mui-mainColorChannels-light)',
@@ -224,7 +225,8 @@ const colorSchemes = skin => {
           secondary: `rgb(var(--mui-mainColorChannels-dark) / 0.7)`,
           disabled: `rgb(var(--mui-mainColorChannels-dark) / 0.4)`,
           primaryChannel: 'var(--mui-mainColorChannels-dark)',
-          secondaryChannel: 'var(--mui-mainColorChannels-dark)'
+          secondaryChannel: 'var(--mui-mainColorChannels-dark)',
+          groupText: '#FFF'
         },
         divider: `rgb(var(--mui-mainColorChannels-dark) / 0.12)`,
         dividerChannel: 'var(--mui-mainColorChannels-dark)',

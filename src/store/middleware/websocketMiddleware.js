@@ -1,5 +1,5 @@
 import { addReport, setConnectionStatus, setError } from '../slices/websocketSlice'
-import { getDataWebSocketUrl, getImgWebSocketUrl } from '@/configs/routes'
+import { getDataWebSocketUrl, getImgWebSocketUrl, getBackendImgUrl } from '@/configs/routes'
 import { toastError, toastSuccess } from '@/utils/toast'
 
 export const websocketMiddleware = store => {
@@ -7,6 +7,7 @@ export const websocketMiddleware = store => {
   let reconnectAttempts = 0
   const maxReconnectAttempts = 5
   const imgSocket = getImgWebSocketUrl()
+  const backendImgUrl = getBackendImgUrl()
   let isFirstConnection = true
   let hasShownConnectionToast = false
 
@@ -48,14 +49,14 @@ export const websocketMiddleware = store => {
             first_name: data.result.first_name || '',
             last_name: data.result.last_name || '',
             national_code: data.result.national_code || '',
-            access: data.result.access === 'allowed',
-            gender: data.result.gender,
-            profile_image: data.result.profile_image ? `${imgSocket}${data.result.profile_image}` : null,
-            last_image: data.result.last_image ? `${imgSocket}${data.result.last_image}` : null,
-            id: data.result.id || '',
+            access_id: data.result.access_id,
+            gender_id: data.result.gender_id,
+            person_image: data.result.person_image ? `${backendImgUrl}/${data.result.person_image}` : null,
+            last_person_image: data.result.last_person_image ? `${imgSocket}${data.result.last_person_image}` : null,
+            person_id: data.result.person_id || '',
             index: data.result.index || `index_${Date.now()}_${Math.random()}`,
             feature_vector: data.result.feature_vector,
-            report_id: data.result.report_id,
+            last_person_report_id: data.result.last_person_report_id,
             image_quality: data.result.image_quality,
             date: data.result.created_at
           }

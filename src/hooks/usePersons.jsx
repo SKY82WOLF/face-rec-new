@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { getPersons, addPerson, deletePerson } from '@/api/persons'
+import { getPersons, addPerson, updatePerson, deletePerson } from '@/api/persons'
 
 const keys = 'persons'
 
@@ -90,21 +90,26 @@ export const useAddPerson = (options = {}) => {
   })
 }
 
-// TODO: Implement when API is available
-// export const useUpdatePerson = (options = {}) => {
-//   const queryClient = useQueryClient()
+export const useUpdatePerson = (options = {}) => {
+  const queryClient = useQueryClient()
 
-//   return useMutation({
-//     mutationFn: updatePerson,
-//     onSuccess: (data, variables) => {
-//       queryClient.setQueryData([keys], old =>
-//         old?.map(person => (person.id === variables.id ? { ...person, ...variables.data } : person))
-//       )
-//       queryClient.invalidateQueries({ queryKey: [keys] })
-//     },
-//     ...options
-//   })
-// }
+  return useMutation({
+    mutationFn: updatePerson,
+    onSuccess: (variables) => {
+      // Update the specific person in all queries
+      queryClient.setQueriesData({ queryKey: [keys] }, old => {
+        if (!old) return old
+
+        return {
+          ...old,
+          data: old.data?.map(person => (person.id === variables.id ? { ...person, ...variables.data } : person)) || []
+        }
+      })
+      queryClient.invalidateQueries({ queryKey: [keys] })
+    },
+    ...options
+  })
+}
 
 export const useDeletePerson = (options = {}) => {
   const queryClient = useQueryClient()

@@ -5,7 +5,13 @@ import moment from 'jalali-moment'
 
 import { useTranslation } from '@/translations/useTranslation'
 
-const ShamsiDateTime = ({ dateTime, format = 'dateTime', variant = 'body2', color = 'textSecondary' }) => {
+const ShamsiDateTime = ({
+  dateTime,
+  format = 'dateTime',
+  variant = 'body2',
+  color = 'textSecondary',
+  disableTimeConversion = false
+}) => {
   const { t } = useTranslation()
 
   // Function to format date/time based on type
@@ -13,8 +19,8 @@ const ShamsiDateTime = ({ dateTime, format = 'dateTime', variant = 'body2', colo
     if (!date) return t('reportCard.unknown')
 
     try {
-      // Parse the input date with moment and convert to local timezone
-      const parsedDate = moment.utc(date).local()
+      // Parse the input date - conditionally convert to local timezone
+      const parsedDate = disableTimeConversion ? moment(date) : moment.utc(date).local()
 
       if (type === 'date') {
         return parsedDate.locale('fa').format('YYYY/MM/DD')
