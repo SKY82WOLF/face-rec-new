@@ -51,6 +51,7 @@ export const SettingsProvider = props => {
 
     _updateSettingsState(mergedSettings)
     setMounted(true)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settingsCookie])
 
   const updateSettings = (settings, options) => {

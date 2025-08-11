@@ -11,7 +11,9 @@
     "lint:fix": "next lint --fix",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",
     "build:icons": "tsx src/assets/iconify-icons/bundle-icons-css.mjs",
-    "postinstall": "npm run build:icons"
+    "postinstall": "npm run build:icons",
+    "docker:build": "docker build -t face-rec .",
+    "docker:export": "docker buildx build --target static -o type=local,dest=dist ."
   },
   "dependencies": {
     "@emotion/cache": "11.14.0",
