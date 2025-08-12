@@ -17,6 +17,7 @@ import { selectGenderTypes, selectAccessTypes } from '@/store/slices/typesSlice'
 import { useSettings } from '@core/hooks/useSettings'
 import ShamsiDateTime from '@/components/ShamsiDateTimer'
 import { commonStyles } from '@/@core/styles/commonStyles'
+import useHasPermission from '@/utils/HasPermission'
 
 const modalStyle = mode => ({
   ...commonStyles.modalContainer,
@@ -171,6 +172,8 @@ const AccessDetailModal = ({
       })
       .catch(err => console.error('Download card image failed:', err))
   }
+
+  const hasUpdatePermission = useHasPermission('updatePerson')
 
   return (
     <Modal
@@ -341,9 +344,11 @@ const AccessDetailModal = ({
             >
               {deletePersonMutation.isLoading ? t('access.deleting') : t('access.delete')}
             </Button>
-            <Button variant='contained' onClick={onEditOpen} startIcon={<PersonAddIcon />}>
-              {t('reportCard.editInfo')}
-            </Button>
+            {hasUpdatePermission && (
+              <Button variant='contained' onClick={onEditOpen} startIcon={<PersonAddIcon />}>
+                {t('reportCard.editInfo')}
+              </Button>
+            )}
           </Box>
         </Box>
       </Fade>

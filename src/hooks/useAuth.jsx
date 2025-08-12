@@ -2,12 +2,17 @@ import { useState } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { login, logout as logoutApi } from '@/api/auth'
+import { useDispatch } from 'react-redux'
+
+import { login, logout as logoutApi, refreshTokens } from '@/api/auth'
+import { getPermissions } from '@/api/permissions'
+import { setPermissions, setPermissionsLoading, clearPermissions } from '@/store/slices/permissionsSlice'
 
 export const useAuth = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const router = useRouter()
+  const dispatch = useDispatch()
 
   const handleLogin = async (username, password) => {
     try {
@@ -23,6 +28,23 @@ export const useAuth = () => {
 
         // Store user info
         localStorage.setItem('user', JSON.stringify(response.results.user))
+
+        // Load permissions (either provided in response or fetch)
+        dispatch(setPermissionsLoading())
+
+        if (response.results.permissions && response.results.permissions.length > 0) {
+          dispatch(setPermissions(response.results.permissions))
+        } else {
+          try {
+            const permResp = await getPermissions()
+            const perms = permResp.results || permResp || []
+            
+            dispatch(setPermissions(perms))
+          } catch (permErr) {
+            // If fetching permissions failed, clear and proceed (PermissionGuard will handle redirect)
+            dispatch(clearPermissions())
+          }
+        }
 
         // Redirect to dashboard
         router.push('/live')
@@ -49,6 +71,7 @@ export const useAuth = () => {
     localStorage.removeItem('access_token')
     localStorage.removeItem('refresh_token')
     localStorage.removeItem('user')
+    dispatch(clearPermissions())
     router.push('/login')
   }
 

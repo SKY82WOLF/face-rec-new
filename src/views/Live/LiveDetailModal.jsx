@@ -45,6 +45,10 @@ const LiveDetailModal = ({
   const genderTypes = useSelector(selectGenderTypes)
   const accessTypes = useSelector(selectAccessTypes)
 
+  // Permission checks (hooks must be called unconditionally)
+  const canCreate = useHasPermission('createPerson')
+  const canUpdate = useHasPermission('updatePerson')
+
   // Helper function to get type title by ID
   const getTypeTitle = (types, id) => {
     if (!types?.data || !id) return t('reportCard.unknown')
@@ -165,7 +169,10 @@ const LiveDetailModal = ({
       value: genderValue
     },
     { label: t('reportCard.date'), value: <ShamsiDateTime dateTime={modalData.date} format='date' /> },
-    { label: t('reportCard.time'), value: <ShamsiDateTime dateTime={modalData.date} format='time' disableTimeConversion /> },
+    {
+      label: t('reportCard.time'),
+      value: <ShamsiDateTime dateTime={modalData.date} format='time' disableTimeConversion />
+    },
     {
       label: t('reportCard.status'),
       value: (
@@ -329,13 +336,17 @@ const LiveDetailModal = ({
             <Button color='error' variant='outlined' onClick={onClose}>
               {t('common.close')}
             </Button>
-            <Button
-              variant='contained'
-              onClick={handlePersonModalOpen}
-              startIcon={isAdd ? <PersonAddIcon /> : <EditIcon />}
-            >
-              {isAdd ? t('reportCard.addToAllowed') : t('reportCard.editInfo')}
-            </Button>
+            {isAdd
+              ? canCreate && (
+                  <Button variant='contained' onClick={handlePersonModalOpen} startIcon={<PersonAddIcon />}>
+                    {t('reportCard.addToAllowed')}
+                  </Button>
+                )
+              : canUpdate && (
+                  <Button variant='contained' onClick={handlePersonModalOpen} startIcon={<EditIcon />}>
+                    {t('reportCard.editInfo')}
+                  </Button>
+                )}
           </Box>
         </Box>
       </Fade>

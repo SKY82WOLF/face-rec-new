@@ -66,7 +66,7 @@ const VerticalMenu = ({ scrollMenu }) => {
         renderExpandedMenuItemIcon={{ icon: <i className='tabler-circle text-xs' /> }}
         menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
       >
-        {menuData.map((item, index) => (
+        {menuData.filter(Boolean).map((item, index) => (
           <MenuItem key={index} href={item.href} icon={<i className={item.icon} />}>
             {item.label}
           </MenuItem>

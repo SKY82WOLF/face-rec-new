@@ -16,6 +16,7 @@ import ShamsiDateTime from '@/components/ShamsiDateTimer'
 import ReportsDetailModal from './ReportsDetailModal'
 import ReportsEditModal from './ReportsEditModal'
 import { commonStyles } from '@/@core/styles/commonStyles'
+import useHasPermission from '@/utils/HasPermission'
 
 const StyledReportCard = styled(Card)(({ theme }) => ({
   ...commonStyles.transparentCard,
@@ -63,6 +64,8 @@ const ReportCard = ({ reportData, allReports, onOpenDetail }) => {
     : reportData.person_image_url
       ? `${backendImgUrl}/${reportData.person_image_url}`
       : '/images/avatars/1.png'
+
+  const hasUpdatePermission = useHasPermission('updatePerson')
 
 
   const confidencePercentage = Math.round((reportData.confidence || 0) * 100)
@@ -150,9 +153,11 @@ const ReportCard = ({ reportData, allReports, onOpenDetail }) => {
             <Button variant='outlined' size='small' onClick={onOpenDetail} startIcon={<InfoIcon />}>
               {t('reportCard.details')}
             </Button>
-            <Button variant='outlined' size='small' onClick={() => setOpenEdit(true)} startIcon={<EditIcon />}>
-              {t('common.edit')}
-            </Button>
+            {hasUpdatePermission && (
+              <Button variant='outlined' size='small' onClick={() => setOpenEdit(true)} startIcon={<EditIcon />}>
+                {t('common.edit')}
+              </Button>
+            )}
           </Box>
         </Box>
       </StyledReportCard>

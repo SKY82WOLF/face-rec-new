@@ -43,6 +43,7 @@ import LoadingState from '@/components/ui/LoadingState'
 import PaginationControls from '@/components/ui/PaginationControls'
 import usePagination from '@/hooks/usePagination'
 import { commonStyles } from '@/@core/styles/commonStyles'
+import useHasPermission from '@/utils/HasPermission'
 
 const per_page_OPTIONS = [5, 10, 15, 20]
 
@@ -170,6 +171,10 @@ function GroupsContent({ initialPage = 1, initialper_page = 10 }) {
     return dateString
   }
 
+  const hasAddPermission = useHasPermission('createGroup')
+  const hasUpdatePermission = useHasPermission('updateGroup')
+  const hasDeletePermission = useHasPermission('deleteGroup')
+
   return (
     <Box sx={commonStyles.pageContainer}>
       <SEO
@@ -179,8 +184,8 @@ function GroupsContent({ initialPage = 1, initialper_page = 10 }) {
       />
       <PageHeader
         title={t('groups.title')}
-        actionButton={t('groups.addGroup')}
-        actionButtonProps={{ onClick: handleOpenAddModal, startIcon: <AddIcon /> }}
+        actionButton={hasAddPermission ? t('groups.addGroup') : null}
+        actionButtonProps={{ onClick: handleOpenAddModal, startIcon: <AddIcon />, disabled: !hasAddPermission }}
       />
       <Card elevation={0} sx={{ ...commonStyles.transparentCard, backgroundColor: '#00000000', overflow: 'visible',boxShadow:'none' }}>
         <Box sx={{ display: 'contents', p: { xs: 2, sm: 4 } }}>
@@ -308,6 +313,7 @@ function GroupsContent({ initialPage = 1, initialper_page = 10 }) {
                       >
                         <VisibilityIcon fontSize='small' />
                       </IconButton>
+                      {hasUpdatePermission && (
                       <IconButton
                         size='small'
                         onClick={e => {
@@ -319,6 +325,8 @@ function GroupsContent({ initialPage = 1, initialper_page = 10 }) {
                       >
                         <EditIcon fontSize='small' />
                       </IconButton>
+                      )}
+                      {hasDeletePermission && (
                       <IconButton
                         size='small'
                         onClick={e => {
@@ -330,6 +338,7 @@ function GroupsContent({ initialPage = 1, initialper_page = 10 }) {
                       >
                         <DeleteIcon fontSize='small' />
                       </IconButton>
+                      )}
                     </Box>
                   </Card>
                 ))}

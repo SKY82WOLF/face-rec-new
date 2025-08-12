@@ -35,6 +35,7 @@ import LoadingState from '@/components/ui/LoadingState'
 import PaginationControls from '@/components/ui/PaginationControls'
 import usePagination from '@/hooks/usePagination'
 import { commonStyles } from '@/@core/styles/commonStyles'
+import useHasPermission from '@/utils/HasPermission'
 
 const per_page_OPTIONS = [5, 10, 15, 20]
 
@@ -48,6 +49,9 @@ function CamerasContent({ initialPage = 1, initialper_page = 10 }) {
   const [editCamera, setEditCamera] = useState(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [cameraToDelete, setCameraToDelete] = useState(null)
+  const hasAddPermission = useHasPermission('addCameras')
+  const hasEditPermission = useHasPermission('editCameras')
+  const hasDeletePermission = useHasPermission('deleteCameras')
 
   const { page, per_page, handlePageChange, handlePerPageChange, perPageOptions } = usePagination(
     initialPage,
@@ -156,8 +160,8 @@ function CamerasContent({ initialPage = 1, initialper_page = 10 }) {
 
       <PageHeader
         title={t('cameras.title')}
-        actionButton={t('cameras.addCamera')}
-        actionButtonProps={{ onClick: handleOpenAddModal, startIcon: <AddIcon /> }}
+        actionButton={hasAddPermission ? t('cameras.addCamera') : null}
+        actionButtonProps={{ onClick: handleOpenAddModal, startIcon: <AddIcon />, disabled: !hasAddPermission }}
       />
       <Card
         elevation={0}
@@ -276,6 +280,7 @@ function CamerasContent({ initialPage = 1, initialper_page = 10 }) {
                       >
                         <VideocamIcon fontSize='small' />
                       </IconButton>
+                     {hasEditPermission && (
                       <IconButton
                         size='small'
                         onClick={() => handleEditClick(camera)}
@@ -284,14 +289,17 @@ function CamerasContent({ initialPage = 1, initialper_page = 10 }) {
                       >
                         <EditIcon fontSize='small' />
                       </IconButton>
+                      )}
+                      {hasDeletePermission && (
                       <IconButton
                         size='small'
                         sx={{ color: 'error.light' }}
                         aria-label={t('cameras.deleteCamera')}
                         onClick={() => handleDeleteClick(camera)}
-                      >
-                        <DeleteIcon fontSize='small' />
-                      </IconButton>
+                        >
+                          <DeleteIcon fontSize='small' />
+                        </IconButton>
+                      )}
                     </Box>
                   </Card>
                 ))}

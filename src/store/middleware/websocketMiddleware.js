@@ -31,7 +31,9 @@ export const websocketMiddleware = store => {
 
       isFirstConnection = false
 
-      socket.send(JSON.stringify({ action: 'report', token: 'diana' }))
+      const token = localStorage.getItem('refresh_token')
+
+      socket.send(JSON.stringify({ action: 'report', token: token }))
     }
 
     socket.onmessage = event => {

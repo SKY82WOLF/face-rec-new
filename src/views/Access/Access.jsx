@@ -29,6 +29,7 @@ import LoadingState from '@/components/ui/LoadingState'
 import PaginationControls from '@/components/ui/PaginationControls'
 import usePagination from '@/hooks/usePagination'
 import { commonStyles } from '@/@core/styles/commonStyles'
+import useHasPermission from '@/utils/HasPermission'
 
 const per_page_OPTIONS = [5, 10, 15, 20]
 
@@ -50,6 +51,8 @@ function AccessContent({ initialPage = 1, initialper_page = 10 }) {
   const handleOpenAddModal = () => setOpenAddModal(true)
   const handleCloseAddModal = () => setOpenAddModal(false)
 
+  const hasAddPermission = useHasPermission('createPerson')
+
   return (
     <Box sx={commonStyles.pageContainer}>
       <SEO
@@ -59,8 +62,8 @@ function AccessContent({ initialPage = 1, initialper_page = 10 }) {
       />
       <PageHeader
         title={t('access.title')}
-        actionButton={t('access.addNewPerson')}
-        actionButtonProps={{ onClick: handleOpenAddModal }}
+        actionButton={hasAddPermission ? t('access.addNewPerson') : null}
+        actionButtonProps={{ onClick: handleOpenAddModal, disabled: !hasAddPermission }}
         underlineWidth={130}
       />
       <Card elevation={0} sx={{ ...commonStyles.transparentCard, backgroundColor: '#00000000', boxShadow: 'none' }}>

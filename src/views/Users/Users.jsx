@@ -33,6 +33,7 @@ import LoadingState from '@/components/ui/LoadingState'
 import PaginationControls from '@/components/ui/PaginationControls'
 import usePagination from '@/hooks/usePagination'
 import { commonStyles } from '@/@core/styles/commonStyles'
+import useHasPermission from '@/utils/HasPermission'
 
 const per_page_OPTIONS = [5, 10, 15, 20]
 
@@ -46,6 +47,10 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [userToDelete, setUserToDelete] = useState(null)
   const [hoveredId, setHoveredId] = useState(null)
+
+  const hasAddPermission = useHasPermission('createUser')
+  const hasUpdatePermission = useHasPermission('updateUser')
+  const hasDeletePermission = useHasPermission('deleteUser')
 
   const { page, per_page, handlePageChange, handlePerPageChange, perPageOptions } = usePagination(
     initialPage,
@@ -121,8 +126,8 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
 
       <PageHeader
         title={t('users.title')}
-        actionButton={t('users.addUser')}
-        actionButtonProps={{ onClick: handleOpenAddModal, startIcon: <AddIcon /> }}
+        actionButton={hasAddPermission ? t('users.addUser') : null}
+        actionButtonProps={{ onClick: handleOpenAddModal, startIcon: <AddIcon />, disabled: !hasAddPermission }}
       />
       <Card
         elevation={0}
@@ -257,28 +262,32 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
                         pointerEvents: hoveredId === user.id ? 'auto' : 'none'
                       }}
                     >
-                      <IconButton
-                        size='small'
-                        onClick={e => {
-                          e.stopPropagation()
-                          setSelectedUser(user)
-                        }}
-                        sx={{ color: 'common.white' }}
-                        aria-label={t('users.editUser')}
-                      >
-                        <EditIcon fontSize='small' />
-                      </IconButton>
-                      <IconButton
-                        size='small'
-                        sx={{ color: 'error.light' }}
-                        aria-label={t('users.deleteUser')}
-                        onClick={e => {
-                          e.stopPropagation()
-                          handleDeleteClick(user)
-                        }}
-                      >
-                        <DeleteIcon fontSize='small' />
-                      </IconButton>
+                      {hasUpdatePermission && (
+                        <IconButton
+                          size='small'
+                          onClick={e => {
+                            e.stopPropagation()
+                            setSelectedUser(user)
+                          }}
+                          sx={{ color: 'common.white' }}
+                          aria-label={t('users.editUser')}
+                        >
+                          <EditIcon fontSize='small' />
+                        </IconButton>
+                      )}
+                      {hasDeletePermission && (
+                        <IconButton
+                          size='small'
+                          sx={{ color: 'error.light' }}
+                          aria-label={t('users.deleteUser')}
+                          onClick={e => {
+                            e.stopPropagation()
+                            handleDeleteClick(user)
+                          }}
+                        >
+                          <DeleteIcon fontSize='small' />
+                        </IconButton>
+                      )}
                     </Box>
                   </Card>
                 ))}
