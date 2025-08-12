@@ -37,13 +37,22 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
     return type?.translate?.trim() || type?.title?.trim() || t('reportCard.unknown')
   }
 
+  const personObj = reportData.person_id && typeof reportData.person_id === 'object' ? reportData.person_id : null
+  const personCode = personObj?.person_id || personObj?.id || reportData.person_id || t('reportCard.unknown')
+  const firstName = personObj?.first_name?.trim?.() || ''
+  const lastName = personObj?.last_name?.trim?.() || ''
+  const fullName = firstName || lastName ? `${firstName} ${lastName}`.trim() : t('reportCard.unknown')
+
   // Get proper image URLs
   const backendImgUrl = getBackendImgUrl2()
   const detectedImageUrl = reportData.image_url ? `${backendImgUrl}/${reportData.image_url}` : '/images/avatars/1.png'
 
+  // Prefer reportData.person_image_url; if absent, try nested person last image
   const personImageUrl = reportData.person_image_url
     ? `${backendImgUrl}/${reportData.person_image_url}`
-    : '/images/avatars/1.png'
+    : personObj?.last_person_image
+      ? personObj.last_person_image
+      : '/images/avatars/1.png'
 
   const confidencePercentage = Math.round((reportData.confidence || 0) * 100)
   const fiqaPercentage = Math.round((reportData.fiqa || 0) * 100)
@@ -64,8 +73,9 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
 
   // Info table with actual API data
   const modalInfo = [
+    { label: t('reportCard.name'), value: fullName },
     { label: t('reportCard.id'), value: reportData.id || t('reportCard.unknown') },
-    { label: t('reportCard.personId'), value: reportData.person_id || t('reportCard.unknown') },
+    { label: t('reportCard.personId'), value: personCode },
     {
       label: t('reportCard.gender'),
       value: genderTypes.loading ? t('reportCard.loading') : getTypeTitle(genderTypes, reportData.gender_id)
@@ -170,7 +180,7 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
                 <Avatar
                   variant='rounded'
                   src={detectedImageUrl}
-                  alt={`Person ${reportData.person_id}`}
+                  alt={`Person ${fullName || personCode}`}
                   sx={{
                     width: { xs: 100, sm: 140, md: 200 },
                     height: { xs: 100, sm: 140, md: 200 },
@@ -188,7 +198,7 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
                 <Avatar
                   variant='rounded'
                   src={personImageUrl}
-                  alt={`Person ${reportData.person_id}`}
+                  alt={`Person ${fullName || personCode}`}
                   sx={{
                     width: { xs: 100, sm: 140, md: 200 },
                     height: { xs: 100, sm: 140, md: 200 },

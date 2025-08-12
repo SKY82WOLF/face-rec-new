@@ -171,7 +171,7 @@ function GroupsContent({ initialPage = 1, initialper_page = 10 }) {
     return dateString
   }
 
-  const hasAddPermission = useHasPermission('createGroup')
+  const hasAddPermission = useHasPermission('addGroup')
   const hasUpdatePermission = useHasPermission('updateGroup')
   const hasDeletePermission = useHasPermission('deleteGroup')
 

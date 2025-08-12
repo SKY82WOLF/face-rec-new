@@ -22,6 +22,8 @@ import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import PersonIcon from '@mui/icons-material/Person'
 
+import VisibilityIcon from '@mui/icons-material/Visibility'
+
 import SEO from '@/components/SEO'
 import { useTranslation } from '@/translations/useTranslation'
 import useUsers from '@/hooks/useUsers'
@@ -48,8 +50,7 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
   const [userToDelete, setUserToDelete] = useState(null)
   const [hoveredId, setHoveredId] = useState(null)
 
-  const hasAddPermission = useHasPermission('createUser')
-  const hasUpdatePermission = useHasPermission('updateUser')
+  const hasAddPermission = useHasPermission('addUser')
   const hasDeletePermission = useHasPermission('deleteUser')
 
   const { page, per_page, handlePageChange, handlePerPageChange, perPageOptions } = usePagination(
@@ -262,19 +263,17 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
                         pointerEvents: hoveredId === user.id ? 'auto' : 'none'
                       }}
                     >
-                      {hasUpdatePermission && (
-                        <IconButton
-                          size='small'
-                          onClick={e => {
-                            e.stopPropagation()
-                            setSelectedUser(user)
-                          }}
-                          sx={{ color: 'common.white' }}
-                          aria-label={t('users.editUser')}
-                        >
-                          <EditIcon fontSize='small' />
-                        </IconButton>
-                      )}
+                      <IconButton
+                        size='small'
+                        sx={{ color: 'common.white' }}
+                        aria-label={t('users.viewUser')}
+                        onClick={e => {
+                          e.stopPropagation()
+                          setSelectedUser(user)
+                        }}
+                      >
+                        <VisibilityIcon fontSize='small' />
+                      </IconButton>
                       {hasDeletePermission && (
                         <IconButton
                           size='small'

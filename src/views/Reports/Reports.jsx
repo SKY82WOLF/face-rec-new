@@ -99,6 +99,21 @@ function ReportsContent() {
       bValue = new Date(bValue)
     }
 
+    // Handle nested person_id object in new API
+    if (sortBy === 'person_id') {
+      const toPersonNumeric = val => {
+        if (!val) return 0
+        if (typeof val === 'number') return val
+        if (typeof val === 'object') {
+          return val.person_id || val.id || 0
+        }
+        return 0
+      }
+
+      aValue = toPersonNumeric(a.person_id)
+      bValue = toPersonNumeric(b.person_id)
+    }
+
     if (typeof aValue === 'string') {
       aValue = aValue.toLowerCase()
       bValue = bValue.toLowerCase()

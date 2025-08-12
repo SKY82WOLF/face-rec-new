@@ -1,21 +1,13 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
 
 import LoadingState from '@/components/ui/LoadingState'
-import { refreshTokens } from '@/api/auth'
-import { getPermissions } from '@/api/permissions'
-import {
-  setPermissions,
-  setPermissionsLoading,
-  clearPermissions,
-  selectPermissionsCodenames,
-  selectPermissionsLoading
-} from '@/store/slices/permissionsSlice'
+import { selectPermissionsCodenames, selectPermissionsLoading } from '@/store/slices/permissionsSlice'
 
 /**
  * Wrap pages/components that require a permission codename.
@@ -23,67 +15,23 @@ import {
  */
 const PermissionGuard = ({ permission, children, fallback = null }) => {
   const router = useRouter()
-  const dispatch = useDispatch()
   const codenames = useSelector(selectPermissionsCodenames)
   const loading = useSelector(selectPermissionsLoading)
-  const [checkingAuth, setCheckingAuth] = useState(true)
+
+  // Derive auth status from tokens on each render to avoid stale state after logout
+  const tokensPresent =
+    typeof window !== 'undefined' && (localStorage.getItem('access_token') || localStorage.getItem('refresh_token'))
 
   useEffect(() => {
-    let mounted = true
-
-    const verifyAuth = async () => {
-      const refresh = localStorage.getItem('refresh_token')
-
-      // Must validate via refresh token API
-      if (!refresh) {
-        router.push('/login')
-
-        return
-      }
-
-      try {
-        // refreshTokens will validate refresh token and return new tokens
-        const res = await refreshTokens(refresh)
-        const tokens = res?.results?.tokens || res?.tokens || res
-
-        if (tokens?.access_token && tokens?.refresh_token) {
-          localStorage.setItem('access_token', tokens.access_token)
-          localStorage.setItem('refresh_token', tokens.refresh_token)
-        }
-
-        // After successful refresh, fetch latest permissions
-        if (mounted) {
-          dispatch(setPermissionsLoading())
-
-          try {
-            const permResp = await getPermissions()
-            const perms = permResp.results || permResp || []
-
-            dispatch(setPermissions(perms))
-          } catch (permErr) {
-            dispatch(clearPermissions())
-          }
-
-          setCheckingAuth(false)
-        }
-      } catch (e) {
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('refresh_token')
-
-        router.push('/login')
-
-        return
-      }
+    if (!tokensPresent) {
+      router.push('/login')
     }
+  }, [tokensPresent, router])
 
-    verifyAuth()
+  if (loading) return <LoadingState />
 
-    return () => {
-      mounted = false
-    }
-  }, [router, dispatch])
-
-  if (checkingAuth || loading) return <LoadingState />
+  // If not authenticated, we've redirected to login; don't render or 404
+  if (!tokensPresent) return null
 
   const has = Array.isArray(permission) ? permission.every(p => codenames.includes(p)) : codenames.includes(permission)
 

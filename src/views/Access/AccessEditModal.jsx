@@ -89,8 +89,6 @@ const AccessEditModal = ({ open, onClose, formData, setFormData, isAllowed, setI
     access_id: extractId(formData.access_id) || ''
   }
 
-  console.log('normalizedFormData', normalizedFormData)
-
   const handleInputChange = e => {
     const { name, value } = e.target
 

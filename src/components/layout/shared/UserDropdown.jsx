@@ -1,7 +1,7 @@
 'use client'
 
 // React Imports
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 
 // Next Imports
 import { useRouter } from 'next/navigation'
@@ -42,6 +42,7 @@ const BadgeContentSpan = styled('span')({
 const UserDropdown = () => {
   // States
   const [open, setOpen] = useState(false)
+  const [user, setUser] = useState(null)
 
   // Refs
   const anchorRef = useRef(null)
@@ -51,6 +52,30 @@ const UserDropdown = () => {
   const { settings } = useSettings()
   const { t } = useTranslation()
   const { handleLogout } = useAuth()
+
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem('user')
+
+      if (storedUser) {
+        setUser(JSON.parse(storedUser))
+      }
+    } catch (e) {
+      console.error('Failed to parse stored user:', e)
+    }
+  }, [])
+
+  const displayName =
+    user?.full_name ||
+    [user?.first_name, user?.last_name].filter(Boolean).join(' ') ||
+    user?.name ||
+    user?.username ||
+    'User'
+
+  const emailOrUsername = user?.email || user?.username || ''
+
+  const avatarSrc =
+    user?.avatar || user?.avatar_url || user?.photo_url || user?.profile_image || '/images/avatars/1.png'
 
   const handleDropdownOpen = () => {
     !open ? setOpen(true) : setOpen(false)
@@ -91,8 +116,8 @@ const UserDropdown = () => {
       >
         <Avatar
           ref={anchorRef}
-          alt='John Doe'
-          src='/images/avatars/1.png'
+          alt={displayName}
+          src={avatarSrc}
           onClick={handleDropdownOpen}
           className='cursor-pointer bs-[38px] is-[38px]'
         />
@@ -116,12 +141,12 @@ const UserDropdown = () => {
               <ClickAwayListener onClickAway={e => handleDropdownClose(e)}>
                 <MenuList>
                   <div className='flex items-center plb-2 pli-6 gap-2' tabIndex={-1}>
-                    <Avatar alt='John Doe' src='/images/avatars/1.png' />
+                    <Avatar alt={displayName} src={avatarSrc} />
                     <div className='flex items-start flex-col'>
                       <Typography className='font-medium' color='text.primary'>
-                        John Doe
+                        {displayName}
                       </Typography>
-                      <Typography variant='caption'>admin@vuexy.com</Typography>
+                      {emailOrUsername && <Typography variant='caption'>{emailOrUsername}</Typography>}
                     </div>
                   </div>
                   <Divider className='mlb-1' />

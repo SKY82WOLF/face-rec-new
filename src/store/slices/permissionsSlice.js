@@ -50,3 +50,4 @@ export default permissionsSlice.reducer
 export const selectPermissionsOriginal = state => state.permissions.original
 export const selectPermissionsCodenames = state => state.permissions.codenames
 export const selectPermissionsLoading = state => state.permissions.loading
+export const selectSidebar = state => state.permissions.original

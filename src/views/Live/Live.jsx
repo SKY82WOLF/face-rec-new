@@ -83,7 +83,7 @@ const LiveContent = () => {
             }}
           >
             <img
-              src={isPlaying ? '/images/stop-video.png' : `${getLiveWebSocketUrl()}${selectedCameraId || ''}`}
+              src={isPlaying ? '/images/stop-video.png' : `${getLiveWebSocketUrl()}${selectedCameraId || '2'}`}
               alt='Live Stream Placeholder'
               onClick={handleTogglePlay}
               style={{

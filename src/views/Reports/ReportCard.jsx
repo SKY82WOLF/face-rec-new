@@ -50,6 +50,13 @@ const ReportCard = ({ reportData, allReports, onOpenDetail }) => {
     return type?.translate?.trim() || type?.title?.trim() || t('reportCard.unknown')
   }
 
+  // Person display helpers
+  const personObj = reportData.person_id && typeof reportData.person_id === 'object' ? reportData.person_id : null
+  const personCode = personObj?.person_id || personObj?.id || reportData.person_id || t('reportCard.unknown')
+  const firstName = personObj?.first_name?.trim?.() || ''
+  const lastName = personObj?.last_name?.trim?.() || ''
+  const fullName = firstName || lastName ? `${firstName} ${lastName}`.trim() : t('reportCard.unknown')
+
   // Get proper image URLs
   const backendImgUrl = getBackendImgUrl2()
 
@@ -65,8 +72,7 @@ const ReportCard = ({ reportData, allReports, onOpenDetail }) => {
       ? `${backendImgUrl}/${reportData.person_image_url}`
       : '/images/avatars/1.png'
 
-  const hasUpdatePermission = useHasPermission('updatePerson')
-
+  const hasUpdatePermission = useHasPermission('updatePersonReport')
 
   const confidencePercentage = Math.round((reportData.confidence || 0) * 100)
   const fiqaPercentage = Math.round((reportData.fiqa || 0) * 100)
@@ -92,7 +98,7 @@ const ReportCard = ({ reportData, allReports, onOpenDetail }) => {
           <Avatar
             variant='rounded'
             src={isHovered ? fullImage : thumbnailImage}
-            alt={`Person ${reportData.person_id}`}
+            alt={`Person ${fullName || personCode}`}
             sx={{
               width: 60,
               height: 60,
@@ -104,12 +110,15 @@ const ReportCard = ({ reportData, allReports, onOpenDetail }) => {
             onMouseLeave={() => setIsHovered(false)}
           />
           <Box sx={{ flexGrow: 1 }}>
-            <Typography variant='h6' gutterBottom>
-              Person ID: {reportData.person_id || 'Unknown'}
+            <Typography variant='body2' color='textSecondary'>
+              {fullName}
             </Typography>
             <Typography variant='body2' color='textSecondary'>
-              {t('reportCard.gender')}:{' '}
+              {' '}
               {genderTypes.loading ? t('reportCard.loading') : getTypeTitle(genderTypes, reportData.gender_id)}
+            </Typography>
+            <Typography variant='caption' color='textSecondary'>
+              {t('reportCard.personId')}: {personCode}
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>

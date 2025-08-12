@@ -49,9 +49,9 @@ function CamerasContent({ initialPage = 1, initialper_page = 10 }) {
   const [editCamera, setEditCamera] = useState(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [cameraToDelete, setCameraToDelete] = useState(null)
-  const hasAddPermission = useHasPermission('addCameras')
-  const hasEditPermission = useHasPermission('editCameras')
-  const hasDeletePermission = useHasPermission('deleteCameras')
+  const hasAddPermission = useHasPermission('addCamera')
+  const hasEditPermission = useHasPermission('updateCamera')
+  const hasDeletePermission = useHasPermission('deleteCamera')
 
   const { page, per_page, handlePageChange, handlePerPageChange, perPageOptions } = usePagination(
     initialPage,

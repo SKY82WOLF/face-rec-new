@@ -20,6 +20,7 @@ import { useSettings } from '@core/hooks/useSettings'
 import { selectGenderTypes, selectAccessTypes } from '@/store/slices/typesSlice'
 import ShamsiDateTime from '@/components/ShamsiDateTimer'
 import { commonStyles } from '@/@core/styles/commonStyles'
+import useHasPermission from '@/utils/HasPermission'
 
 const modalStyle = mode => ({
   ...commonStyles.modalContainer,

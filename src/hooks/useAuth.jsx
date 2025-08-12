@@ -4,8 +4,7 @@ import { useRouter } from 'next/navigation'
 
 import { useDispatch } from 'react-redux'
 
-import { login, logout as logoutApi, refreshTokens } from '@/api/auth'
-import { getPermissions } from '@/api/permissions'
+import { login, logout as logoutApi } from '@/api/auth'
 import { setPermissions, setPermissionsLoading, clearPermissions } from '@/store/slices/permissionsSlice'
 
 export const useAuth = () => {
@@ -29,22 +28,12 @@ export const useAuth = () => {
         // Store user info
         localStorage.setItem('user', JSON.stringify(response.results.user))
 
-        // Load permissions (either provided in response or fetch)
+        // Sidebar/permissions come in login response under results.sidebar
+        // We store the sidebar array and derive codenames in the slice
         dispatch(setPermissionsLoading())
+        const sidebarPermissions = response.results.sidebar || []
 
-        if (response.results.permissions && response.results.permissions.length > 0) {
-          dispatch(setPermissions(response.results.permissions))
-        } else {
-          try {
-            const permResp = await getPermissions()
-            const perms = permResp.results || permResp || []
-            
-            dispatch(setPermissions(perms))
-          } catch (permErr) {
-            // If fetching permissions failed, clear and proceed (PermissionGuard will handle redirect)
-            dispatch(clearPermissions())
-          }
-        }
+        dispatch(setPermissions(sidebarPermissions))
 
         // Redirect to dashboard
         router.push('/live')
@@ -71,6 +60,7 @@ export const useAuth = () => {
     localStorage.removeItem('access_token')
     localStorage.removeItem('refresh_token')
     localStorage.removeItem('user')
+    localStorage.removeItem('permissions')
     dispatch(clearPermissions())
     router.push('/login')
   }

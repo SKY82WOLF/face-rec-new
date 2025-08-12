@@ -9,7 +9,7 @@ export const websocketMiddleware = store => {
   const imgSocket = getImgWebSocketUrl()
   const backendImgUrl = getBackendImgUrl()
   let isFirstConnection = true
-  let hasShownConnectionToast = false
+  let hasShownInitialToast = false
 
   const connect = () => {
     // Use the main ws url (for report)
@@ -23,10 +23,10 @@ export const websocketMiddleware = store => {
       store.dispatch(setError(null))
       reconnectAttempts = 0
 
-      // Only show success toast on very first connection, not on reconnections
-      if (isFirstConnection && !hasShownConnectionToast) {
+      // Show success toast only once: on the first successful connection
+      if (isFirstConnection && !hasShownInitialToast) {
         toastSuccess('success')
-        hasShownConnectionToast = true
+        hasShownInitialToast = true
       }
 
       isFirstConnection = false
@@ -37,14 +37,8 @@ export const websocketMiddleware = store => {
     }
 
     socket.onmessage = event => {
-      // console.log('WebSocket message received:', event.data)
-
       try {
         const data = JSON.parse(event.data)
-
-        // console.log('Parsed WebSocket data:', data)
-        // console.log('Result data:', data.result)
-        // console.log('Report index:', data.result?.index)
 
         if (data.status === 200 && data.result) {
           const transformedData = {
@@ -76,9 +70,10 @@ export const websocketMiddleware = store => {
       console.error('WebSocket error:', error)
       store.dispatch(setError('WebSocket connection error'))
 
-      // Only show error toast on first connection attempt
-      if (isFirstConnection) {
+      // Only show error toast if the very first connection attempt fails
+      if (isFirstConnection && !hasShownInitialToast) {
         toastError('networkError')
+        hasShownInitialToast = true
       }
     }
 
@@ -86,7 +81,7 @@ export const websocketMiddleware = store => {
       console.log('WebSocket Disconnected')
       store.dispatch(setConnectionStatus(false))
 
-      // Don't show error toast on reconnection attempts
+      // Attempt silent reconnects without toasts
       if (reconnectAttempts < maxReconnectAttempts) {
         const delay = Math.min(10000 * Math.pow(2, reconnectAttempts), 30000)
 
@@ -96,10 +91,7 @@ export const websocketMiddleware = store => {
       } else {
         store.dispatch(setError('Max reconnection attempts reached'))
 
-        // Only show final error toast if we haven't shown connection toast yet
-        if (!hasShownConnectionToast) {
-          toastError('networkError')
-        }
+        // No toast here to avoid noise once initial toast has already been shown
       }
     }
   }

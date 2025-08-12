@@ -35,8 +35,9 @@ const GroupDetail = ({ open, onClose, groupId }) => {
     const categoryIds = new Set()
 
     group.permissions.forEach(groupPermission => {
-      if (groupPermission.category_id) {
-        categoryIds.add(groupPermission.category_id)
+      const parentId = groupPermission.category_id ?? groupPermission.sidebar_id ?? null
+      if (parentId !== null && parentId !== undefined) {
+        categoryIds.add(parentId)
       }
     })
 
@@ -51,16 +52,19 @@ const GroupDetail = ({ open, onClose, groupId }) => {
     if (!permissions || !group?.permissions) return []
 
     const groupPermissionIds = permissionIds
-    const parentCategoryIds = getParentCategoryIds()
+    const parentCategoryIds = getParentCategoryIds().map(id => `cat-${id}`)
 
     return permissions.filter(permission => {
+      const pid = String(permission.id)
+
       // Include if it's a permission assigned to the group
-      if (groupPermissionIds.includes(permission.id)) {
-        return true
+      if (!permission.isCategory && pid.startsWith('perm-')) {
+        const rawId = parseInt(pid.replace('perm-', ''), 10)
+        if (groupPermissionIds.includes(rawId)) return true
       }
 
       // Include if it's a parent category of the group's permissions
-      if (permission.isCategory && parentCategoryIds.includes(permission.id)) {
+      if (permission.isCategory && parentCategoryIds.includes(pid)) {
         return true
       }
 
@@ -104,7 +108,8 @@ const GroupDetail = ({ open, onClose, groupId }) => {
     if (!permissions || !permissionIds) return []
 
     return permissionIds.map(id => {
-      const permission = permissions.find(p => p.id === id)
+      const itemId = `perm-${id}`
+      const permission = permissions.find(p => String(p.id) === itemId)
 
       return permission ? permission.name : `Permission ${id}`
     })
