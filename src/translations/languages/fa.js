@@ -141,7 +141,7 @@ const fa = {
   },
 
   access: {
-    title: 'اشخاص مجاز',
+    title: 'اشخاص',
     addNewPerson: 'افزودن شخص جدید',
     loading: 'در حال بارگذاری...',
     noPersons: 'شخصی موجود نیست',

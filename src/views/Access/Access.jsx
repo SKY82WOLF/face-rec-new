@@ -64,7 +64,7 @@ function AccessContent({ initialPage = 1, initialper_page = 10 }) {
         title={t('access.title')}
         actionButton={hasAddPermission ? t('access.addNewPerson') : null}
         actionButtonProps={{ onClick: handleOpenAddModal, disabled: !hasAddPermission }}
-        underlineWidth={130}
+        underlineWidth={80}
       />
       <Card elevation={0} sx={{ ...commonStyles.transparentCard, backgroundColor: '#00000000', boxShadow: 'none' }}>
         <Grid

@@ -36,6 +36,7 @@ const GroupDetail = ({ open, onClose, groupId }) => {
 
     group.permissions.forEach(groupPermission => {
       const parentId = groupPermission.category_id ?? groupPermission.sidebar_id ?? null
+
       if (parentId !== null && parentId !== undefined) {
         categoryIds.add(parentId)
       }
@@ -60,6 +61,7 @@ const GroupDetail = ({ open, onClose, groupId }) => {
       // Include if it's a permission assigned to the group
       if (!permission.isCategory && pid.startsWith('perm-')) {
         const rawId = parseInt(pid.replace('perm-', ''), 10)
+
         if (groupPermissionIds.includes(rawId)) return true
       }
 

@@ -104,9 +104,11 @@ function ReportsContent() {
       const toPersonNumeric = val => {
         if (!val) return 0
         if (typeof val === 'number') return val
+
         if (typeof val === 'object') {
           return val.person_id || val.id || 0
         }
+
         return 0
       }
 

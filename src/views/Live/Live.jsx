@@ -4,13 +4,12 @@ import { useEffect, useState } from 'react'
 
 import { useDispatch, useSelector } from 'react-redux'
 
-import { Typography, Box, Grid, Card } from '@mui/material'
+import { Typography, Box, Card } from '@mui/material'
 import TextField from '@mui/material/TextField'
 
 import SEO from '@/components/SEO'
 import { useTranslation } from '@/translations/useTranslation'
-import LiveReportCard from './LiveReportCard'
-import { getLiveWebSocketUrl } from '@/configs/routes'
+import LiveSection from './LiveSection'
 import { commonStyles } from '@/@core/styles/commonStyles'
 import EmptyState from '@/components/ui/EmptyState'
 import Autocomplete from '@/@core/components/mui/Autocomplete'
@@ -20,11 +19,17 @@ const LiveContent = () => {
   const { t } = useTranslation()
   const dispatch = useDispatch()
   const { reports, isConnected, error } = useSelector(state => state.websocket)
-  const [isPlaying, setIsPlaying] = useState(true)
-  const [selectedCameraId, setSelectedCameraId] = useState('')
+  const [selectedCameraIds, setSelectedCameraIds] = useState([])
 
   // Fetch cameras to populate selector
   const { cameras = [], isLoading: isCamerasLoading } = useCameras({ page: 1, per_page: 100 })
+
+  // Select the first camera by default when cameras load
+  useEffect(() => {
+    if (cameras.length > 0 && selectedCameraIds.length === 0) {
+      setSelectedCameraIds([String(cameras[0].id)])
+    }
+  }, [cameras, selectedCameraIds.length])
 
   useEffect(() => {
     // Connect to WebSocket when component mounts
@@ -41,121 +46,109 @@ const LiveContent = () => {
   }
 
   return (
-    <Box>
+    <Box display={'flex'} flexDirection={'column'}>
       <SEO
         title='داشبورد | سیستم تشخیص چهره دیانا'
         description='داشبورد اصلی سیستم تشخیص چهره دیانا'
         keywords='داشبورد, صفحه اصلی, تشخیص چهره دیانا'
       />
 
-      {/* Live Stream Section */}
-      <Card sx={{ mb: 4, p: 4, pt: 2 }}>
+      {/* Selector Card */}
+      <Card sx={{ backgroundColor: 'transparent', boxShadow: 'none' }}>
         <Box>
-          <Box sx={{ display: 'flex', flexDirection: 'column', mb: 2 }}>
-            <Typography textAlign={'center'} variant='h5' gutterBottom sx={commonStyles.centeredTitle}>
-              {t('live.title')}
-            </Typography>
-            {/* Camera Selector */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', mt: 2, mb: 2 }}>
+            {/* Camera Selector (multi-select) */}
             <Autocomplete
+              multiple
               size='small'
-              sx={{ width: 180 }}
+              sx={{
+                flex: 1,
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': { borderColor: 'primary.main' }
+                },
+                '& .MuiAutocomplete-tag': {
+                  backgroundColor: 'primary.main',
+                  color: '#fff'
+                }
+              }}
               options={cameras}
               loading={isCamerasLoading}
-              value={cameras.find(cam => cam.id === selectedCameraId) || null}
+              value={cameras.filter(cam => selectedCameraIds.includes(String(cam.id)))}
               getOptionLabel={option => option?.name || ''}
               isOptionEqualToValue={(option, value) => option.id === value.id}
-              onChange={(_, newValue) => {
-                setSelectedCameraId(newValue?.id || '')
+              onChange={(_, newValues) => {
+                const ids = Array.isArray(newValues) ? newValues.map(v => String(v.id)) : []
+
+                setSelectedCameraIds(ids)
               }}
-              renderInput={params => <TextField {...params} label={'انتخاب دوربین'} placeholder={'انتخاب دوربین'} />}
-            />
-          </Box>
-          <Box
-            sx={{
-              position: 'relative',
-              width: '100%',
-              paddingTop: '56.25%',
-              backgroundColor: '#000',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              borderRadius: 1
-            }}
-          >
-            <img
-              src={isPlaying ? '/images/stop-video.png' : `${getLiveWebSocketUrl()}${selectedCameraId || '2'}`}
-              alt='Live Stream Placeholder'
-              onClick={handleTogglePlay}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                borderRadius: 'inherit',
-                cursor: 'pointer'
-              }}
+              renderInput={params => (
+                <TextField
+                  {...params}
+                  label={'انتخاب دوربین‌ها'}
+                  placeholder={'انتخاب دوربین‌ها'}
+                  InputLabelProps={{ ...params.InputLabelProps, sx: { color: 'primary.main' } }}
+                  InputProps={{
+                    ...params.InputProps,
+                    sx: { color: 'primary.main' }
+                  }}
+                />
+              )}
             />
           </Box>
         </Box>
       </Card>
 
-      {/* Reports Section */}
-      <Card sx={{ p: 4, pt: 2 }}>
-        <Box sx={{ p: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-            <Typography textAlign={'center'} variant='h5' sx={{ ...commonStyles.centeredTitle, width: '100%' }}>
-              {t('live.reports')}
-            </Typography>
-            {/* {error && (
-              <Typography color='error' variant='body2'>
-                {error}
-              </Typography>
-            )} */}
-          </Box>
-          <Box
-            sx={{
-              padding: '5px',
-              maxHeight: 'calc(100vh - 250px)',
-              overflowY: 'auto',
-              ...commonStyles.customScrollbar
-            }}
-          >
-            <Grid container spacing={2}>
-              {reports.length > 0 ? (
-                reports.map(report => (
-                  <Grid sx={{ display: 'flex', flexGrow: 1 }} item xs={12} sm={6} md={4} key={`report_${report.index}`}>
-                    <LiveReportCard
-                      reportData={{
-                        id: report.id,
-                        first_name: report.first_name,
-                        last_name: report.last_name,
-                        national_code: report.national_code,
-                        access_id: report.access_id,
-                        gender_id: report.gender_id,
-                        person_image: report.person_image,
-                        last_person_image: report.last_person_image,
-                        feature_vector: report.feature_vector,
-                        index: report.index,
-                        last_person_report_id: report.last_person_report_id,
-                        person_id: report.person_id,
-                        image_quality: report.image_quality,
-                        date: report.date
-                      }}
-                      allReports={reports}
-                    />
-                  </Grid>
-                ))
-              ) : (
-                <Grid sx={{ display: 'flex', justifyContent: 'center' }} item xs={12}>
-                  <EmptyState message={t('live.noReports')} minHeight={120} />
-                </Grid>
-              )}
-            </Grid>
-          </Box>
+      {selectedCameraIds.length <= 1 ? (
+        (() => {
+          const cam = cameras.find(c => String(c.id) === String(selectedCameraIds[0]))
+
+          if (!cam) {
+            return (
+              <Card sx={{ p: 4, pt: 2 }}>
+                <Box sx={{ p: 2 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
+                    <Typography textAlign={'center'} variant='h5' sx={{ ...commonStyles.centeredTitle, width: '100%' }}>
+                      {t('live.reports')}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Card>
+            )
+          }
+
+          return <LiveSection camera={cam} reports={reports} />
+        })()
+      ) : (
+        <Box
+          sx={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 2,
+            flexGrow: 1,
+            alignItems: 'stretch',
+            minHeight: 0
+          }}
+        >
+          {cameras
+            .filter(cam => selectedCameraIds.includes(String(cam.id)))
+            .map(cam => (
+              <Box
+                key={`live_section_${cam.id}`}
+                sx={{
+                  display: 'flex',
+                  width: { xs: '100%', md: '50%' },
+                  flexDirection: 'column',
+                  flex: { xs: '1 1 100%', md: '1 1 45%' },
+                  minHeight: 0,
+                  boxSizing: 'border-box',
+                  p: 1
+                }}
+              >
+                <LiveSection camera={cam} reports={reports} />
+              </Box>
+            ))}
         </Box>
-      </Card>
+      )}
     </Box>
   )
 }

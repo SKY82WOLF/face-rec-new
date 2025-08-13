@@ -61,6 +61,7 @@ export const useAuth = () => {
     localStorage.removeItem('refresh_token')
     localStorage.removeItem('user')
     localStorage.removeItem('permissions')
+    localStorage.removeItem('sidebar_nav')
     dispatch(clearPermissions())
     router.push('/login')
   }

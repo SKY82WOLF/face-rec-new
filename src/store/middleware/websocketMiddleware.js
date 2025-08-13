@@ -46,6 +46,7 @@ export const websocketMiddleware = store => {
             last_name: data.result.last_name || '',
             national_code: data.result.national_code || '',
             access_id: data.result.access_id,
+            camera_id: data.result.camera_id,
             gender_id: data.result.gender_id,
             person_image: data.result.person_image ? `${backendImgUrl}/${data.result.person_image}` : null,
             last_person_image: data.result.last_person_image ? `${imgSocket}${data.result.last_person_image}` : null,
