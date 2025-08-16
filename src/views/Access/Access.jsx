@@ -21,6 +21,7 @@ import {
 import SEO from '@/components/SEO'
 import AccessReportCard from './AccessReportCard'
 import AccessAddModal from './AccessAddModal'
+import AccessFiltring from './AccessFiltring'
 import { useGetPersons } from '@/hooks/usePersons'
 import { useTranslation } from '@/translations/useTranslation'
 import PageHeader from '@/components/ui/PageHeader'
@@ -36,16 +37,44 @@ const per_page_OPTIONS = [5, 10, 15, 20]
 function AccessContent({ initialPage = 1, initialper_page = 10 }) {
   const { t } = useTranslation()
 
-  const { page, per_page, handlePageChange, handlePerPageChange, perPageOptions } = usePagination(
+  const { page, per_page, setPage, handlePageChange, handlePerPageChange, perPageOptions } = usePagination(
     initialPage,
     initialper_page
   )
 
   const [openAddModal, setOpenAddModal] = useState(false)
 
+  // Persist filters in URL so they survive refresh and sharing
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const parseFiltersFromUrl = () => {
+    const params = Object.fromEntries([...new URLSearchParams(String(searchParams))])
+
+    const parsed = {}
+
+    // access_id and gender_id may be comma separated
+    if (params.access_id) parsed.access_id = params.access_id.split(',').map(v => Number(v))
+    if (params.gender_id) parsed.gender_id = params.gender_id.split(',').map(v => Number(v))
+
+    if (params.first_name) parsed.first_name = params.first_name
+    if (params.last_name) parsed.last_name = params.last_name
+    if (params.person_id) parsed.person_id = params.person_id
+    if (params.national_code) parsed.national_code = params.national_code
+
+    return parsed
+  }
+
+  const [filters, setFilters] = useState(() => {
+    const urlFilters = parseFiltersFromUrl()
+
+    return Object.keys(urlFilters).length ? urlFilters : { access_id: [5, 6] }
+  })
+
   const { data: personsData, isLoading } = useGetPersons({
     page: page,
-    per_page
+    per_page,
+    filters
   })
 
   const handleOpenAddModal = () => setOpenAddModal(true)
@@ -65,6 +94,31 @@ function AccessContent({ initialPage = 1, initialper_page = 10 }) {
         actionButton={hasAddPermission ? t('access.addNewPerson') : null}
         actionButtonProps={{ onClick: handleOpenAddModal, disabled: !hasAddPermission }}
         underlineWidth={80}
+      />
+      <AccessFiltring
+        onChange={newFilters => {
+          // reset page when filters change
+          setPage(1)
+
+          // update URL
+          const params = new URLSearchParams()
+
+          // Ensure page resets to 1 in the URL when filters change
+          params.set('page', '1')
+
+          if (newFilters.access_id) params.set('access_id', newFilters.access_id.join(','))
+          if (newFilters.gender_id) params.set('gender_id', newFilters.gender_id.join(','))
+          if (newFilters.first_name) params.set('first_name', newFilters.first_name)
+          if (newFilters.last_name) params.set('last_name', newFilters.last_name)
+          if (newFilters.person_id) params.set('person_id', newFilters.person_id)
+          if (newFilters.national_code) params.set('national_code', newFilters.national_code)
+
+          router.replace(`?${params.toString()}`, { scroll: false })
+
+          // Ensure we always set filters to the new object
+          setFilters(newFilters)
+        }}
+        initialFilters={filters}
       />
       <Card elevation={0} sx={{ ...commonStyles.transparentCard, backgroundColor: '#00000000', boxShadow: 'none' }}>
         <Grid

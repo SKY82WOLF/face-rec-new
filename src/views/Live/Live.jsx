@@ -41,10 +41,6 @@ const LiveContent = () => {
     }
   }, [dispatch])
 
-  const handleTogglePlay = () => {
-    setIsPlaying(prev => !prev)
-  }
-
   return (
     <Box display={'flex'} flexDirection={'column'}>
       <SEO
@@ -98,7 +94,16 @@ const LiveContent = () => {
         </Box>
       </Card>
 
-      {selectedCameraIds.length <= 1 ? (
+      {cameras.length === 0 ? (
+        <Card sx={{ p: 4, pt: 2 }}>
+          <Box sx={{ p: 2 }}>
+            <EmptyState
+              message={t('live.noCameras') || t('cameras.noData') || 'هیچ دوربینی موجود نیست'}
+              minHeight={300}
+            />
+          </Box>
+        </Card>
+      ) : selectedCameraIds.length <= 1 ? (
         (() => {
           const cam = cameras.find(c => String(c.id) === String(selectedCameraIds[0]))
 

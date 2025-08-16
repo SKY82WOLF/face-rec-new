@@ -9,13 +9,18 @@ import { getPersons, addPerson, updatePerson, deletePerson } from '@/api/persons
 const keys = 'persons'
 
 export const useGetPersons = (options = {}) => {
-  const { page = 1, per_page = 10 } = options
+  const { page = 1, per_page = 10, filters = {} } = options
   const queryClient = useQueryClient()
 
+  // Stable serialized filters key for cache keys and effect deps
+  const filtersKey = JSON.stringify(filters || {})
+  const parsedFilters = filtersKey ? JSON.parse(filtersKey) : {}
+
   const queryResult = useQuery({
-    queryKey: ['persons', page, per_page],
+    // Include filters in the key to ensure cache separation when filters change
+    queryKey: ['persons', page, per_page, filtersKey],
     queryFn: async () => {
-      const response = await getPersons({ page, per_page })
+      const response = await getPersons({ page, per_page, filters: parsedFilters })
 
       return {
         data: response.results || [], // The array of persons
@@ -32,18 +37,20 @@ export const useGetPersons = (options = {}) => {
       return
     }
 
+    // Parse filters inside effect to keep dependencies stable
+    const parsedFiltersLocal = filtersKey ? JSON.parse(filtersKey) : {}
+
     // Calculate the total number of pages
     const totalPages = Math.ceil(queryResult.data.total / per_page)
 
-    // --- Start of Change ---
     // Prefetch the next page only if the current page is not the last one
     if (page < totalPages) {
       const nextpage = page + 1
 
       queryClient.prefetchQuery({
-        queryKey: ['persons', nextpage, per_page],
+        queryKey: ['persons', nextpage, per_page, filtersKey],
         queryFn: async () => {
-          const response = await getPersons({ page: nextpage, per_page })
+          const response = await getPersons({ page: nextpage, per_page, filters: parsedFiltersLocal })
 
           return {
             data: response.results || [],
@@ -60,9 +67,9 @@ export const useGetPersons = (options = {}) => {
       const prevpage = page - 1
 
       queryClient.prefetchQuery({
-        queryKey: ['persons', prevpage, per_page],
+        queryKey: ['persons', prevpage, per_page, filtersKey],
         queryFn: async () => {
-          const response = await getPersons({ page: prevpage, per_page })
+          const response = await getPersons({ page: prevpage, per_page, filters: parsedFiltersLocal })
 
           return {
             data: response.results || [],
@@ -73,7 +80,7 @@ export const useGetPersons = (options = {}) => {
         gcTime: 60000
       })
     }
-  }, [page, per_page, queryClient, queryResult.data])
+  }, [page, per_page, queryClient, queryResult.data, filtersKey])
 
   return queryResult
 }
@@ -95,7 +102,7 @@ export const useUpdatePerson = (options = {}) => {
 
   return useMutation({
     mutationFn: updatePerson,
-    onSuccess: (variables) => {
+    onSuccess: variables => {
       // Update the specific person in all queries
       queryClient.setQueriesData({ queryKey: [keys] }, old => {
         if (!old) return old
