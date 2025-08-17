@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 import {
   Box,
@@ -12,7 +12,9 @@ import {
   Typography,
   Card,
   Slider,
-  Grid
+  Grid,
+  OutlinedInput,
+  Chip
 } from '@mui/material'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDateFnsJalali } from '@mui/x-date-pickers/AdapterDateFnsJalali'
@@ -22,89 +24,148 @@ import { useSelector } from 'react-redux'
 
 import { useTranslation } from '@/translations/useTranslation'
 import { useGetPersons } from '@/hooks/usePersons'
-import { selectGenderTypes } from '@/store/slices/typesSlice'
+import useCameras from '@/hooks/useCameras'
+import { selectGenderTypes, selectAccessTypes } from '@/store/slices/typesSlice'
 import { commonStyles } from '@/@core/styles/commonStyles'
 
 const FILTERS_KEY = 'reports_filters'
 
 const defaultFilters = {
   // API filters (sent to backend)
-  gender_id: '',
-  camera_id: '',
-  person_id: '',
+  access_id: [],
+  gender_id: [],
+  camera_id: [],
 
-  // Manual filters (client-side)
-  date_from: null,
-  date_to: null
+  // Search fields (text/select)
+  first_name: '',
+  last_name: '',
+  person_id: '',
+  national_code: '',
+
+  // Date filters (UTC) - will be sent as created_at_from / created_at_to
+  created_at_from: null,
+  created_at_to: null
 }
 
-const cameraOptions = [
-  { value: '', label: 'common.select' },
-  { value: '1', label: 'Camera 1' },
-  { value: '2', label: 'Camera 2' },
-  { value: '3', label: 'Camera 3' }
-]
+const ITEM_HEIGHT = 48
+const ITEM_PADDING_TOP = 8
+
+const MenuProps = {
+  PaperProps: {
+    style: {
+      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+      width: 250
+    }
+  }
+}
 
 const ReportsFilters = ({ onFilter }) => {
   const { t } = useTranslation()
-  const [filters, setFilters] = useState(defaultFilters)
 
-  // Get types data
+  // Types & access
   const genderTypes = useSelector(selectGenderTypes)
+  const accessTypes = useSelector(selectAccessTypes)
 
-  // Get persons for selection
-  const { data: personsData } = useGetPersons({ page: 1, per_page: 100 })
+  // Cameras from API
+  const { cameras: camerasData } = useCameras({ page: 1, per_page: 100 })
 
+  // Persons for person_id select (only access 5,6)
+  const { data: personsData } = useGetPersons({ page: 1, per_page: 200, filters: { access_id: [5, 6] } })
+
+  const [selectedAccess, setSelectedAccess] = useState(defaultFilters.access_id || [5, 6])
+  const [selectedGender, setSelectedGender] = useState(defaultFilters.gender_id || [])
+  const [selectedPersons, setSelectedPersons] = useState(defaultFilters.person_id || [])
+  const [selectedCameras, setSelectedCameras] = useState(defaultFilters.camera_id || [])
+
+  const [dateFilters, setDateFilters] = useState({
+    created_at_from: defaultFilters.created_at_from,
+    created_at_to: defaultFilters.created_at_to
+  })
+
+  // NOTE: We only send filters on submit/reset. No auto-send on change.
+
+  // Load saved filters from session (if any)
   useEffect(() => {
     const saved = sessionStorage.getItem(FILTERS_KEY)
 
-    if (saved) setFilters(JSON.parse(saved))
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+
+        setSelectedAccess(parsed.access_id || [])
+        setSelectedGender(parsed.gender_id || [])
+        setSelectedCameras(parsed.camera_id || [])
+        setSelectedPersons(parsed.person_id || [])
+        setDateFilters({
+          created_at_from: parsed.created_at_from || null,
+          created_at_to: parsed.created_at_to || null
+        })
+      } catch (e) {
+        // ignore
+      }
+    }
   }, [])
 
-  const handleChange = e => {
-    const { name, value } = e.target
+  const buildFilters = () => {
+    const filters = {}
 
-    setFilters(prev => ({ ...prev, [name]: value }))
+    if (selectedAccess && selectedAccess.length > 0) filters.access_id = selectedAccess
+    if (selectedGender && selectedGender.length > 0) filters.gender_id = selectedGender
+    if (selectedCameras && selectedCameras.length > 0) filters.camera_id = selectedCameras
+
+    if (dateFilters.created_at_from) filters.created_at_from = dateFilters.created_at_from
+    if (dateFilters.created_at_to) filters.created_at_to = dateFilters.created_at_to
+
+    // person_id is multi-select
+    if (selectedPersons && selectedPersons.length > 0) filters.person_id = selectedPersons
+
+    return filters
   }
 
-  const handleDateChange = (name, value) => {
-    setFilters(prev => ({ ...prev, [name]: value }))
-  }
+  const sendFilters = () => {
+    const filters = buildFilters()
+    const serialized = JSON.stringify(filters || {})
 
-  const handleSliderChange = (name, value) => {
-    setFilters(prev => ({ ...prev, [name]: value }))
-  }
-
-  const handleSubmit = e => {
-    e.preventDefault()
-
-    // Convert empty strings to null for proper filtering
-    const processedFilters = {
-      ...filters,
-      gender_id: filters.gender_id || '',
-      camera_id: filters.camera_id || '',
-      person_id: filters.person_id || '',
-      date_from: filters.date_from || null,
-      date_to: filters.date_to || null
-    }
-
-    sessionStorage.setItem(FILTERS_KEY, JSON.stringify(processedFilters))
-    onFilter(processedFilters)
+    sessionStorage.setItem(FILTERS_KEY, serialized)
+    onFilter && onFilter(filters)
   }
 
   const handleReset = () => {
-    const resetFilters = {
-      gender_id: '',
-      camera_id: '',
-      person_id: '',
-      date_from: null,
-      date_to: null
-    }
+    setSelectedAccess([5, 6])
+    setSelectedGender([])
+    setSelectedPersons([])
+    setSelectedCameras([])
+    setDateFilters({ created_at_from: null, created_at_to: null })
 
-    setFilters(resetFilters)
     sessionStorage.removeItem(FILTERS_KEY)
-    onFilter(resetFilters)
+
+    // reset and send empty filters
+    sendFilters()
   }
+
+  const handleDateChange = (name, value) => {
+    // Convert to ISO string in UTC if value provided; otherwise null
+    const iso = value ? new Date(value).toISOString() : null
+
+    setDateFilters(prev => ({ ...prev, [name]: iso }))
+  }
+
+  const handlePersonChange = e =>
+    setSelectedPersons(typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value)
+
+  const handleSubmit = e => {
+    e && e.preventDefault()
+    sendFilters()
+  }
+
+  const handleAccessChange = e =>
+    setSelectedAccess(typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value)
+
+  const handleGenderChange = e =>
+    setSelectedGender(typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value)
+
+  const handleCamerasChange = e =>
+    setSelectedCameras(typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value)
 
   return (
     <Card elevation={1} sx={{ mb: 2, p: 2, borderRadius: 2, width: '100%' }}>
@@ -124,9 +185,51 @@ const ReportsFilters = ({ onFilter }) => {
         >
           <Box>
             <FormControl size='small' fullWidth>
-              <InputLabel>{t('reportCard.gender')}</InputLabel>
-              <Select name='gender_id' value={filters.gender_id} onChange={handleChange} label={t('reportCard.gender')}>
-                <MenuItem value=''>{t('common.select')}</MenuItem>
+              <InputLabel>{t('access.filter.access') || 'Access'}</InputLabel>
+              <Select
+                multiple
+                value={selectedAccess}
+                onChange={handleAccessChange}
+                input={<OutlinedInput label={t('access.filter.access') || 'Access'} />}
+                renderValue={selected => (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                    {selected.map(value => {
+                      const type = accessTypes?.data?.find(t => t.id === value)
+
+                      return <Chip key={value} label={type?.translate || type?.title || value} size='small' />
+                    })}
+                  </Box>
+                )}
+                MenuProps={MenuProps}
+              >
+                {accessTypes?.data?.map(type => (
+                  <MenuItem key={type.id} value={type.id}>
+                    {type.translate?.trim() || type.title?.trim()}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+
+          <Box>
+            <FormControl size='small' fullWidth>
+              <InputLabel>{t('access.filter.gender') || 'Gender'}</InputLabel>
+              <Select
+                multiple
+                value={selectedGender}
+                onChange={handleGenderChange}
+                input={<OutlinedInput label={t('access.filter.gender') || 'Gender'} />}
+                renderValue={selected => (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                    {selected.map(value => {
+                      const type = genderTypes?.data?.find(t => t.id === value)
+
+                      return <Chip key={value} label={type?.translate || type?.title || value} size='small' />
+                    })}
+                  </Box>
+                )}
+                MenuProps={MenuProps}
+              >
                 {genderTypes?.data?.map(type => (
                   <MenuItem key={type.id} value={type.id}>
                     {type.translate?.trim() || type.title?.trim()}
@@ -138,36 +241,63 @@ const ReportsFilters = ({ onFilter }) => {
 
           <Box>
             <FormControl size='small' fullWidth>
-              <InputLabel>{t('reportCard.camera')}</InputLabel>
-              <Select name='camera_id' value={filters.camera_id} onChange={handleChange} label={t('reportCard.camera')}>
-                {cameraOptions.map(opt => (
-                  <MenuItem key={opt.value} value={opt.value}>
-                    {opt.value ? opt.label : t('common.select')}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
-
-          <Box>
-            <FormControl size='small' fullWidth>
-              <InputLabel>{t('reportCard.personId')}</InputLabel>
+              <InputLabel>{t('reportCard.camera') || 'Camera'}</InputLabel>
               <Select
-                name='person_id'
-                value={filters.person_id}
-                onChange={handleChange}
-                label={t('reportCard.personId')}
+                multiple
+                value={selectedCameras}
+                onChange={handleCamerasChange}
+                input={<OutlinedInput label={t('reportCard.camera') || 'Camera'} />}
+                renderValue={selected => (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                    {selected.map(value => (
+                      <Chip key={value} label={`Camera ${value}`} size='small' />
+                    ))}
+                  </Box>
+                )}
+                MenuProps={MenuProps}
               >
-                <MenuItem value=''>{t('common.select')}</MenuItem>
-                {personsData?.data?.map(person => (
-                  <MenuItem key={person.id} value={person.id}>
-                    {person.first_name} {person.last_name} (ID: {person.id})
+                {camerasData?.map(cam => (
+                  <MenuItem key={cam.id || cam.camera_id || cam} value={cam.id || cam.camera_id || cam}>
+                    {cam.title || cam.name || `Camera ${cam.id || cam.camera_id || cam}`}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
           </Box>
         </Box>
+
+        {/* Person multi-select using fetched persons (access 5,6) */}
+        <FormControl size='small' sx={{ minWidth: { xs: '100%', sm: 320 } }}>
+          <InputLabel>{t('access.filter.persons') || 'Persons'}</InputLabel>
+          <Select
+            multiple
+            value={selectedPersons}
+            onChange={handlePersonChange}
+            input={<OutlinedInput label={t('access.filter.persons') || 'Persons'} />}
+            renderValue={selected => (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                {selected.map(value => {
+                  const p =
+                    personsData?.data?.find(x => x.person_id === value || x.id === value) ||
+                    personsData?.find?.(x => x.person_id === value || x.id === value)
+
+                  const label = p
+                    ? `${p.first_name || ''} ${p.last_name || ''}`.trim() || p.person_id || p.id || value
+                    : value
+
+                  return <Chip key={value} label={label} size='small' />
+                })}
+              </Box>
+            )}
+            MenuProps={MenuProps}
+          >
+            {(personsData?.data || personsData || []).map(person => (
+              <MenuItem key={person.person_id || person.id} value={person.person_id || person.id}>
+                {person.first_name || ''} {person.last_name || ''} ({person.person_id || person.id})
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
         {/* Date Range Row - full width */}
         <LocalizationProvider
@@ -185,8 +315,8 @@ const ReportsFilters = ({ onFilter }) => {
             <Box>
               <DateTimePicker
                 label={t('reportCard.date') + ' (از)'}
-                value={filters.date_from ? new Date(filters.date_from) : null}
-                onChange={value => handleDateChange('date_from', value ? value.toISOString() : '')}
+                value={dateFilters.created_at_from ? new Date(dateFilters.created_at_from) : null}
+                onChange={value => handleDateChange('created_at_from', value)}
                 ampm={false}
                 slotProps={{ textField: { size: 'small', fullWidth: true } }}
               />
@@ -194,8 +324,8 @@ const ReportsFilters = ({ onFilter }) => {
             <Box>
               <DateTimePicker
                 label={t('reportCard.date') + ' (تا)'}
-                value={filters.date_to ? new Date(filters.date_to) : null}
-                onChange={value => handleDateChange('date_to', value ? value.toISOString() : '')}
+                value={dateFilters.created_at_to ? new Date(dateFilters.created_at_to) : null}
+                onChange={value => handleDateChange('created_at_to', value)}
                 ampm={false}
                 slotProps={{ textField: { size: 'small', fullWidth: true } }}
               />

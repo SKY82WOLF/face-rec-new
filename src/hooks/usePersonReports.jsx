@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect} from 'react'
+import { useEffect } from 'react'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
@@ -12,9 +12,37 @@ import {
   getPersonPersonReports
 } from '@/api/personReports'
 
-const usePersonReports = ({ page = 1, per_page = 10, gender_id = null, camera_id = null, person_id = null } = {}) => {
+const usePersonReports = ({
+  page = 1,
+  per_page = 10,
+  gender_id = null,
+  camera_id = null,
+  person_id = null,
+  access_id = null,
+  first_name = null,
+  last_name = null,
+  national_code = null,
+  created_at_from = null,
+  created_at_to = null,
+  order_by = null
+} = {}) => {
   const queryClient = useQueryClient()
-  const queryKey = ['personReports', page, per_page, gender_id, camera_id, person_id]
+
+  const queryKey = [
+    'personReports',
+    page,
+    per_page,
+    gender_id,
+    camera_id,
+    person_id,
+    access_id,
+    first_name,
+    last_name,
+    national_code,
+    created_at_from,
+    created_at_to,
+    order_by
+  ]
 
   const {
     data = { results: [], count: 0 },
@@ -29,7 +57,14 @@ const usePersonReports = ({ page = 1, per_page = 10, gender_id = null, camera_id
         per_page,
         gender_id,
         camera_id,
-        person_id
+        person_id,
+        access_id,
+        first_name,
+        last_name,
+        national_code,
+        created_at_from,
+        created_at_to,
+        order_by
       })
 
       return {
@@ -52,14 +87,35 @@ const usePersonReports = ({ page = 1, per_page = 10, gender_id = null, camera_id
       const nextPage = page + 1
 
       queryClient.prefetchQuery({
-        queryKey: ['personReports', nextPage, per_page, gender_id, camera_id, person_id],
+        queryKey: [
+          'personReports',
+          nextPage,
+          per_page,
+          gender_id,
+          camera_id,
+          person_id,
+          access_id,
+          first_name,
+          last_name,
+          national_code,
+          created_at_from,
+          created_at_to,
+          order_by
+        ],
         queryFn: async () => {
           const response = await getPersonReports({
             page: nextPage,
             per_page,
             gender_id,
             camera_id,
-            person_id
+            person_id,
+            access_id,
+            first_name,
+            last_name,
+            national_code,
+            created_at_from,
+            created_at_to,
+            order_by
           })
 
           return {
@@ -75,14 +131,35 @@ const usePersonReports = ({ page = 1, per_page = 10, gender_id = null, camera_id
       const prevPage = page - 1
 
       queryClient.prefetchQuery({
-        queryKey: ['personReports', prevPage, per_page, gender_id, camera_id, person_id],
+        queryKey: [
+          'personReports',
+          prevPage,
+          per_page,
+          gender_id,
+          camera_id,
+          person_id,
+          access_id,
+          first_name,
+          last_name,
+          national_code,
+          created_at_from,
+          created_at_to,
+          order_by
+        ],
         queryFn: async () => {
           const response = await getPersonReports({
             page: prevPage,
             per_page,
             gender_id,
             camera_id,
-            person_id
+            person_id,
+            access_id,
+            first_name,
+            last_name,
+            national_code,
+            created_at_from,
+            created_at_to,
+            order_by
           })
 
           return {
@@ -92,7 +169,7 @@ const usePersonReports = ({ page = 1, per_page = 10, gender_id = null, camera_id
         }
       })
     }
-  }, [page, per_page, data?.count, queryClient, gender_id, camera_id, person_id])
+  }, [page, per_page, data.count, queryClient, gender_id, camera_id, person_id, access_id, first_name, last_name, national_code, created_at_from, created_at_to, order_by])
 
   const updateMutation = useMutation({
     mutationFn: updatePersonReport,

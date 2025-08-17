@@ -14,6 +14,7 @@ import { useTranslation } from '@/translations/useTranslation'
 import ReportsFilters from './ReportsFilters'
 import ReportCard from './ReportCard'
 import ReportsDetailModal from './ReportsDetailModal'
+import ReportsSort from './ReportsSort'
 
 const SORT_FIELDS = [
   { value: 'created_at', label: 'reportCard.date' },
@@ -31,76 +32,48 @@ const SORT_ORDERS = [
 function ReportsContent() {
   const { t } = useTranslation()
 
-  const [filters, setFilters] = useState({
-    // API filters (sent to backend)
-    gender_id: '',
-    camera_id: '',
-    person_id: '',
+  const [filters, setFilters] = useState({})
 
-    // Manual filters (client-side)
-    date_from: null,
-    date_to: null
-  })
-
-  const [sortBy, setSortBy] = useState('created_at')
-  const [sortOrder, setSortOrder] = useState('desc')
-  const { page, per_page, handlePageChange, handlePerPageChange, perPageOptions } = usePagination(1, 10)
+  // sortBy uses API param `sort_by`. Per spec: prefix '-' means ascending, otherwise descending
+  const [sortBy, setSortBy] = useState('-created_at')
+  const { page, per_page, setPage, handlePageChange, handlePerPageChange, perPageOptions } = usePagination(1, 10)
 
   // Modal state for detail modal
   const [openDetailIndex, setOpenDetailIndex] = useState(null)
 
-  // Use the real API hook - only send API filters
+  // Use the real API hook - pass through server-side filter params
   const { reports, total, isLoading, isError, refetchReports } = usePersonReports({
     page,
     per_page,
-    gender_id: filters.gender_id ? parseInt(filters.gender_id) : null,
-    camera_id: filters.camera_id ? parseInt(filters.camera_id) : null,
-    person_id: filters.person_id ? parseInt(filters.person_id) : null
+    gender_id: filters.gender_id ?? null,
+    camera_id: filters.camera_id ?? null,
+    person_id: filters.person_id ?? null,
+    access_id: filters.access_id ?? null,
+    created_at_from: filters.created_at_from ?? null,
+    created_at_to: filters.created_at_to ?? null,
+    order_by: sortBy
   })
 
-  // Apply manual filters (client-side) - only date filtering
-  const applyManualFilters = reports => {
-    let filtered = reports || []
-
-    // Manual date filtering
-    if (filters.date_from) {
-      const fromDate = new Date(filters.date_from)
-
-      filtered = filtered.filter(r => {
-        const reportDate = new Date(r.created_at)
-
-        return reportDate >= fromDate
-      })
-    }
-
-    if (filters.date_to) {
-      const toDate = new Date(filters.date_to)
-
-      filtered = filtered.filter(r => {
-        const reportDate = new Date(r.created_at)
-
-        return reportDate <= toDate
-      })
-    }
-
-    return filtered
-  }
-
-  // Apply manual filters to the reports
-  const filteredReports = applyManualFilters(reports)
+  // Server-side filtering: API returns filtered reports
+  const filteredReports = reports || []
 
   // Sorting
   const sortedReports = [...filteredReports].sort((a, b) => {
-    let aValue = a[sortBy]
-    let bValue = b[sortBy]
+    // client-side fallback sort in case API doesn't sort.
+    // sortBy can be prefixed with '-' meaning ascending per spec; remove for field name.
+    const isPrefixedAscending = typeof sortBy === 'string' && sortBy.startsWith('-')
+    const field = isPrefixedAscending ? sortBy.slice(1) : sortBy
 
-    if (sortBy === 'created_at') {
+    let aValue = a[field]
+    let bValue = b[field]
+
+    if (field === 'created_at') {
       aValue = new Date(aValue)
       bValue = new Date(bValue)
     }
 
     // Handle nested person_id object in new API
-    if (sortBy === 'person_id') {
+    if (field === 'person_id') {
       const toPersonNumeric = val => {
         if (!val) return 0
         if (typeof val === 'number') return val
@@ -121,7 +94,8 @@ function ReportsContent() {
       bValue = bValue.toLowerCase()
     }
 
-    if (sortOrder === 'asc') {
+    // Determine order: spec says '-' prefix = ascending, otherwise descending
+    if (isPrefixedAscending) {
       return aValue > bValue ? 1 : aValue < bValue ? -1 : 0
     } else {
       return aValue < bValue ? 1 : aValue > bValue ? -1 : 0
@@ -130,6 +104,8 @@ function ReportsContent() {
 
   // Filtering
   const handleFilter = newFilters => {
+    // Reset to first page and apply new filters
+    setPage(1)
     setFilters(newFilters)
     setOpenDetailIndex(null) // close modal on filter change
   }
@@ -152,7 +128,7 @@ function ReportsContent() {
   }
 
   if (isError) {
-    return <EmptyState message={t('common.error')} />
+    return <EmptyState message={t('reportCard.noReport')} />
   }
 
   return (
@@ -160,6 +136,7 @@ function ReportsContent() {
       <SEO title={t('live.reports')} description={t('live.reports')} keywords={t('live.reports')} />
       <PageHeader underlineWidth={90} title={t('live.reports')} />
       <ReportsFilters onFilter={handleFilter} />
+      <ReportsSort orderBy={sortBy} setOrderBy={setSortBy} />
       <Box elevation={0} sx={{ borderRadius: 2, mt: 0, mb: 2, backgroundColor: '#00000000' }}>
         <Grid container spacing={2} p={2} sx={{ justifyContent: 'center' }}>
           {sortedReports.length === 0 ? (

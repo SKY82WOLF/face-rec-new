@@ -32,7 +32,9 @@ const fa = {
     to: 'تا',
     error: 'خطا',
     success: 'موفقیت',
-    reset: 'بازنشانی'
+    reset: 'بازنشانی',
+    sortBy: 'مرتب‌سازی بر اساس',
+    order: 'ترتیب'
   },
 
   // Not Found Page
@@ -70,6 +72,7 @@ const fa = {
 
   // Report Card
   reportCard: {
+    noReport: 'گزارشی موجود نیست',
     nationalCode: 'کد ملی',
     gender: 'جنسیت',
     male: 'آقا',
@@ -116,6 +119,14 @@ const fa = {
     sortOrder: 'ترتیب',
     ascending: 'صعودی',
     descending: 'نزولی',
+    order: 'ترتیب',
+    sortFields: {
+      created_at: 'تاریخ',
+      person_id: 'شناسه شخص',
+      confidence: 'دقت',
+      fiqa: 'کیفیت تصویر',
+      camera_id: 'دوربین'
+    },
     itemsPerPage: 'تعداد در هر صفحه',
     noReports: 'گزارشی موجود نیست',
     loading: 'در حال بارگذاری...',
@@ -147,6 +158,7 @@ const fa = {
     noPersons: 'شخصی موجود نیست',
     itemsPerPage: 'تعداد در هر صفحه',
     filter: {
+      persons: 'اشخاص',
       access: 'دسترسی',
       gender: 'جنسیت',
       searchBy: 'جستجو بر اساس',

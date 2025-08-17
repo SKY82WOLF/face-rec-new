@@ -65,11 +65,11 @@ export const API_ROUTES = {
 
   // Person Reports
   personReports: {
-    list: '/Person_Reports',
-    detail: '/Person_Reports/',
-    update: '/Person_Reports/',
-    delete: '/Person_Reports/',
-    personReports: '/persons/Person_Reports'
+    list: '/Person-Reports',
+    detail: '/Person-Reports/',
+    update: '/Person-Reports/',
+    delete: '/Person-Reports/',
+    personReports: '/persons/Person-Reports'
   },
 
   // Users

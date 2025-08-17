@@ -172,7 +172,7 @@ const LiveDetailModal = ({
     { label: t('reportCard.date'), value: <ShamsiDateTime dateTime={modalData.date} format='date' /> },
     {
       label: t('reportCard.time'),
-      value: <ShamsiDateTime dateTime={modalData.date} format='time' disableTimeConversion />
+      value: <ShamsiDateTime dateTime={modalData.date} format='time' />
     },
     {
       label: t('reportCard.status'),

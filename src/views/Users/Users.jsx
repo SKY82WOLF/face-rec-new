@@ -37,6 +37,7 @@ import usePagination from '@/hooks/usePagination'
 import { commonStyles } from '@/@core/styles/commonStyles'
 import useHasPermission from '@/utils/HasPermission'
 
+
 const per_page_OPTIONS = [5, 10, 15, 20]
 
 function UsersContent({ initialPage = 1, initialper_page = 10 }) {
@@ -168,6 +169,8 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
                       overflow: 'hidden',
                       boxShadow: '5 8px 32px rgba(0,0,0,0.08)',
                       transform: 'translateY(0)',
+                      border: '1px solid',
+                      borderColor: hoveredId === user.id ? 'primary.main' : 'transparent',
                       transition: 'box-shadow .25s ease, transform .25s ease',
                       '&:hover': {
                         transform: 'translateY(-8px)',
@@ -187,7 +190,6 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
                           width: '100%',
                           height: '100%',
                           objectFit: 'cover',
-                          bgcolor: 'background.default'
                         }}
                       />
                     ) : (
@@ -198,7 +200,6 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          bgcolor: 'background.default'
                         }}
                       >
                         <PersonIcon sx={{ fontSize: 72, color: 'primary.main', opacity: 0.6 }} />

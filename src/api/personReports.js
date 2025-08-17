@@ -8,15 +8,36 @@ export const getPersonReports = async ({
   per_page = 10,
   gender_id = null,
   camera_id = null,
-  person_id = null
+  person_id = null,
+  access_id = null,
+  first_name = null,
+  last_name = null,
+  national_code = null,
+  created_at_from = null,
+  created_at_to = null,
+  order_by = null
 } = {}) => {
   try {
     const params = { page, per_page }
 
     // Add optional filters
-    if (gender_id) params.gender_id = gender_id
-    if (camera_id) params.camera_id = camera_id
-    if (person_id) params.person_id = person_id
+    const addParam = (key, value) => {
+      if (value === null || value === undefined || value === '') return
+
+      // If array, send as comma separated
+      params[key] = Array.isArray(value) ? value.join(',') : value
+    }
+
+    addParam('gender_id', gender_id)
+    addParam('camera_id', camera_id)
+    addParam('person_id', person_id)
+    addParam('access_id', access_id)
+    addParam('first_name', first_name)
+    addParam('last_name', last_name)
+    addParam('national_code', national_code)
+    addParam('created_at_from', created_at_from)
+    addParam('created_at_to', created_at_to)
+    addParam('order_by', order_by)
 
     const response = await axiosInstance.get(personReports.list, { params })
 

@@ -9,6 +9,8 @@ import PersonIcon from '@mui/icons-material/Person'
 
 import { useSelector } from 'react-redux'
 
+import useCameras from '@/hooks/useCameras'
+
 import { useTranslation } from '@/translations/useTranslation'
 import { getBackendImgUrl2 } from '@/configs/routes'
 import { selectGenderTypes } from '@/store/slices/typesSlice'
@@ -41,6 +43,7 @@ const ReportCard = ({ reportData, allReports, onOpenDetail }) => {
 
   // Get types data
   const genderTypes = useSelector(selectGenderTypes)
+  const { cameras: camerasData } = useCameras({ page: 1, per_page: 200 })
 
   // Helper function to get type title by ID
   const getTypeTitle = (types, id) => {
@@ -124,7 +127,13 @@ const ReportCard = ({ reportData, allReports, onOpenDetail }) => {
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
             <Chip
               icon={<CameraAltIcon />}
-              label={`Camera ${reportData.camera_id}`}
+              label={
+                (camerasData || []).find?.(c => c.id === reportData.camera_id || c.camera_id === reportData.camera_id)
+                  ? camerasData.find(c => c.id === reportData.camera_id || c.camera_id === reportData.camera_id)
+                      .title ||
+                    camerasData.find(c => c.id === reportData.camera_id || c.camera_id === reportData.camera_id).name
+                  : `Camera ${reportData.camera_id}`
+              }
               size='small'
               color='primary'
               variant='outlined'

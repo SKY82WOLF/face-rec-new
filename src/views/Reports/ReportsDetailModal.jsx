@@ -10,6 +10,8 @@ import * as htmlToImage from 'html-to-image'
 
 import { useSelector } from 'react-redux'
 
+import useCameras from '@/hooks/useCameras'
+
 import { useTranslation } from '@/translations/useTranslation'
 import { getBackendImgUrl2 } from '@/configs/routes'
 import { selectGenderTypes } from '@/store/slices/typesSlice'
@@ -28,6 +30,7 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
 
   // Get types data
   const genderTypes = useSelector(selectGenderTypes)
+  const { cameras: camerasData } = useCameras({ page: 1, per_page: 200 })
 
   // Helper function to get type title by ID
   const getTypeTitle = (types, id) => {
@@ -74,13 +77,18 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
   // Info table with actual API data
   const modalInfo = [
     { label: t('reportCard.name'), value: fullName },
-    { label: t('reportCard.id'), value: reportData.id || t('reportCard.unknown') },
     { label: t('reportCard.personId'), value: personCode },
     {
       label: t('reportCard.gender'),
       value: genderTypes.loading ? t('reportCard.loading') : getTypeTitle(genderTypes, reportData.gender_id)
     },
-    { label: t('reportCard.camera'), value: `Camera ${reportData.camera_id || 'Unknown'}` },
+    {
+      label: t('reportCard.camera'),
+      value: (camerasData || []).find?.(c => c.id === reportData.camera_id || c.camera_id === reportData.camera_id)
+        ? camerasData.find(c => c.id === reportData.camera_id || c.camera_id === reportData.camera_id).title ||
+          camerasData.find(c => c.id === reportData.camera_id || c.camera_id === reportData.camera_id).name
+        : `Camera ${reportData.camera_id || 'Unknown'}`
+    },
     {
       label: t('reportCard.confidence'),
       value: `${confidencePercentage}%`,

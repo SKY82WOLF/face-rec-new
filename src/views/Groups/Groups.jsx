@@ -225,6 +225,8 @@ function GroupsContent({ initialPage = 1, initialper_page = 10 }) {
                       transform: 'translateY(0)',
                       transition: 'box-shadow .25s ease, transform .25s ease',
                       backgroundColor: 'background.paper',
+                      border: '1px solid',
+                      borderColor: hoveredId === group.id ? 'primary.main' : 'transparent',
                       '&:hover': {
                         transform: 'translateY(-8px)',
                         boxShadow: '0 24px 44px rgba(0,0,0,0.2)',

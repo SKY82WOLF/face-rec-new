@@ -19,16 +19,18 @@ const ShamsiDateTime = ({
     if (!date) return t('reportCard.unknown')
 
     try {
-      // Parse the input date - conditionally convert to local timezone
+      // Parse the input date - conditionally convert from UTC to local timezone
+      // If disableTimeConversion is true we keep the original parsed moment
       const parsedDate = disableTimeConversion ? moment(date) : moment.utc(date).local()
 
+      // Use Jalali (Shamsi) calendar tokens (jYYYY, jMM, jDD) for date parts
       if (type === 'date') {
-        return parsedDate.locale('fa').format('YYYY/MM/DD')
+        return parsedDate.locale('fa').format('jYYYY/jMM/jDD')
       } else if (type === 'time') {
-        return parsedDate.format('HH:mm:ss')
+        return parsedDate.locale('fa').format('HH:mm:ss')
       } else {
-        // Full date and time
-        return parsedDate.locale('fa').format('YYYY/MM/DD HH:mm:ss')
+        // Full date and time (Jalali date + local time)
+        return parsedDate.locale('fa').format('jYYYY/jMM/jDD HH:mm:ss')
       }
     } catch (error) {
       console.error('Error formatting Shamsi date:', error)

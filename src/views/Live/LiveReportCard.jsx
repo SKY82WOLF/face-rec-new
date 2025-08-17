@@ -194,7 +194,7 @@ const LiveReportCard = ({ reportData, allReports }) => {
               {`${reportData.first_name || ''} ${reportData.last_name || ''}`}
             </Typography>
             <Typography variant='body1' color='textSecondary'>
-              <ShamsiDateTime dateTime={modalData.date} format='time' disableTimeConversion />
+              <ShamsiDateTime dateTime={modalData.date} format='time' />
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>

@@ -201,6 +201,9 @@ const LiveEditModal = ({ open, onClose, onSubmit, initialData, mode }) => {
 
     try {
       await onSubmit(submitData)
+
+      // Close modal on successful submit
+      onClose()
     } catch (error) {
       console.error('Update failed:', error)
       alert(t('reportCard.updateFailed'))
