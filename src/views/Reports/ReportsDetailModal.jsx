@@ -1,7 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { Box, Typography, Button, Modal, Fade, Backdrop, Avatar, Divider, IconButton, Grid, Chip } from '@mui/material'
-import CloseIcon from '@mui/icons-material/Close'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore'
 import CameraAltIcon from '@mui/icons-material/CameraAlt'
@@ -9,6 +8,8 @@ import PersonIcon from '@mui/icons-material/Person'
 import * as htmlToImage from 'html-to-image'
 
 import { useSelector } from 'react-redux'
+
+import FullScreenImageModal from '@/components/FullScreenImageModal'
 
 import useCameras from '@/hooks/useCameras'
 
@@ -27,6 +28,7 @@ const modalStyle = {
 const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentIndex, onNavigate }) => {
   const { t } = useTranslation()
   const modalRef = useRef(null)
+  const [fullScreenImageUrl, setFullScreenImageUrl] = useState(null)
 
   // Get types data
   const genderTypes = useSelector(selectGenderTypes)
@@ -189,7 +191,9 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
                   variant='rounded'
                   src={detectedImageUrl}
                   alt={`Person ${fullName || personCode}`}
+                  onClick={() => setFullScreenImageUrl(detectedImageUrl)}
                   sx={{
+                    cursor: 'pointer',
                     width: { xs: 100, sm: 140, md: 200 },
                     height: { xs: 100, sm: 140, md: 200 },
                     mx: 'auto',
@@ -207,7 +211,9 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
                   variant='rounded'
                   src={personImageUrl}
                   alt={`Person ${fullName || personCode}`}
+                  onClick={() => setFullScreenImageUrl(personImageUrl)}
                   sx={{
+                    cursor: 'pointer',
                     width: { xs: 100, sm: 140, md: 200 },
                     height: { xs: 100, sm: 140, md: 200 },
                     mx: 'auto',
@@ -219,6 +225,13 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
               </Box>
             </Grid>
           </Grid>
+
+          {/* Fullscreen image modal for detail modal images */}
+          <FullScreenImageModal
+            open={!!fullScreenImageUrl}
+            imageUrl={fullScreenImageUrl}
+            onClose={() => setFullScreenImageUrl(null)}
+          />
 
           {/* Bounding Box Info */}
           {reportData.bounding_box && (

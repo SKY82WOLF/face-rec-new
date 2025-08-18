@@ -9,6 +9,8 @@ import PersonIcon from '@mui/icons-material/Person'
 
 import { useSelector } from 'react-redux'
 
+import FullScreenImageModal from '@/components/FullScreenImageModal'
+
 import useCameras from '@/hooks/useCameras'
 
 import { useTranslation } from '@/translations/useTranslation'
@@ -40,6 +42,7 @@ const ReportCard = ({ reportData, allReports, onOpenDetail }) => {
   const { t } = useTranslation()
   const [openEdit, setOpenEdit] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const [fullScreenImageUrl, setFullScreenImageUrl] = useState(null)
 
   // Get types data
   const genderTypes = useSelector(selectGenderTypes)
@@ -96,7 +99,7 @@ const ReportCard = ({ reportData, allReports, onOpenDetail }) => {
 
   return (
     <>
-      <StyledReportCard>
+      <StyledReportCard onClick={() => onOpenDetail && onOpenDetail()} sx={{ cursor: 'pointer' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
           <Avatar
             variant='rounded'
@@ -111,6 +114,10 @@ const ReportCard = ({ reportData, allReports, onOpenDetail }) => {
             }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
+            onClick={e => {
+              e.stopPropagation()
+              setFullScreenImageUrl(fullImage)
+            }}
           />
           <Box sx={{ flexGrow: 1 }}>
             <Typography variant='body2' color='textSecondary'>
@@ -168,11 +175,27 @@ const ReportCard = ({ reportData, allReports, onOpenDetail }) => {
             {t('reportCard.date')}: <ShamsiDateTime dateTime={reportData.created_at} format='date' />
           </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button variant='outlined' size='small' onClick={onOpenDetail} startIcon={<InfoIcon />}>
+            <Button
+              variant='outlined'
+              size='small'
+              onClick={e => {
+                e.stopPropagation()
+                onOpenDetail && onOpenDetail()
+              }}
+              startIcon={<InfoIcon />}
+            >
               {t('reportCard.details')}
             </Button>
             {hasUpdatePermission && (
-              <Button variant='outlined' size='small' onClick={() => setOpenEdit(true)} startIcon={<EditIcon />}>
+              <Button
+                variant='outlined'
+                size='small'
+                onClick={e => {
+                  e.stopPropagation()
+                  setOpenEdit(true)
+                }}
+                startIcon={<EditIcon />}
+              >
                 {t('common.edit')}
               </Button>
             )}
@@ -180,6 +203,11 @@ const ReportCard = ({ reportData, allReports, onOpenDetail }) => {
         </Box>
       </StyledReportCard>
       <ReportsEditModal open={openEdit} onClose={() => setOpenEdit(false)} reportData={reportData} />
+      <FullScreenImageModal
+        open={!!fullScreenImageUrl}
+        imageUrl={fullScreenImageUrl}
+        onClose={() => setFullScreenImageUrl(null)}
+      />
     </>
   )
 }

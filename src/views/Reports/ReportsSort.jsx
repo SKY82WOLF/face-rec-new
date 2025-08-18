@@ -9,7 +9,8 @@ const SORT_FIELDS = [
   { value: 'person_id', label: 'reportCard.personId' },
   { value: 'confidence', label: 'reportCard.confidence' },
   { value: 'fiqa', label: 'reportCard.fiqa' },
-  { value: 'camera_id', label: 'reportCard.camera' }
+  { value: 'camera_id', label: 'reportCard.camera' },
+  { value: 'id', label: 'reportCard.id' }
 ]
 
 export default function ReportsSort({ orderBy, setOrderBy }) {
@@ -54,12 +55,12 @@ export default function ReportsSort({ orderBy, setOrderBy }) {
               const newDir = e.target.value
 
               // toggle prefix according to new direction
-              setOrderBy(newDir === 'desc' ? `-${currentField}` : `${currentField}`)
+              setOrderBy(newDir === 'asc' ? `-${currentField}` : `${currentField}`)
             }}
             sx={{ minWidth: 140 }}
           >
-            <MenuItem value='asc'>{t('groups.ascending') || 'Ascending'}</MenuItem>
-            <MenuItem value='desc'>{t('groups.descending') || 'Descending'}</MenuItem>
+            <MenuItem value='desc'>{t('groups.ascending') || 'Ascending'}</MenuItem>
+            <MenuItem value='asc'>{t('groups.descending') || 'Descending'}</MenuItem>
           </Select>
         </FormControl>
       </Box>
