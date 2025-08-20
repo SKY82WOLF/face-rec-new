@@ -1,8 +1,9 @@
 'use client'
 
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 
 import { Modal, Fade, Backdrop, Box, Typography, Button, Avatar, Divider, IconButton, Grid } from '@mui/material'
+
 import { styled } from '@mui/system'
 import LockIcon from '@mui/icons-material/Lock'
 import LockOpenIcon from '@mui/icons-material/LockOpen'
@@ -14,6 +15,8 @@ import EditIcon from '@mui/icons-material/Edit'
 import * as htmlToImage from 'html-to-image'
 
 import { useSelector } from 'react-redux'
+
+import FullScreenImageModal from '@/components/FullScreenImageModal'
 
 import { useTranslation } from '@/translations/useTranslation'
 import { useSettings } from '@core/hooks/useSettings'
@@ -41,6 +44,7 @@ const LiveDetailModal = ({
 }) => {
   const { t } = useTranslation()
   const modalRef = useRef(null)
+  const [fullScreenImageUrl, setFullScreenImageUrl] = useState(null)
 
   // Get types data
   const genderTypes = useSelector(selectGenderTypes)
@@ -215,6 +219,7 @@ const LiveDetailModal = ({
                   variant='rounded'
                   src={modalData.person_image || '/images/avatars/1.png'}
                   alt={modalData.first_name}
+                  onClick={() => setFullScreenImageUrl(modalData.person_image || '/images/avatars/1.png')}
                   sx={{
                     width: '100%',
                     height: '100%',
@@ -224,7 +229,8 @@ const LiveDetailModal = ({
                     mx: 'auto',
                     mb: 2,
                     border: '1px solid',
-                    borderColor: 'divider'
+                    borderColor: 'divider',
+                    cursor: 'pointer'
                   }}
                 />
               </Box>
@@ -236,6 +242,7 @@ const LiveDetailModal = ({
                   variant='rounded'
                   src={modalData.last_person_image || '/images/avatars/1.png'}
                   alt={modalData.first_name}
+                  onClick={() => setFullScreenImageUrl(modalData.last_person_image || '/images/avatars/1.png')}
                   sx={{
                     width: '100%',
                     height: '100%',
@@ -245,7 +252,8 @@ const LiveDetailModal = ({
                     mx: 'auto',
                     mb: 2,
                     border: '1px solid',
-                    borderColor: 'divider'
+                    borderColor: 'divider',
+                    cursor: 'pointer'
                   }}
                 />
               </Box>
@@ -348,6 +356,13 @@ const LiveDetailModal = ({
                     {t('reportCard.editInfo')}
                   </Button>
                 )}
+            {fullScreenImageUrl && (
+              <FullScreenImageModal
+                open={!!fullScreenImageUrl}
+                imageUrl={fullScreenImageUrl}
+                onClose={() => setFullScreenImageUrl(null)}
+              />
+            )}
           </Box>
         </Box>
       </Fade>

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { useRouter } from 'next/navigation'
 
@@ -18,19 +18,32 @@ const PermissionGuard = ({ permission, children, fallback = null }) => {
   const codenames = useSelector(selectPermissionsCodenames)
   const loading = useSelector(selectPermissionsLoading)
 
-  // Derive auth status from tokens on each render to avoid stale state after logout
-  const tokensPresent =
-    typeof window !== 'undefined' && (localStorage.getItem('access_token') || localStorage.getItem('refresh_token'))
+  // Prevent reading localStorage during SSR and initial render
+  const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  // Only access localStorage after mount
+  useEffect(() => {
+    if (!isMounted) return
+
+    const tokensPresent = localStorage.getItem('access_token') || localStorage.getItem('refresh_token')
+
     if (!tokensPresent) {
       router.push('/login')
     }
-  }, [tokensPresent, router])
+  }, [isMounted, router])
+
+  // While hydrating on client, render nothing to match server Suspense fallback
+  if (!isMounted) return null
 
   if (loading) return <LoadingState />
 
-  // If not authenticated, we've redirected to login; don't render or 404
+  const tokensPresent = localStorage.getItem('access_token') || localStorage.getItem('refresh_token')
+
+  // If not authenticated, we've redirected to login; don't render
   if (!tokensPresent) return null
 
   const has = Array.isArray(permission) ? permission.every(p => codenames.includes(p)) : codenames.includes(permission)

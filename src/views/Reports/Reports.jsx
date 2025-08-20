@@ -57,50 +57,9 @@ function ReportsContent() {
   // Server-side filtering: API returns filtered reports
   const filteredReports = reports || []
 
-  // Sorting
-  const sortedReports = [...filteredReports].sort((a, b) => {
-    // client-side fallback sort in case API doesn't sort.
-    // sortBy can be prefixed with '-' meaning ascending per spec; remove for field name.
-    const isPrefixedAscending = typeof sortBy === 'string' && sortBy.startsWith('-')
-    const field = isPrefixedAscending ? sortBy.slice(1) : sortBy
-
-    let aValue = a[field]
-    let bValue = b[field]
-
-    if (field === 'created_at') {
-      aValue = new Date(aValue)
-      bValue = new Date(bValue)
-    }
-
-    // Handle nested person_id object in new API
-    if (field === 'person_id') {
-      const toPersonNumeric = val => {
-        if (!val) return 0
-        if (typeof val === 'number') return val
-
-        if (typeof val === 'object') {
-          return val.person_id || val.id || 0
-        }
-
-        return 0
-      }
-
-      aValue = toPersonNumeric(a.person_id)
-      bValue = toPersonNumeric(b.person_id)
-    }
-
-    if (typeof aValue === 'string') {
-      aValue = aValue.toLowerCase()
-      bValue = bValue.toLowerCase()
-    }
-
-    // Determine order: spec says '-' prefix = ascending, otherwise descending
-    if (isPrefixedAscending) {
-      return aValue > bValue ? 1 : aValue < bValue ? -1 : 0
-    } else {
-      return aValue < bValue ? 1 : aValue > bValue ? -1 : 0
-    }
-  })
+  // Prefer server-side ordering (API provides correct order). Use client-side sort only
+  // if we later need a fallback. For now, preserve API order to avoid reversing it.
+  const sortedReports = Array.isArray(filteredReports) ? [...filteredReports] : []
 
   // Filtering
   const handleFilter = newFilters => {

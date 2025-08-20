@@ -12,6 +12,7 @@ import { useTranslation } from '@/translations/useTranslation'
 import LiveSection from './LiveSection'
 import { commonStyles } from '@/@core/styles/commonStyles'
 import EmptyState from '@/components/ui/EmptyState'
+import LoadingState from '@/components/ui/LoadingState'
 import Autocomplete from '@/@core/components/mui/Autocomplete'
 import useCameras from '@/hooks/useCameras'
 
@@ -93,66 +94,71 @@ const LiveContent = () => {
           </Box>
         </Box>
       </Card>
-
-      {cameras.length === 0 ? (
-        <Card sx={{ p: 4, pt: 2 }}>
-          <Box sx={{ p: 2 }}>
-            <EmptyState
-              message={t('live.noCameras') || t('cameras.noData') || 'هیچ دوربینی موجود نیست'}
-              minHeight={300}
-            />
-          </Box>
-        </Card>
-      ) : selectedCameraIds.length <= 1 ? (
-        (() => {
-          const cam = cameras.find(c => String(c.id) === String(selectedCameraIds[0]))
-
-          if (!cam) {
-            return (
-              <Card sx={{ p: 4, pt: 2 }}>
-                <Box sx={{ p: 2 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                    <Typography textAlign={'center'} variant='h5' sx={{ ...commonStyles.centeredTitle, width: '100%' }}>
-                      {t('live.reports')}
-                    </Typography>
-                  </Box>
-                </Box>
-              </Card>
-            )
-          }
-
-          return <LiveSection camera={cam} reports={reports} />
-        })()
+      {isCamerasLoading ? (
+        <LoadingState message={t('live.loadingCameras') || 'در حال بارگذاری...'} minHeight={400} />
       ) : (
-        <Box
-          sx={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: 2,
-            flexGrow: 1,
-            alignItems: 'stretch',
-            minHeight: 0
-          }}
-        >
-          {cameras
-            .filter(cam => selectedCameraIds.includes(String(cam.id)))
-            .map(cam => (
-              <Box
-                key={`live_section_${cam.id}`}
-                sx={{
-                  display: 'flex',
-                  width: { xs: '100%', md: '50%' },
-                  flexDirection: 'column',
-                  flex: { xs: '1 1 100%', md: '1 1 45%' },
-                  minHeight: 0,
-                  boxSizing: 'border-box',
-                  p: 1
-                }}
-              >
-                <LiveSection camera={cam} reports={reports} />
+        <>
+          {cameras.length === 0 ? (
+            <Card sx={{ p: 4, pt: 2 }}>
+              <Box sx={{ p: 2 }}>
+                <EmptyState
+                  message={t('live.noCameras') || t('cameras.noData') || 'هیچ دوربینی موجود نیست'}
+                  minHeight={300}
+                />
               </Box>
-            ))}
-        </Box>
+            </Card>
+          ) : selectedCameraIds.length <= 1 ? (
+            (() => {
+              const cam = cameras.find(c => String(c.id) === String(selectedCameraIds[0]))
+
+              if (!cam) {
+                return (
+                  <Card sx={{ p: 4, pt: 2 }}>
+                    <Box sx={{ p: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
+                        <Typography textAlign={'center'} variant='h5' sx={{ ...commonStyles.centeredTitle, width: '100%' }}>
+                          {t('live.reports')}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Card>
+                )
+              }
+
+              return <LiveSection camera={cam} reports={reports} />
+            })()
+          ) : (
+            <Box
+              sx={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 2,
+                flexGrow: 1,
+                alignItems: 'stretch',
+                minHeight: 0
+              }}
+            >
+              {cameras
+                .filter(cam => selectedCameraIds.includes(String(cam.id)))
+                .map(cam => (
+                  <Box
+                    key={`live_section_${cam.id}`}
+                    sx={{
+                      display: 'flex',
+                      width: { xs: '100%', md: '50%' },
+                      flexDirection: 'column',
+                      flex: { xs: '1 1 100%', md: '1 1 45%' },
+                      minHeight: 0,
+                      boxSizing: 'border-box',
+                      p: 1
+                    }}
+                  >
+                    <LiveSection camera={cam} reports={reports} />
+                  </Box>
+                ))}
+            </Box>
+          )}
+        </>
       )}
     </Box>
   )
@@ -161,3 +167,71 @@ const LiveContent = () => {
 export default function Live() {
   return <LiveContent />
 }
+
+//       {cameras.length === 0 ? (
+//         <Card sx={{ p: 4, pt: 2 }}>
+//           <Box sx={{ p: 2 }}>
+//             <EmptyState
+//               message={t('live.noCameras') || t('cameras.noData') || 'هیچ دوربینی موجود نیست'}
+//               minHeight={300}
+//             />
+//           </Box>
+//         </Card>
+//       ) : selectedCameraIds.length <= 1 ? (
+//         (() => {
+//           const cam = cameras.find(c => String(c.id) === String(selectedCameraIds[0]))
+
+//           if (!cam) {
+//             return (
+//               <Card sx={{ p: 4, pt: 2 }}>
+//                 <Box sx={{ p: 2 }}>
+//                   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
+//                     <Typography textAlign={'center'} variant='h5' sx={{ ...commonStyles.centeredTitle, width: '100%' }}>
+//                       {t('live.reports')}
+//                     </Typography>
+//                   </Box>
+//                 </Box>
+//               </Card>
+//             )
+//           }
+
+//           return <LiveSection camera={cam} reports={reports} />
+//         })()
+//       ) : (
+//         <Box
+//           sx={{
+//             display: 'flex',
+//             flexWrap: 'wrap',
+//             gap: 2,
+//             flexGrow: 1,
+//             alignItems: 'stretch',
+//             minHeight: 0
+//           }}
+//         >
+//           {cameras
+//             .filter(cam => selectedCameraIds.includes(String(cam.id)))
+//             .map(cam => (
+//               <Box
+//                 key={`live_section_${cam.id}`}
+//                 sx={{
+//                   display: 'flex',
+//                   width: { xs: '100%', md: '50%' },
+//                   flexDirection: 'column',
+//                   flex: { xs: '1 1 100%', md: '1 1 45%' },
+//                   minHeight: 0,
+//                   boxSizing: 'border-box',
+//                   p: 1
+//                 }}
+//               >
+//                 <LiveSection camera={cam} reports={reports} />
+//               </Box>
+//             ))}
+//         </Box>
+//       )}
+//     </Box>
+//   )
+// }
+
+// export default function Live() {
+//   return <LiveContent />
+// }

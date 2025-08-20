@@ -53,6 +53,8 @@ const fa = {
     addNewPerson: 'افزودن شخص جدید',
     loading: 'در حال بارگذاری...',
     noReports: 'گزارشی موجود نیست',
+    noCameras: 'دوربینی موجود نیست',
+    loadingCameras: 'در حال بارگذاری دوربین ها...',
     addPersonModal: {
       title: 'افزودن شخص جدید',
       name: 'نام',

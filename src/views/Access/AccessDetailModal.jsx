@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 
 import { Box, Typography, Button, Modal, Fade, Backdrop, Avatar, Divider, IconButton, Grid } from '@mui/material'
+
 import LockIcon from '@mui/icons-material/Lock'
 import LockOpenIcon from '@mui/icons-material/LockOpen'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -10,6 +11,8 @@ import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore'
 import * as htmlToImage from 'html-to-image'
 
 import { useSelector } from 'react-redux'
+
+import FullScreenImageModal from '@/components/FullScreenImageModal'
 
 import { useTranslation } from '@/translations/useTranslation'
 import { useDeletePerson } from '@/hooks/usePersons'
@@ -39,6 +42,7 @@ const AccessDetailModal = ({
   const { t } = useTranslation()
   const { settings } = useSettings()
   const modalRef = useRef(null)
+  const [fullScreenImageUrl, setFullScreenImageUrl] = useState(null)
 
   const deletePersonMutation = useDeletePerson()
 
@@ -211,7 +215,9 @@ const AccessDetailModal = ({
                   variant='rounded'
                   src={modalData.person_image || '/images/avatars/1.png'}
                   alt={modalData.first_name}
+                  onClick={() => setFullScreenImageUrl(modalData.person_image || '/images/avatars/1.png')}
                   sx={{
+                    cursor: 'pointer',
                     width: { xs: 100, sm: 140, md: 200 },
                     height: { xs: 100, sm: 140, md: 200 },
                     mx: 'auto',
@@ -229,7 +235,9 @@ const AccessDetailModal = ({
                   variant='rounded'
                   src={modalData.last_person_image || '/images/avatars/1.png'}
                   alt={modalData.first_name}
+                  onClick={() => setFullScreenImageUrl(modalData.last_person_image || '/images/avatars/1.png')}
                   sx={{
+                    cursor: 'pointer',
                     width: { xs: 100, sm: 140, md: 200 },
                     height: { xs: 100, sm: 140, md: 200 },
                     mx: 'auto',
@@ -348,6 +356,13 @@ const AccessDetailModal = ({
               <Button variant='contained' onClick={onEditOpen} startIcon={<PersonAddIcon />}>
                 {t('reportCard.editInfo')}
               </Button>
+            )}
+            {fullScreenImageUrl && (
+              <FullScreenImageModal
+                open={!!fullScreenImageUrl}
+                imageUrl={fullScreenImageUrl}
+                onClose={() => setFullScreenImageUrl(null)}
+              />
             )}
           </Box>
         </Box>

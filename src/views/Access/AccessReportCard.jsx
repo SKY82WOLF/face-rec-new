@@ -30,6 +30,7 @@ import { useSettings } from '@core/hooks/useSettings'
 import AccessDetailModal from './AccessDetailModal'
 import AccessEditModal from './AccessEditModal'
 import { commonStyles } from '@/@core/styles/commonStyles'
+import FullScreenImageModal from '@/components/FullScreenImageModal'
 
 const StyledReportCard = styled(Card)(({ theme, mode }) => ({
   ...commonStyles.transparentCard,
@@ -57,6 +58,7 @@ const AccessReportCard = ({ reportData, allReports }) => {
   const [isAllowed, setIsAllowed] = useState(reportData.access_id?.id === 5)
   const [modalData, setModalData] = useState(reportData)
   const [formData, setFormData] = useState({})
+  const [fullScreenImageUrl, setFullScreenImageUrl] = useState(null)
 
   const deletePersonMutation = useDeletePerson()
 
@@ -159,13 +161,17 @@ const AccessReportCard = ({ reportData, allReports }) => {
 
   return (
     <>
-      <StyledReportCard mode={currentMode}>
+      <StyledReportCard mode={currentMode} onClick={handleOpen} sx={{ cursor: 'pointer' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
           <Avatar
             variant='rounded'
             src={displayImage}
             alt={reportData.first_name}
-            sx={{ width: 60, height: 60, mr: 2 }}
+            sx={{ width: 60, height: 60, mr: 2, cursor: 'pointer' }}
+            onClick={e => {
+              e.stopPropagation()
+              setFullScreenImageUrl(displayImage)
+            }}
           />
           <Box sx={{ flexGrow: 1 }}>
             <Typography variant='h6' gutterBottom>
@@ -264,6 +270,11 @@ const AccessReportCard = ({ reportData, allReports }) => {
           </Button>
         </DialogActions>
       </Dialog>
+      <FullScreenImageModal
+        open={!!fullScreenImageUrl}
+        imageUrl={fullScreenImageUrl}
+        onClose={() => setFullScreenImageUrl(null)}
+      />
     </>
   )
 }

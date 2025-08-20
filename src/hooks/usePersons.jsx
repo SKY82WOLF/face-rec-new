@@ -9,7 +9,7 @@ import { getPersons, addPerson, updatePerson, deletePerson } from '@/api/persons
 const keys = 'persons'
 
 export const useGetPersons = (options = {}) => {
-  const { page = 1, per_page = 10, filters = {} } = options
+  const { page = 1, per_page = 10, filters = {}, order_by = null } = options
   const queryClient = useQueryClient()
 
   // Stable serialized filters key for cache keys and effect deps
@@ -18,9 +18,9 @@ export const useGetPersons = (options = {}) => {
 
   const queryResult = useQuery({
     // Include filters in the key to ensure cache separation when filters change
-    queryKey: ['persons', page, per_page, filtersKey],
+    queryKey: ['persons', page, per_page, filtersKey, order_by],
     queryFn: async () => {
-      const response = await getPersons({ page, per_page, filters: parsedFilters })
+      const response = await getPersons({ page, per_page, filters: parsedFilters, order_by })
 
       return {
         data: response.results || [], // The array of persons

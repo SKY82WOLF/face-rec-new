@@ -22,6 +22,7 @@ import SEO from '@/components/SEO'
 import AccessReportCard from './AccessReportCard'
 import AccessAddModal from './AccessAddModal'
 import AccessFiltring from './AccessFiltring'
+import AccessSort from './AccessSort'
 import { useGetPersons } from '@/hooks/usePersons'
 import { useTranslation } from '@/translations/useTranslation'
 import PageHeader from '@/components/ui/PageHeader'
@@ -43,6 +44,7 @@ function AccessContent({ initialPage = 1, initialper_page = 10 }) {
   )
 
   const [openAddModal, setOpenAddModal] = useState(false)
+  const [orderBy, setOrderBy] = useState('-created_at')
 
   // Persist filters in URL so they survive refresh and sharing
   const router = useRouter()
@@ -74,8 +76,14 @@ function AccessContent({ initialPage = 1, initialper_page = 10 }) {
   const { data: personsData, isLoading } = useGetPersons({
     page: page,
     per_page,
-    filters
+    filters,
+    order_by: orderBy
   })
+
+  // Reset to first page when sorting changes
+  useEffect(() => {
+    setPage(1)
+  }, [orderBy, setPage])
 
   const handleOpenAddModal = () => setOpenAddModal(true)
   const handleCloseAddModal = () => setOpenAddModal(false)
@@ -120,6 +128,7 @@ function AccessContent({ initialPage = 1, initialper_page = 10 }) {
         }}
         initialFilters={filters}
       />
+      <AccessSort orderBy={orderBy} setOrderBy={setOrderBy} />
       <Card elevation={0} sx={{ ...commonStyles.transparentCard, backgroundColor: '#00000000', boxShadow: 'none' }}>
         <Grid
           p={2}
