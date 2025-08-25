@@ -25,15 +25,10 @@ const nextConfig = {
     ]
   },
 
-  // ✅ Add this to handle SVGs with SVGR:
-  webpack(config) {
-    config.module.rules.push({
-      test: /\.svg$/,
-      issuer: /\.[jt]sx?$/,
-      use: ['@svgr/webpack']
-    })
-
-    return config
+  turbopack: {
+    rules: {
+      '*.svg': ['@svgr/webpack']
+    }
   }
 }
 

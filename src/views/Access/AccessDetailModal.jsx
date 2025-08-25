@@ -21,6 +21,7 @@ import { useSettings } from '@core/hooks/useSettings'
 import ShamsiDateTime from '@/components/ShamsiDateTimer'
 import { commonStyles } from '@/@core/styles/commonStyles'
 import useHasPermission from '@/utils/HasPermission'
+import { backendImgUrl } from '@/configs/routes'
 
 const modalStyle = mode => ({
   ...commonStyles.modalContainer,
@@ -179,6 +180,9 @@ const AccessDetailModal = ({
 
   const hasUpdatePermission = useHasPermission('updatePerson')
 
+  const personImageUrl = backendImgUrl + modalData.person_image
+  const lastPersonImageUrl = backendImgUrl + modalData.last_person_image
+
   return (
     <Modal
       open={open}
@@ -213,9 +217,9 @@ const AccessDetailModal = ({
                 <Typography variant='subtitle1'>{t('reportCard.userImage')}</Typography>
                 <Avatar
                   variant='rounded'
-                  src={modalData.person_image || '/images/avatars/1.png'}
+                  src={personImageUrl || '/images/avatars/1.png'}
                   alt={modalData.first_name}
-                  onClick={() => setFullScreenImageUrl(modalData.person_image || '/images/avatars/1.png')}
+                  onClick={() => setFullScreenImageUrl(personImageUrl || '/images/avatars/1.png')}
                   sx={{
                     cursor: 'pointer',
                     width: { xs: 100, sm: 140, md: 200 },
@@ -233,9 +237,9 @@ const AccessDetailModal = ({
                 <Typography variant='subtitle1'>{t('reportCard.apiImage')}</Typography>
                 <Avatar
                   variant='rounded'
-                  src={modalData.last_person_image || '/images/avatars/1.png'}
+                  src={lastPersonImageUrl || '/images/avatars/1.png'}
                   alt={modalData.first_name}
-                  onClick={() => setFullScreenImageUrl(modalData.last_person_image || '/images/avatars/1.png')}
+                  onClick={() => setFullScreenImageUrl(lastPersonImageUrl || '/images/avatars/1.png')}
                   sx={{
                     cursor: 'pointer',
                     width: { xs: 100, sm: 140, md: 200 },

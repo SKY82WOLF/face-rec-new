@@ -130,19 +130,30 @@ function AccessContent({ initialPage = 1, initialper_page = 10 }) {
       />
       <AccessSort orderBy={orderBy} setOrderBy={setOrderBy} />
       <Card elevation={0} sx={{ ...commonStyles.transparentCard, backgroundColor: '#00000000', boxShadow: 'none' }}>
-        <Grid
+        <Box
           p={2}
-          container
-          spacing={2}
-          sx={{ overflowY: 'auto', maxHeight: 'calc(100vh - 250px)', justifyContent: 'center' }}
+          sx={{
+            overflowY: 'auto',
+            maxHeight: 'calc(100vh - 250px)',
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: 'repeat(1, 1fr)',
+              sm: 'repeat(auto-fill, minmax(260px, 1fr))'
+            },
+            gap: 2,
+            alignItems: 'stretch'
+          }}
         >
           {isLoading ? (
-            <Grid item xs={12}>
+            <Box sx={{ gridColumn: '1 / -1' }}>
               <LoadingState message={t('access.loading')} />
-            </Grid>
+            </Box>
           ) : personsData?.data?.length > 0 ? (
             personsData.data.map((person, index) => (
-              <Grid sx={{ display: 'flex', flexGrow: 1, minWidth: '330px' }} xs={12} sm={6} md={4} key={person.id}>
+              <Box
+                key={person.id}
+                sx={{ display: 'flex', justifyContent: 'center', alignItems: 'stretch', width: '100%' }}
+              >
                 <AccessReportCard
                   reportData={{
                     id: person.id,
@@ -160,14 +171,14 @@ function AccessContent({ initialPage = 1, initialper_page = 10 }) {
                   }}
                   allReports={personsData.data}
                 />
-              </Grid>
+              </Box>
             ))
           ) : (
-            <Grid item xs={12}>
+            <Box sx={{ gridColumn: '1 / -1' }}>
               <EmptyState message={t('access.noPersons')} />
-            </Grid>
+            </Box>
           )}
-        </Grid>
+        </Box>
       </Card>
       {personsData?.data?.length > 0 && (
         <PaginationControls
