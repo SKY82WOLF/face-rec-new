@@ -241,20 +241,47 @@ const AccessReportCard = ({ reportData, allReports }) => {
               {`${reportData.first_name || ''} ${reportData.last_name || ''}`}
             </Typography>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5, justifyContent: 'space-between',width:'100%' }}>
-              <Typography variant='body2' color='textSecondary' sx={{ minWidth: 0 }}>
-                {genderTypes.loading
-                  ? t('reportCard.loading')
-                  : (() => {
-                      const genderId = reportData.gender_id?.id || reportData.gender_id
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                mt: 0.5,
+                justifyContent: 'space-between',
+                width: '100%'
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
+                {(() => {
+                  if (genderTypes.loading) {
+                    return (
+                      <>
+                        <Typography variant='body2' color='textSecondary'>
+                          {t('reportCard.loading')}
+                        </Typography>
+                      </>
+                    )
+                  }
 
-                      if (genderId && genderTypes?.data) {
-                        return getTypeTitle(genderTypes, genderId)
-                      }
+                  const genderId = reportData.gender_id?.id || reportData.gender_id
+                  let icon = null
 
-                      return t('reportCard.unknown')
-                    })()}
-              </Typography>
+                  if (genderId === 2) {
+                    icon = <i className='tabler tabler-gender-male' style={{ fontSize: 18, color: '#1976d2' }} />
+                  } else if (genderId === 3) {
+                    icon = <i className='tabler tabler-gender-female' style={{ fontSize: 18, color: '#d81b60' }} />
+                  }
+
+                  return (
+                    <>
+                      {icon}
+                      <Typography variant='body2' color='textSecondary'>
+                        {genderId && genderTypes?.data ? getTypeTitle(genderTypes, genderId) : t('reportCard.unknown')}
+                      </Typography>
+                    </>
+                  )
+                })()}
+              </Box>
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
                 <Typography

@@ -14,8 +14,13 @@ import {
   Slider,
   Grid,
   OutlinedInput,
-  Chip
+  Chip,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
 } from '@mui/material'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import SearchIcon from '@mui/icons-material/Search'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDateFnsJalali } from '@mui/x-date-pickers/AdapterDateFnsJalali'
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
@@ -168,181 +173,172 @@ const ReportsFilters = ({ onFilter }) => {
     setSelectedCameras(typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value)
 
   return (
-    <Card elevation={1} sx={{ mb: 2, p: 2, borderRadius: 2, width: '100%' }}>
-      <Box
-        component='form'
-        onSubmit={handleSubmit}
-        sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}
+    <Card elevation={1} sx={{ mb: 2, borderRadius: 2, width: '100%' }}>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={1}
+        alignItems={{ xs: 'stretch', sm: 'center' }}
+        sx={{
+          flexWrap: 'wrap',
+          gap: { xs: 1, sm: 2 },
+          '& .MuiFormControl-root, & .MuiTextField-root, & .MuiButton-root': {
+            width: { xs: '100%', sm: 'auto' }
+          }
+        }}
       >
-        {/* API Filters Row - full width using CSS Grid */}
-        <Box
-          sx={{
-            width: '100%',
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))', md: 'repeat(3, minmax(0, 1fr))' },
-            gap: 2
-          }}
+        <Accordion
+          sx={{ boxShadow: 'none', backgroundColor: 'transparent', width: '100%', ml: 1, '&.Mui-expanded': { boxShadow: 'none' }, p: 0 }}
+          disableGutters
+          defaultExpanded
         >
-          <Box>
-            <FormControl size='small' fullWidth>
-              <InputLabel>{t('access.filter.access') || 'Access'}</InputLabel>
-              <Select
-                multiple
-                value={selectedAccess}
-                onChange={handleAccessChange}
-                input={<OutlinedInput label={t('access.filter.access') || 'Access'} />}
-                renderValue={selected => (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                    {selected.map(value => {
-                      const type = accessTypes?.data?.find(t => t.id === value)
+          <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ rotate: '90deg', transition: 'transform 0.3s ease-in-out' }} />} sx={{ minHeight: 36, '& .MuiAccordionSummary-content': { my: 0 } }}>
+            <Typography sx={{ fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center' }}><SearchIcon sx={{ fontSize: 16, mr: 1 }} />{t('reportCard.search')}</Typography>
+          </AccordionSummary>
+          <AccordionDetails sx={{ backgroundColor: 'transparent', boxShadow: 'none', display: 'flex', gap: 1, flexWrap: 'wrap', py: 1 }}>
+            <Box component='form' onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}>
+              {/* API Filters Row - full width using CSS Grid */}
+              <Box sx={{ width: '100%', display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))', md: 'repeat(3, minmax(0, 1fr))' }, gap: 2 }}>
+                <Box>
+                  <FormControl size='small' fullWidth sx={{ width: '100%!important' }}>
+                    <InputLabel>{t('access.filter.access') || 'Access'}</InputLabel>
+                    <Select
+                      multiple
+                      value={selectedAccess}
+                      onChange={handleAccessChange}
+                      input={<OutlinedInput label={t('access.filter.access') || 'Access'} />}
+                      renderValue={selected => (
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                          {selected.map(value => {
+                            const type = accessTypes?.data?.find(t => t.id === value)
 
-                      return <Chip key={value} label={type?.translate || type?.title || value} size='small' />
-                    })}
-                  </Box>
-                )}
-                MenuProps={MenuProps}
-              >
-                {accessTypes?.data?.map(type => (
-                  <MenuItem key={type.id} value={type.id}>
-                    {type.translate?.trim() || type.title?.trim()}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
+                            return <Chip key={value} label={type?.translate || type?.title || value} size='small' />
+                          })}
+                        </Box>
+                      )}
+                      MenuProps={MenuProps}
+                    >
+                      {accessTypes?.data?.map(type => (
+                        <MenuItem key={type.id} value={type.id}>
+                          {type.translate?.trim() || type.title?.trim()}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
 
-          <Box>
-            <FormControl size='small' fullWidth>
-              <InputLabel>{t('access.filter.gender') || 'Gender'}</InputLabel>
-              <Select
-                multiple
-                value={selectedGender}
-                onChange={handleGenderChange}
-                input={<OutlinedInput label={t('access.filter.gender') || 'Gender'} />}
-                renderValue={selected => (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                    {selected.map(value => {
-                      const type = genderTypes?.data?.find(t => t.id === value)
+                <Box>
+                  <FormControl size='small' fullWidth sx={{ width: '100%!important' }}>
+                    <InputLabel>{t('access.filter.gender') || 'Gender'}</InputLabel>
+                    <Select
+                      multiple
+                      value={selectedGender}
+                      onChange={handleGenderChange}
+                      input={<OutlinedInput label={t('access.filter.gender') || 'Gender'} />}
+                      renderValue={selected => (
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                          {selected.map(value => {
+                            const type = genderTypes?.data?.find(t => t.id === value)
 
-                      return <Chip key={value} label={type?.translate || type?.title || value} size='small' />
-                    })}
-                  </Box>
-                )}
-                MenuProps={MenuProps}
-              >
-                {genderTypes?.data?.map(type => (
-                  <MenuItem key={type.id} value={type.id}>
-                    {type.translate?.trim() || type.title?.trim()}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
+                            return <Chip key={value} label={type?.translate || type?.title || value} size='small' />
+                          })}
+                        </Box>
+                      )}
+                      MenuProps={MenuProps}
+                    >
+                      {genderTypes?.data?.map(type => (
+                        <MenuItem key={type.id} value={type.id}>
+                          {type.translate?.trim() || type.title?.trim()}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
 
-          <Box>
-            <FormControl size='small' fullWidth>
-              <InputLabel>{t('reportCard.camera') || 'Camera'}</InputLabel>
-              <Select
-                multiple
-                value={selectedCameras}
-                onChange={handleCamerasChange}
-                input={<OutlinedInput label={t('reportCard.camera') || 'Camera'} />}
-                renderValue={selected => (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                    {selected.map(value => (
-                      <Chip key={value} label={`Camera ${value}`} size='small' />
-                    ))}
-                  </Box>
-                )}
-                MenuProps={MenuProps}
-              >
-                {camerasData?.map(cam => (
-                  <MenuItem key={cam.id || cam.camera_id || cam} value={cam.id || cam.camera_id || cam}>
-                    {cam.title || cam.name || `Camera ${cam.id || cam.camera_id || cam}`}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
-        </Box>
-
-        {/* Person multi-select using fetched persons (access 5,6) */}
-        <FormControl size='small' sx={{ minWidth: { xs: '100%', sm: 320 } }}>
-          <InputLabel>{t('access.filter.persons') || 'Persons'}</InputLabel>
-          <Select
-            multiple
-            value={selectedPersons}
-            onChange={handlePersonChange}
-            input={<OutlinedInput label={t('access.filter.persons') || 'Persons'} />}
-            renderValue={selected => (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {selected.map(value => {
-                  const p =
-                    personsData?.data?.find(x => x.person_id === value || x.id === value) ||
-                    personsData?.find?.(x => x.person_id === value || x.id === value)
-
-                  const label = p
-                    ? `${p.first_name || ''} ${p.last_name || ''}`.trim() || p.person_id || p.id || value
-                    : value
-
-                  return <Chip key={value} label={label} size='small' />
-                })}
+                <Box>
+                  <FormControl size='small' fullWidth sx={{ width: '100%!important' }}>
+                    <InputLabel>{t('reportCard.camera') || 'Camera'}</InputLabel>
+                    <Select
+                      multiple
+                      value={selectedCameras}
+                      onChange={handleCamerasChange}
+                      input={<OutlinedInput label={t('reportCard.camera') || 'Camera'} />}
+                      renderValue={selected => (
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                          {selected.map(value => (
+                            <Chip key={value} label={`Camera ${value}`} size='small' />
+                          ))}
+                        </Box>
+                      )}
+                      MenuProps={MenuProps}
+                    >
+                      {camerasData?.map(cam => (
+                        <MenuItem key={cam.id || cam.camera_id || cam} value={cam.id || cam.camera_id || cam}>
+                          {cam.title || cam.name || `Camera ${cam.id || cam.camera_id || cam}`}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
               </Box>
-            )}
-            MenuProps={MenuProps}
-          >
-            {(personsData?.data || personsData || []).map(person => (
-              <MenuItem key={person.person_id || person.id} value={person.person_id || person.id}>
-                {person.first_name || ''} {person.last_name || ''} ({person.person_id || person.id})
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
 
-        {/* Date Range Row - full width */}
-        <LocalizationProvider
-          dateAdapter={AdapterDateFnsJalali}
-          localeText={{ okButtonLabel: t('common.ok'), cancelButtonLabel: t('common.cancel') }}
-        >
-          <Box
-            sx={{
-              width: '100%',
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' },
-              gap: 2
-            }}
-          >
-            <Box>
-              <DateTimePicker
-                label={t('reportCard.date') + ' (از)'}
-                value={dateFilters.created_at_from ? new Date(dateFilters.created_at_from) : null}
-                onChange={value => handleDateChange('created_at_from', value)}
-                ampm={false}
-                slotProps={{ textField: { size: 'small', fullWidth: true } }}
-              />
-            </Box>
-            <Box>
-              <DateTimePicker
-                label={t('reportCard.date') + ' (تا)'}
-                value={dateFilters.created_at_to ? new Date(dateFilters.created_at_to) : null}
-                onChange={value => handleDateChange('created_at_to', value)}
-                ampm={false}
-                slotProps={{ textField: { size: 'small', fullWidth: true } }}
-              />
-            </Box>
-          </Box>
-        </LocalizationProvider>
+              {/* Person multi-select using fetched persons (access 5,6) */}
+              <FormControl size='small' sx={{ minWidth: { xs: '100%', sm: 320 } }}>
+                <InputLabel>{t('access.filter.persons') || 'Persons'}</InputLabel>
+                <Select
+                  multiple
+                  value={selectedPersons}
+                  onChange={handlePersonChange}
+                  input={<OutlinedInput label={t('access.filter.persons') || 'Persons'} />}
+                  renderValue={selected => (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {selected.map(value => {
+                        const p =
+                          personsData?.data?.find(x => x.person_id === value || x.id === value) ||
+                          personsData?.find?.(x => x.person_id === value || x.id === value)
 
-        {/* Action Buttons */}
-        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-          <Button type='submit' variant='contained' sx={{ minWidth: 100 }}>
-            {t('common.search')}
-          </Button>
-          <Button onClick={handleReset} sx={{ minWidth: 80 }}>
-            {t('common.reset') || 'بازنشانی'}
-          </Button>
-        </Box>
-      </Box>
+                        const label = p
+                          ? `${p.first_name || ''} ${p.last_name || ''}`.trim() || p.person_id || p.id || value
+                          : value
+
+                        return <Chip key={value} label={label} size='small' />
+                      })}
+                    </Box>
+                  )}
+                  MenuProps={MenuProps}
+                >
+                  {(personsData?.data || personsData || []).map(person => (
+                    <MenuItem key={person.person_id || person.id} value={person.person_id || person.id}>
+                      {person.first_name || ''} {person.last_name || ''} ({person.person_id || person.id})
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              {/* Date Range Row - full width */}
+              <LocalizationProvider dateAdapter={AdapterDateFnsJalali} localeText={{ okButtonLabel: t('common.ok'), cancelButtonLabel: t('common.cancel') }}>
+                <Box sx={{ width: '100%', display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' }, gap: 2 }}>
+                  <Box>
+                    <DateTimePicker label={t('reportCard.date') + ' (از)'} value={dateFilters.created_at_from ? new Date(dateFilters.created_at_from) : null} onChange={value => handleDateChange('created_at_from', value)} ampm={false} slotProps={{ textField: { size: 'small', fullWidth: true, sx: { width: '100%!important' } } }} />
+                  </Box>
+                  <Box>
+                    <DateTimePicker label={t('reportCard.date') + ' (تا)'} value={dateFilters.created_at_to ? new Date(dateFilters.created_at_to) : null} onChange={value => handleDateChange('created_at_to', value)} ampm={false} slotProps={{ textField: { size: 'small', fullWidth: true, sx: { width: '100%!important' } } }} />
+                  </Box>
+                </Box>
+              </LocalizationProvider>
+
+              {/* Action Buttons */}
+              <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end',mb:1 }}>
+                <Button type='submit' variant='contained' sx={{ minWidth: 100 }}>
+                  {t('common.search')}
+                </Button>
+                <Button onClick={handleReset} sx={{ minWidth: 80 }}>
+                  {t('common.reset') || 'بازنشانی'}
+                </Button>
+              </Box>
+            </Box>
+          </AccordionDetails>
+        </Accordion>
+      </Stack>
     </Card>
   )
 }

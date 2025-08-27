@@ -5,17 +5,19 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore'
 import CameraAltIcon from '@mui/icons-material/CameraAlt'
 import PersonIcon from '@mui/icons-material/Person'
+import LockIcon from '@mui/icons-material/Lock'
+import LockOpenIcon from '@mui/icons-material/LockOpen'
 import * as htmlToImage from 'html-to-image'
 
 import { useSelector } from 'react-redux'
 
 import FullScreenImageModal from '@/components/FullScreenImageModal'
 
-import useCameras from '@/hooks/useCameras'
+// cameras are passed from parent to avoid refetching on every modal open
 
 import { useTranslation } from '@/translations/useTranslation'
 import { getBackendImgUrl2 } from '@/configs/routes'
-import { selectGenderTypes } from '@/store/slices/typesSlice'
+import { selectGenderTypes, selectAccessTypes } from '@/store/slices/typesSlice'
 import ShamsiDateTime from '@/components/ShamsiDateTimer'
 import { commonStyles } from '@/@core/styles/commonStyles'
 
@@ -25,14 +27,15 @@ const modalStyle = {
   maxWidth: 600
 }
 
-const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentIndex, onNavigate }) => {
+const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentIndex, onNavigate, camerasDataProp }) => {
   const { t } = useTranslation()
   const modalRef = useRef(null)
   const [fullScreenImageUrl, setFullScreenImageUrl] = useState(null)
 
   // Get types data
   const genderTypes = useSelector(selectGenderTypes)
-  const { cameras: camerasData } = useCameras({ page: 1, per_page: 200 })
+  const accessTypes = useSelector(selectAccessTypes)
+  const camerasData = camerasDataProp || []
 
   // Helper function to get type title by ID
   const getTypeTitle = (types, id) => {
@@ -76,13 +79,37 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
     return 'error'
   }
 
-  // Info table with actual API data
+  // Info table with actual API data — include id, camera, date and time
   const modalInfo = [
     { label: t('reportCard.name'), value: fullName },
     { label: t('reportCard.personId'), value: personCode },
     {
       label: t('reportCard.gender'),
-      value: genderTypes.loading ? t('reportCard.loading') : getTypeTitle(genderTypes, reportData.gender_id)
+      value: (
+        <>
+          {(() => {
+            const genderId = reportData.gender_id?.id || reportData.gender_id
+
+            if (genderTypes.loading) return t('reportCard.loading')
+
+            const icon =
+              genderId === 2 ? (
+                <i className='tabler tabler-gender-male' style={{ fontSize: 18, color: '#1976d2' }} />
+              ) : genderId === 3 ? (
+                <i className='tabler tabler-gender-female' style={{ fontSize: 18, color: '#d81b60' }} />
+              ) : null
+
+            return (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {icon}
+                <Box component='span' sx={{ color: 'text.secondary' }}>
+                  {genderId && genderTypes?.data ? getTypeTitle(genderTypes, genderId) : t('reportCard.unknown')}
+                </Box>
+              </Box>
+            )
+          })()}
+        </>
+      )
     },
     {
       label: t('reportCard.camera'),
@@ -92,16 +119,39 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
         : `Camera ${reportData.camera_id || 'Unknown'}`
     },
     {
+      label: t('reportCard.access'),
+      value: (
+        <>
+          {(() => {
+            const accessId = reportData.access_id?.id || reportData.access_id
+
+            if (accessTypes.loading) return t('reportCard.loading')
+
+            return (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box component='span' sx={{ color: accessId === 5 ? 'success.main' : 'error.main' }}>
+                  {accessId && accessTypes?.data ? getTypeTitle(accessTypes, accessId) : t('reportCard.unknown')}
+                </Box>
+                {accessId === 5 ? (
+                  <LockOpenIcon sx={{ fontSize: 18, color: 'success.main' }} />
+                ) : (
+                  <LockIcon sx={{ fontSize: 18, color: 'error.main' }} />
+                )}
+              </Box>
+            )
+          })()}
+        </>
+      )
+    },
+    { label: t('reportCard.date'), value: <ShamsiDateTime dateTime={reportData.created_at} format='date' /> },
+    { label: t('reportCard.time'), value: <ShamsiDateTime dateTime={reportData.created_at} format='time' /> },
+    {
       label: t('reportCard.confidence'),
       value: `${confidencePercentage}%`,
       valueColor: getConfidenceColor(reportData.confidence)
     },
     { label: t('reportCard.fiqa'), value: `${fiqaPercentage}%`, valueColor: getFiqaColor(reportData.fiqa) },
     { label: t('reportCard.similarityScore'), value: reportData.similarity_score || t('reportCard.unknown') },
-    {
-      label: t('reportCard.createdAt'),
-      value: <ShamsiDateTime dateTime={reportData.created_at} format='dateTime' />
-    },
     {
       label: t('reportCard.updatedAt'),
       value: <ShamsiDateTime dateTime={reportData.updated_at} format='dateTime' />
@@ -293,6 +343,7 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
                 </Typography>
                 <Typography
                   variant='body1'
+                  component='div'
                   color={item.valueColor || 'text.primary'}
                   sx={{ display: 'flex', alignItems: 'center' }}
                 >

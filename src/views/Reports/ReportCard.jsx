@@ -9,15 +9,18 @@ import PersonIcon from '@mui/icons-material/Person'
 
 import { useSelector } from 'react-redux'
 
+import LockIcon from '@mui/icons-material/Lock'
+
+import LockOpenIcon from '@mui/icons-material/LockOpen'
+
 import FullScreenImageModal from '@/components/FullScreenImageModal'
 
 import useCameras from '@/hooks/useCameras'
 
 import { useTranslation } from '@/translations/useTranslation'
 import { getBackendImgUrl2 } from '@/configs/routes'
-import { selectGenderTypes } from '@/store/slices/typesSlice'
+import { selectGenderTypes, selectAccessTypes } from '@/store/slices/typesSlice'
 import ShamsiDateTime from '@/components/ShamsiDateTimer'
-import ReportsDetailModal from './ReportsDetailModal'
 import ReportsEditModal from './ReportsEditModal'
 import { commonStyles } from '@/@core/styles/commonStyles'
 import useHasPermission from '@/utils/HasPermission'
@@ -46,6 +49,7 @@ const ReportCard = ({ reportData, allReports, onOpenDetail }) => {
 
   // Get types data
   const genderTypes = useSelector(selectGenderTypes)
+  const accessTypes = useSelector(selectAccessTypes)
   const { cameras: camerasData } = useCameras({ page: 1, per_page: 200 })
 
   // Helper function to get type title by ID
@@ -120,12 +124,37 @@ const ReportCard = ({ reportData, allReports, onOpenDetail }) => {
             }}
           />
           <Box sx={{ flexGrow: 1 }}>
-            <Typography variant='body2' color='textSecondary'>
+            <Typography variant='h6' color='textSecondary' fontWeight={600}>
               {fullName}
             </Typography>
-            <Typography variant='body2' color='textSecondary'>
-              {' '}
-              {genderTypes.loading ? t('reportCard.loading') : getTypeTitle(genderTypes, reportData.gender_id)}
+            <Typography variant='body2' color='textSecondary' component='div'>
+              {(() => {
+                if (genderTypes.loading) {
+                  return (
+                    <Typography variant='body2' color='textSecondary'>
+                      {t('reportCard.loading')}
+                    </Typography>
+                  )
+                }
+
+                const genderId = reportData.gender_id?.id || reportData.gender_id || reportData.person_id?.gender_id?.id
+                let icon = null
+
+                if (genderId === 2) {
+                  icon = <i className='tabler tabler-gender-male' style={{ fontSize: 18, color: '#1976d2' }} />
+                } else if (genderId === 3) {
+                  icon = <i className='tabler tabler-gender-female' style={{ fontSize: 18, color: '#d81b60' }} />
+                }
+
+                return (
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    {icon}
+                    <Typography variant='body2' color='textSecondary'>
+                      {genderId && genderTypes?.data ? getTypeTitle(genderTypes, genderId) : t('reportCard.unknown')}
+                    </Typography>
+                  </Box>
+                )
+              })()}
             </Typography>
             <Typography variant='caption' color='textSecondary'>
               {t('reportCard.personId')}: {personCode}
@@ -145,9 +174,24 @@ const ReportCard = ({ reportData, allReports, onOpenDetail }) => {
               color='primary'
               variant='outlined'
             />
-            <Typography variant='caption' color='textSecondary'>
-              ID: {reportData.id}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Typography variant='body2' color={reportData.access_id?.id === 5 ? 'success.main' : 'error.main'}>
+                {accessTypes.loading
+                  ? t('reportCard.loading')
+                  : (() => {
+                      const accessId = reportData.access_id?.id || reportData.access_id
+
+                      if (accessId && accessTypes?.data) return getTypeTitle(accessTypes, accessId)
+
+                      return t('reportCard.unknown')
+                    })()}
+              </Typography>
+              {reportData.access_id?.id === 5 ? (
+                <LockOpenIcon sx={{ fontSize: 16, color: 'success.main' }} />
+              ) : (
+                <LockIcon sx={{ fontSize: 16, color: 'error.main' }} />
+              )}
+            </Box>
           </Box>
         </Box>
         <Divider sx={{ my: 1 }} />

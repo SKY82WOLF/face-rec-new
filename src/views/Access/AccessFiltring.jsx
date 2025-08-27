@@ -12,8 +12,15 @@ import {
   Chip,
   TextField,
   Button,
-  Stack
+  Stack,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Typography,
+  Card
 } from '@mui/material'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import SearchIcon from '@mui/icons-material/Search'
 
 import { useSelector } from 'react-redux'
 
@@ -42,9 +49,6 @@ const AccessFiltring = ({ onChange, initialFilters = {} }) => {
   const [selectedAccess, setSelectedAccess] = useState(initialFilters.access_id || [5, 6])
   const [selectedGender, setSelectedGender] = useState(initialFilters.gender_id || [])
 
-  // Support multi-select search fields. Default to first_name.
-  const [selectedSearchFields, setSelectedSearchFields] = useState(initialFilters.searchFields || ['first_name'])
-
   // Separate search inputs for each possible field
   const [searchInputs, setSearchInputs] = useState({
     first_name: initialFilters.first_name || '',
@@ -63,30 +67,15 @@ const AccessFiltring = ({ onChange, initialFilters = {} }) => {
     if (selectedAccess && selectedAccess.length > 0) filters.access_id = selectedAccess
     if (selectedGender && selectedGender.length > 0) filters.gender_id = selectedGender
 
-    // For each selected search field, pull corresponding input value(s)
-    if (selectedSearchFields.includes('first_name')) {
-      if (searchInputs.first_name && searchInputs.first_name.toString().trim() !== '') {
-        filters.first_name = searchInputs.first_name
-      }
-    }
-
-    if (selectedSearchFields.includes('last_name')) {
-      if (searchInputs.last_name && searchInputs.last_name.toString().trim() !== '') {
-        filters.last_name = searchInputs.last_name
-      }
-    }
-
-    if (selectedSearchFields.includes('person_id')) {
-      if (searchInputs.person_id && searchInputs.person_id.toString().trim() !== '') {
-        filters.person_id = searchInputs.person_id
-      }
-    }
-
-    if (selectedSearchFields.includes('national_code')) {
-      if (searchInputs.national_code && searchInputs.national_code.toString().trim() !== '') {
-        filters.national_code = searchInputs.national_code
-      }
-    }
+    // Include any search inputs that have values
+    if (searchInputs.first_name && searchInputs.first_name.toString().trim() !== '')
+      filters.first_name = searchInputs.first_name
+    if (searchInputs.last_name && searchInputs.last_name.toString().trim() !== '')
+      filters.last_name = searchInputs.last_name
+    if (searchInputs.person_id && searchInputs.person_id.toString().trim() !== '')
+      filters.person_id = searchInputs.person_id
+    if (searchInputs.national_code && searchInputs.national_code.toString().trim() !== '')
+      filters.national_code = searchInputs.national_code
 
     return filters
   }
@@ -122,11 +111,11 @@ const AccessFiltring = ({ onChange, initialFilters = {} }) => {
     }, 500)
   }
 
-  // Send immediately when structural selections change (access, gender, selected search fields)
+  // Send immediately when structural selections change (access, gender)
   useEffect(() => {
     sendFilters(true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedAccess, selectedGender, selectedSearchFields])
+  }, [selectedAccess, selectedGender])
 
   // Debounce typing changes (searchInputs) — send after user stops typing
   useEffect(() => {
@@ -142,7 +131,7 @@ const AccessFiltring = ({ onChange, initialFilters = {} }) => {
   }, [searchInputs])
 
   return (
-    <Box sx={{ mb: 2 }}>
+    <Card sx={{ p: 2, mt: 2, mb: 2, borderRadius: 2 }} elevation={1}>
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
         spacing={1}
@@ -155,161 +144,168 @@ const AccessFiltring = ({ onChange, initialFilters = {} }) => {
           }
         }}
       >
-        <FormControl sx={{ minWidth: { xs: '100%', sm: 200 } }} size='small'>
-          <InputLabel>{t('access.filter.access') || 'Access'}</InputLabel>
-          <Select
-            multiple
-            value={selectedAccess}
-            onChange={e =>
-              setSelectedAccess(typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value)
-            }
-            input={<OutlinedInput label={t('access.filter.access') || 'Access'} />}
-            renderValue={selected => (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {selected.map(value => {
-                  const type = accessTypes?.data?.find(t => t.id === value)
-
-                  return <Chip key={value} label={type?.translate || type?.title || value} size='small' />
-                })}
-              </Box>
-            )}
-            MenuProps={MenuProps}
-          >
-            {accessTypes?.data?.map(type => (
-              <MenuItem key={type.id} value={type.id}>
-                {type.translate?.trim() || type.title?.trim()}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <FormControl sx={{ minWidth: { xs: '100%', sm: 200 } }} size='small'>
-          <InputLabel>{t('access.filter.gender') || 'Gender'}</InputLabel>
-          <Select
-            multiple
-            value={selectedGender}
-            onChange={e =>
-              setSelectedGender(typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value)
-            }
-            input={<OutlinedInput label={t('access.filter.gender') || 'Gender'} />}
-            renderValue={selected => (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {selected.map(value => {
-                  const type = genderTypes?.data?.find(t => t.id === value)
-
-                  return <Chip key={value} label={type?.translate || type?.title || value} size='small' />
-                })}
-              </Box>
-            )}
-            MenuProps={MenuProps}
-          >
-            {genderTypes?.data?.map(type => (
-              <MenuItem key={type.id} value={type.id}>
-                {type.translate?.trim() || type.title?.trim()}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <FormControl size='small' sx={{ minWidth: { xs: '100%', sm: 220 } }}>
-          <InputLabel>{t('access.filter.searchBy') || 'Search By'}</InputLabel>
-          <Select
-            multiple
-            value={selectedSearchFields}
-            onChange={e =>
-              setSelectedSearchFields(typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value)
-            }
-            input={<OutlinedInput label={t('access.filter.searchBy') || 'Search By'} />}
-            renderValue={selected => (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {selected.map(value => (
-                  <Chip
-                    key={value}
-                    label={
-                      value === 'first_name'
-                        ? t('access.filter.firstName') || 'First name'
-                        : value === 'last_name'
-                          ? t('access.filter.lastName') || 'Last name'
-                          : value === 'person_id'
-                            ? t('access.filter.id') || 'ID'
-                            : value === 'national_code'
-                              ? t('access.filter.nationalCode') || 'National Code'
-                              : value
-                    }
-                    size='small'
-                  />
-                ))}
-              </Box>
-            )}
-            MenuProps={MenuProps}
-          >
-            <MenuItem value='first_name'>{t('access.filter.firstName') || 'First name'}</MenuItem>
-            <MenuItem value='last_name'>{t('access.filter.lastName') || 'Last name'}</MenuItem>
-            <MenuItem value='person_id'>{t('access.filter.id') || 'ID'}</MenuItem>
-            <MenuItem value='national_code'>{t('access.filter.nationalCode') || 'National Code'}</MenuItem>
-          </Select>
-        </FormControl>
-
-        {/* Render separate inputs depending on selected search fields */}
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', width: { xs: '100%', sm: 'auto' } }}>
-          {selectedSearchFields.includes('first_name') && (
-            <TextField
-              size='small'
-              value={searchInputs.first_name}
-              onChange={e => setSearchInputs(s => ({ ...s, first_name: e.target.value }))}
-              placeholder={t('access.filter.placeholder_first_name') || 'First name'}
-              sx={{ minWidth: { xs: '100%', sm: 140 } }}
-            />
-          )}
-
-          {selectedSearchFields.includes('last_name') && (
-            <TextField
-              size='small'
-              value={searchInputs.last_name}
-              onChange={e => setSearchInputs(s => ({ ...s, last_name: e.target.value }))}
-              placeholder={t('access.filter.placeholder_last_name') || 'Last name'}
-              sx={{ minWidth: { xs: '100%', sm: 140 } }}
-            />
-          )}
-
-          {selectedSearchFields.includes('person_id') && (
-            <TextField
-              size='small'
-              value={searchInputs.person_id}
-              onChange={e => setSearchInputs(s => ({ ...s, person_id: e.target.value }))}
-              placeholder={t('access.filter.placeholder_person_id') || 'Person ID'}
-              sx={{ minWidth: { xs: '100%', sm: 140 } }}
-            />
-          )}
-
-          {selectedSearchFields.includes('national_code') && (
-            <TextField
-              size='small'
-              value={searchInputs.national_code}
-              onChange={e => setSearchInputs(s => ({ ...s, national_code: e.target.value }))}
-              placeholder={t('access.filter.placeholder_national_code') || 'National Code'}
-              sx={{ minWidth: { xs: '100%', sm: 140 } }}
-            />
-          )}
-        </Box>
-
-        <Button
-          variant='outlined'
-          onClick={() => {
-            setSelectedAccess([5, 6])
-            setSelectedGender([])
-            setSelectedSearchFields(['first_name'])
-            setSearchInputs({ first_name: '', last_name: '', person_id: '', national_code: '' })
-
-            // send immediately so parent resets to page 1
-            sendFilters(true)
+        {/* Search accordion (compact header) */}
+        <Accordion
+          sx={{
+            boxShadow: 'none',
+            backgroundColor: 'transparent',
+            width: '100%',
+            ml: 1,
+            '&.Mui-expanded': { boxShadow: 'none' },
+            p: 0
           }}
-          sx={{ width: { xs: '100%', sm: 'auto' } }}
+          disableGutters
+          defaultExpanded
         >
-          {t('common.reset') || 'Reset'}
-        </Button>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon sx={{ rotate: '90deg', transition: 'transform 0.3s ease-in-out' }} />}
+            sx={{ minHeight: 36, '& .MuiAccordionSummary-content': { my: 0 } }}
+          >
+            <Typography sx={{ fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+              <SearchIcon sx={{ fontSize: 16, mr: 1 }} />
+              {t('reportCard.search')}
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails
+            sx={{ backgroundColor: 'transparent', boxShadow: 'none', display: 'flex', gap: 1, flexWrap: 'wrap', py: 1 }}
+          >
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', width: { xs: '100%', sm: 'auto' } }}>
+              <TextField
+                size='small'
+                value={searchInputs.first_name}
+                onChange={e => setSearchInputs(s => ({ ...s, first_name: e.target.value }))}
+                placeholder={t('access.filter.placeholder_first_name') || 'First name'}
+                sx={{ flex: 1, minWidth: { xs: '100%', sm: 140 } }}
+              />
+
+              <TextField
+                size='small'
+                value={searchInputs.last_name}
+                onChange={e => setSearchInputs(s => ({ ...s, last_name: e.target.value }))}
+                placeholder={t('access.filter.placeholder_last_name') || 'Last name'}
+                sx={{ flex: 1, minWidth: { xs: '100%', sm: 140 } }}
+              />
+
+              <TextField
+                size='small'
+                value={searchInputs.person_id}
+                onChange={e => setSearchInputs(s => ({ ...s, person_id: e.target.value }))}
+                placeholder={t('access.filter.placeholder_person_id') || 'Person ID'}
+                sx={{ flex: 1, minWidth: { xs: '100%', sm: 140 } }}
+              />
+
+              <TextField
+                size='small'
+                value={searchInputs.national_code}
+                onChange={e => setSearchInputs(s => ({ ...s, national_code: e.target.value }))}
+                placeholder={t('access.filter.placeholder_national_code') || 'National Code'}
+                sx={{ flex: 1, minWidth: { xs: '100%', sm: 140 } }}
+              />
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', width: '100%', justifyContent: 'space-between' }}>
+                <Box
+                  sx={{
+                    p: 2,
+                    display: 'flex',
+                    gap: 1,
+                    flexWrap: 'wrap',
+                    pl: 0,
+                    width: { xs: '100%', sm: 'auto' },
+                    pl: { xs: 0 },
+                    pr: { xs: 0, sm: 2 }
+                  }}
+                >
+                  {/* Access select */}
+                  <FormControl sx={{ minWidth: { xs: '100%', sm: 170 } }} size='small'>
+                    <InputLabel>{t('access.filter.access') || 'Access'}</InputLabel>
+                    <Select
+                      multiple
+                      value={selectedAccess}
+                      onChange={e =>
+                        setSelectedAccess(
+                          typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value
+                        )
+                      }
+                      input={<OutlinedInput label={t('access.filter.access') || 'Access'} />}
+                      renderValue={selected => (
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                          {selected.map(value => {
+                            const type = accessTypes?.data?.find(t => t.id === value)
+
+                            return <Chip key={value} label={type?.translate || type?.title || value} size='small' />
+                          })}
+                        </Box>
+                      )}
+                      MenuProps={MenuProps}
+                    >
+                      {accessTypes?.data?.map(type => (
+                        <MenuItem key={type.id} value={type.id}>
+                          {type.translate?.trim() || type.title?.trim()}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+
+                  {/* Gender select */}
+                  <FormControl sx={{ minWidth: { xs: '100%', sm: 170 } }} size='small'>
+                    <InputLabel>{t('access.filter.gender') || 'Gender'}</InputLabel>
+                    <Select
+                      multiple
+                      value={selectedGender}
+                      onChange={e =>
+                        setSelectedGender(
+                          typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value
+                        )
+                      }
+                      input={<OutlinedInput label={t('access.filter.gender') || 'Gender'} />}
+                      renderValue={selected => (
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                          {selected.map(value => {
+                            const type = genderTypes?.data?.find(t => t.id === value)
+
+                            return <Chip key={value} label={type?.translate || type?.title || value} size='small' />
+                          })}
+                        </Box>
+                      )}
+                      MenuProps={MenuProps}
+                    >
+                      {genderTypes?.data?.map(type => (
+                        <MenuItem key={type.id} value={type.id}>
+                          {type.translate?.trim() || type.title?.trim()}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
+                <Box
+                  sx={{
+                    mr: { xs: 0, sm: 2 },
+                    order: { xs: 2, sm: 0 },
+                    display: 'flex',
+                    alignItems: 'center',
+                    width: { xs: '100%', sm: 'auto' }
+                  }}
+                >
+                  <Button
+                    variant='outlined'
+                    onClick={() => {
+                      setSelectedAccess([5, 6])
+                      setSelectedGender([])
+                      setSearchInputs({ first_name: '', last_name: '', person_id: '', national_code: '' })
+
+                      // send immediately so parent resets to page 1
+                      sendFilters(true)
+                    }}
+                    sx={{ width: { xs: '100%', sm: 'auto' } }}
+                  >
+                    {t('common.reset') || 'Reset'}
+                  </Button>
+                </Box>
+              </Box>
+            </Box>
+          </AccordionDetails>
+        </Accordion>
       </Stack>
-    </Box>
+    </Card>
   )
 }
 

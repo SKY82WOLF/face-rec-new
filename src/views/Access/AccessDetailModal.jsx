@@ -180,8 +180,8 @@ const AccessDetailModal = ({
 
   const hasUpdatePermission = useHasPermission('updatePerson')
 
-  const personImageUrl = backendImgUrl + modalData.person_image
-  const lastPersonImageUrl = backendImgUrl + modalData.last_person_image
+  const personImageUrl = modalData.person_image ? backendImgUrl + modalData.person_image : null
+  const lastPersonImageUrl = modalData.last_person_image ? backendImgUrl + modalData.last_person_image : null
 
   return (
     <Modal

@@ -74,6 +74,7 @@ const fa = {
 
   // Report Card
   reportCard: {
+    image: 'تصویر',
     noReport: 'گزارشی موجود نیست',
     nationalCode: 'کد ملی',
     gender: 'جنسیت',
@@ -109,7 +110,7 @@ const fa = {
     imageTooLarge: 'حجم فایل بسیار بزرگ است. حداکثر 5 مگابایت مجاز است.',
 
     // Add any missing keys for Reports modals/filters
-    filter: 'فیلتر',
+    filter: 'فیلترها',
     reset: 'بازنشانی',
     edit: 'ویرایش',
     save: 'ذخیره',
@@ -143,6 +144,8 @@ const fa = {
     updatedAt: 'تاریخ بروزرسانی',
     detectedImage: 'تصویر تشخیص داده شده',
     personImage: 'تصویر شخص',
+    actions: 'عملیات',
+    person: 'شخص',
     downloadDetectedImage: 'دانلود تصویر تشخیص',
     downloadPersonImage: 'دانلود تصویر شخص',
     boundingBox: 'محدوده تشخیص',
@@ -174,7 +177,8 @@ const fa = {
       placeholder_first_name: 'نام',
       placeholder_last_name: 'نام خانوادگی',
       placeholder_person_id: 'آیدی',
-      placeholder_national_code: 'کد ملی'
+      placeholder_national_code: 'کد ملی',
+      search: 'جستجو'
     },
     confirmDelete: 'تأیید حذف',
     confirmDeleteMessage: 'آیا مطمئن هستید که می‌خواهید این شخص را حذف کنید؟',

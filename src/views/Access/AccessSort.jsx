@@ -21,7 +21,7 @@ export default function AccessSort({ orderBy, setOrderBy }) {
   const currentField = field || 'created_at'
 
   return (
-    <Card sx={{ p: 2, mb: 2, backgroundColor: 'transparent', boxShadow: 'none' }}>
+    <Card sx={{ p: 2, mb: 1, backgroundColor: 'transparent', boxShadow: 'none', pb: 0 }}>
       <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', justifyContent: 'space-between' }}>
         <FormControl size='small'>
           <InputLabel>{t('common.sortBy') || 'Sort By'}</InputLabel>

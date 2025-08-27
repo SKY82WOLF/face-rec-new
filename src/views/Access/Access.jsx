@@ -20,6 +20,9 @@ import {
 
 import SEO from '@/components/SEO'
 import AccessReportCard from './AccessReportCard'
+import ViewModeToggle from './ViewModeToggle'
+import AccessListView from './AccessListView'
+import AccessDetailModal from './AccessDetailModal'
 import AccessAddModal from './AccessAddModal'
 import AccessFiltring from './AccessFiltring'
 import AccessSort from './AccessSort'
@@ -89,13 +92,71 @@ function AccessContent({ initialPage = 1, initialper_page = 10 }) {
   const handleCloseAddModal = () => setOpenAddModal(false)
 
   const hasAddPermission = useHasPermission('createPerson')
+  const [viewMode, setViewMode] = useState('grid')
+
+  // Detail modal state for list view
+  const [detailOpen, setDetailOpen] = useState(false)
+  const [detailModalData, setDetailModalData] = useState({})
+  const [detailCurrentIndex, setDetailCurrentIndex] = useState(0)
+
+  const openDetailByPersonIndex = personId => {
+    const list = personsData?.data || []
+    const idx = list.findIndex(p => p.id === personId)
+
+    if (idx === -1) return
+
+    const data = list[idx]
+
+    setDetailCurrentIndex(idx)
+    setDetailModalData({
+      id: data.id || '',
+      first_name: data.first_name || '',
+      last_name: data.last_name || '',
+      national_code: data.national_code || '',
+      gender_id: data.gender_id || '',
+      access_id: data.access_id || '',
+      person_image: data.person_image || null,
+      last_person_image: data.last_person_image || null,
+      last_person_report_id: data.last_person_report_id,
+      person_id: data.person_id,
+      created_at: data.created_at || null,
+      index: data.index
+    })
+
+    setDetailOpen(true)
+  }
+
+  const handleDetailNavigate = direction => {
+    const list = personsData?.data || []
+    const newIndex = detailCurrentIndex + direction
+
+    if (newIndex >= 0 && newIndex < list.length) {
+      const data = list[newIndex]
+
+      setDetailCurrentIndex(newIndex)
+      setDetailModalData({
+        id: data.id || '',
+        first_name: data.first_name || '',
+        last_name: data.last_name || '',
+        national_code: data.national_code || '',
+        gender_id: data.gender_id || '',
+        access_id: data.access_id || '',
+        person_image: data.person_image || null,
+        last_person_image: data.last_person_image || null,
+        last_person_report_id: data.last_person_report_id,
+        person_id: data.person_id,
+        created_at: data.created_at || null,
+        index: data.index
+      })
+    }
+  }
 
   return (
     <Box sx={commonStyles.pageContainer}>
       <SEO
-        title='اشخاص مجاز | سیستم تشخیص چهره دیانا'
-        description='مدیریت اشخاص مجاز سیستم تشخیص چهره دیانا'
-        keywords='اشخاص مجاز, مدیریت دسترسی, تشخیص چهره دیانا'
+        title='اشخاص | سیستم تشخیص چهره دیانا'
+        description='مدیریت اشخاص سیستم تشخیص چهره دیانا'
+        keywords='اشخاص, مدیریت دسترسی, تشخیص چهره دیانا'
       />
       <PageHeader
         title={t('access.title')}
@@ -128,57 +189,66 @@ function AccessContent({ initialPage = 1, initialper_page = 10 }) {
         }}
         initialFilters={filters}
       />
-      <AccessSort orderBy={orderBy} setOrderBy={setOrderBy} />
-      <Card elevation={0} sx={{ ...commonStyles.transparentCard, backgroundColor: '#00000000', boxShadow: 'none' }}>
-        <Box
-          p={2}
-          sx={{
-            overflowY: 'auto',
-            maxHeight: 'calc(100vh - 250px)',
-            display: 'grid',
-            gridTemplateColumns: {
-              xs: 'repeat(1, 1fr)',
-              sm: 'repeat(auto-fill, minmax(260px, 1fr))'
-            },
-            gap: 2,
-            alignItems: 'stretch'
-          }}
-        >
-          {isLoading ? (
-            <Box sx={{ gridColumn: '1 / -1' }}>
-              <LoadingState message={t('access.loading')} />
-            </Box>
-          ) : personsData?.data?.length > 0 ? (
-            personsData.data.map((person, index) => (
-              <Box
-                key={person.id}
-                sx={{ display: 'flex', justifyContent: 'center', alignItems: 'stretch', width: '100%' }}
-              >
-                <AccessReportCard
-                  reportData={{
-                    id: person.id,
-                    first_name: person.first_name,
-                    last_name: person.last_name,
-                    national_code: person.national_code,
-                    access_id: person.access_id,
-                    gender_id: person.gender_id,
-                    person_image: person.person_image,
-                    last_person_image: person.last_person_image,
-                    last_person_report_id: person.last_person_report_id,
-                    person_id: person.person_id,
-                    index: index,
-                    date: person.updated_at
-                  }}
-                  allReports={personsData.data}
-                />
-              </Box>
-            ))
-          ) : (
-            <Box sx={{ gridColumn: '1 / -1' }}>
-              <EmptyState message={t('access.noPersons')} />
-            </Box>
-          )}
+      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
+        <AccessSort orderBy={orderBy} setOrderBy={setOrderBy} />
+        <Box>
+          <ViewModeToggle value={viewMode} onChange={setViewMode} />
         </Box>
+      </Box>
+      <Card elevation={0} sx={{ ...commonStyles.transparentCard, backgroundColor: '#00000000', boxShadow: 'none' }}>
+        {viewMode === 'list' ? (
+          <Box p={2}>
+            <AccessListView persons={personsData?.data || []} onOpenDetail={openDetailByPersonIndex} />
+          </Box>
+        ) : (
+          <Box
+            p={2}
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: {
+                xs: 'repeat(1, 1fr)',
+                sm: 'repeat(auto-fill, minmax(220px, 1fr))'
+              },
+              gap: 2,
+              alignItems: 'stretch'
+            }}
+          >
+            {isLoading ? (
+              <Box sx={{ gridColumn: '1 / -1' }}>
+                <LoadingState message={t('access.loading')} />
+              </Box>
+            ) : personsData?.data?.length > 0 ? (
+              personsData.data.map((person, index) => (
+                <Box
+                  key={person.id}
+                  sx={{ display: 'flex', justifyContent: 'center', alignItems: 'stretch', width: '100%' }}
+                >
+                  <AccessReportCard
+                    reportData={{
+                      id: person.id,
+                      first_name: person.first_name,
+                      last_name: person.last_name,
+                      national_code: person.national_code,
+                      access_id: person.access_id,
+                      gender_id: person.gender_id,
+                      person_image: person.person_image,
+                      last_person_image: person.last_person_image,
+                      last_person_report_id: person.last_person_report_id,
+                      person_id: person.person_id,
+                      index: index,
+                      date: person.updated_at
+                    }}
+                    allReports={personsData.data}
+                  />
+                </Box>
+              ))
+            ) : (
+              <Box sx={{ gridColumn: '1 / -1' }}>
+                <EmptyState message={t('access.noPersons')} />
+              </Box>
+            )}
+          </Box>
+        )}
       </Card>
       {personsData?.data?.length > 0 && (
         <PaginationControls
@@ -192,6 +262,16 @@ function AccessContent({ initialPage = 1, initialper_page = 10 }) {
         />
       )}
       <AccessAddModal open={openAddModal} onClose={handleCloseAddModal} />
+      <AccessDetailModal
+        open={detailOpen}
+        onClose={() => setDetailOpen(false)}
+        modalData={detailModalData}
+        currentIndex={detailCurrentIndex}
+        allReports={personsData?.data || []}
+        onNavigate={handleDetailNavigate}
+        onEditOpen={() => {}}
+        onDeleteOpen={() => {}}
+      />
     </Box>
   )
 }

@@ -2,6 +2,20 @@ import { useState, useEffect, Suspense } from 'react'
 
 import { Box, Grid, Card, MenuItem, FormControl, InputLabel, Select } from '@mui/material'
 
+import Dialog from '@mui/material/Dialog'
+
+import DialogActions from '@mui/material/DialogActions'
+
+import DialogContent from '@mui/material/DialogContent'
+
+import DialogContentText from '@mui/material/DialogContentText'
+
+import DialogTitle from '@mui/material/DialogTitle'
+
+import Button from '@mui/material/Button'
+
+import { useSelector } from 'react-redux'
+
 import SEO from '@/components/SEO'
 import PageHeader from '@/components/ui/PageHeader'
 import EmptyState from '@/components/ui/EmptyState'
@@ -15,6 +29,13 @@ import ReportsFilters from './ReportsFilters'
 import ReportCard from './ReportCard'
 import ReportsDetailModal from './ReportsDetailModal'
 import ReportsSort from './ReportsSort'
+import ViewModeToggle from './ViewModeToggle'
+import ReportsGridCard from './ReportsGridCard'
+import ReportsListView from './ReportsListView'
+import ReportsEditModal from './ReportsEditModal'
+
+import useCameras from '@/hooks/useCameras'
+import { useDeletePerson } from '@/hooks/usePersons'
 
 const SORT_FIELDS = [
   { value: 'created_at', label: 'reportCard.date' },
@@ -41,6 +62,9 @@ function ReportsContent() {
   // Modal state for detail modal
   const [openDetailIndex, setOpenDetailIndex] = useState(null)
 
+  // view mode: 'list' | 'report' | 'card' — default to list
+  const [viewMode, setViewMode] = useState('list')
+
   // Use the real API hook - pass through server-side filter params
   const { reports, total, isLoading, isError, refetchReports } = usePersonReports({
     page,
@@ -53,6 +77,43 @@ function ReportsContent() {
     created_at_to: filters.created_at_to ?? null,
     order_by: sortBy
   })
+
+  // Fetch cameras once and reuse
+  const { cameras: camerasData } = useCameras({ page: 1, per_page: 200 })
+
+  // Edit & delete modals state
+  const [editOpen, setEditOpen] = useState(false)
+  const [editReportData, setEditReportData] = useState(null)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [deleteId, setDeleteId] = useState(null)
+
+  const deletePersonMutation = useDeletePerson()
+
+  const handleEditOpen = report => {
+    setEditReportData(report)
+    setEditOpen(true)
+  }
+
+  const handleEditClose = () => setEditOpen(false)
+
+  const handleDeleteOpen = id => {
+    setDeleteId(id)
+    setDeleteConfirmOpen(true)
+  }
+
+  const handleDeleteClose = () => setDeleteConfirmOpen(false)
+
+  const handleDelete = async () => {
+    try {
+      await deletePersonMutation.mutateAsync(deleteId)
+      handleDeleteClose()
+
+      // refresh reports list
+      refetchReports && refetchReports()
+    } catch (err) {
+      console.error('delete failed', err)
+    }
+  }
 
   // Server-side filtering: API returns filtered reports
   const filteredReports = reports || []
@@ -95,21 +156,51 @@ function ReportsContent() {
       <SEO title={t('live.reports')} description={t('live.reports')} keywords={t('live.reports')} />
       <PageHeader underlineWidth={90} title={t('live.reports')} />
       <ReportsFilters onFilter={handleFilter} />
-      <ReportsSort orderBy={sortBy} setOrderBy={setSortBy} />
+      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
+        <ReportsSort sx={{ mb: 0 }} orderBy={sortBy} setOrderBy={setSortBy} />
+        <ViewModeToggle value={viewMode} onChange={setViewMode} />
+      </Box>
       <Box elevation={0} sx={{ borderRadius: 2, mt: 0, mb: 2, backgroundColor: '#00000000' }}>
-        <Grid container spacing={2} p={2} sx={{ justifyContent: 'center' }}>
-          {sortedReports.length === 0 ? (
-            <Grid item xs={12}>
-              <EmptyState message={t('live.noReports')} />
-            </Grid>
-          ) : (
-            sortedReports.map((report, idx) => (
-              <Grid sx={{ display: 'flex', flexGrow: 1, minWidth: '330px' }} item xs={12} sm={6} md={4} key={report.id}>
-                <ReportCard reportData={report} allReports={sortedReports} onOpenDetail={() => handleOpenDetail(idx)} />
+        {sortedReports.length === 0 ? (
+          <EmptyState message={t('live.noReports')} />
+        ) : viewMode === 'report' ? (
+          <Grid container spacing={2} p={2} sx={{ justifyContent: 'center' }}>
+            {sortedReports.map((report, idx) => (
+              <Grid sx={{ display: 'flex', flexGrow: 1, minWidth: '240px' }} item xs={6} sm={4} md={3} key={report.id}>
+                <ReportsGridCard
+                  reportData={report}
+                  onOpenDetail={() => handleOpenDetail(idx)}
+                  onEdit={() => handleEditOpen(report)}
+                  onDelete={() => handleDeleteOpen(report.id)}
+                />
               </Grid>
-            ))
-          )}
-        </Grid>
+            ))}
+          </Grid>
+        ) : viewMode === 'card' ? (
+          <Grid container spacing={2} p={2} sx={{ justifyContent: 'center' }}>
+            {sortedReports.map((report, idx) => (
+              <Grid sx={{ display: 'flex', flexGrow: 1, minWidth: '330px' }} item xs={12} sm={6} md={4} key={report.id}>
+                <ReportCard
+                  reportData={report}
+                  allReports={sortedReports}
+                  onOpenDetail={() => handleOpenDetail(idx)}
+                  onEdit={() => handleEditOpen(report)}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        ) : (
+          <ReportsListView
+            reports={sortedReports}
+            onOpenDetail={id => {
+              const idx = sortedReports.findIndex(r => r.id === id)
+
+              if (idx >= 0) handleOpenDetail(idx)
+            }}
+            onEdit={r => handleEditOpen(r)}
+            onDelete={id => handleDeleteOpen(id)}
+          />
+        )}
       </Box>
       {total > 0 && (
         <PaginationControls
@@ -131,8 +222,27 @@ function ReportsContent() {
           allReports={sortedReports}
           currentIndex={openDetailIndex}
           onNavigate={handleNavigateDetail}
+          camerasDataProp={camerasData}
         />
       )}
+      {/* Edit modal */}
+      <ReportsEditModal open={editOpen} onClose={handleEditClose} reportData={editReportData} />
+
+      {/* Delete confirmation dialog */}
+      <Dialog open={deleteConfirmOpen} onClose={handleDeleteClose} aria-labelledby='delete-confirm-dialog-title'>
+        <DialogTitle id='delete-confirm-dialog-title'>{t('access.confirmDelete')}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>{t('access.confirmDeleteMessage')}</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteClose} variant='outlined'>
+            {t('reportCard.cancel')}
+          </Button>
+          <Button onClick={handleDelete} color='error' variant='contained'>
+            {t('access.delete')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }
