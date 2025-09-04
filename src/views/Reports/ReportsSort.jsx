@@ -10,7 +10,8 @@ const SORT_FIELDS = [
   { value: 'confidence', label: 'reportCard.confidence' },
   { value: 'fiqa', label: 'reportCard.fiqa' },
   { value: 'camera_id', label: 'reportCard.camera' },
-  { value: 'id', label: 'reportCard.id' }
+  { value: 'id', label: 'reportCard.id' },
+  { value: 'similarity_score', label: 'reportCard.similarityScore' }
 ]
 
 export default function ReportsSort({ orderBy, setOrderBy }) {

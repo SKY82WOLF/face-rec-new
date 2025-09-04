@@ -139,6 +139,7 @@ const fa = {
     camera: 'دوربین',
     confidence: 'دقت',
     fiqa: 'کیفیت تصویر',
+    similarity: 'شباهت',
     similarityScore: 'امتیاز شباهت',
     createdAt: 'تاریخ ایجاد',
     updatedAt: 'تاریخ بروزرسانی',

@@ -3,6 +3,12 @@ import React, { useState } from 'react'
 import { Box, Card, Typography, Grid } from '@mui/material'
 
 import LiveReportCard from './LiveReportCard'
+import ViewModeToggle from './ViewModeToggle'
+import LiveGridCard from './LiveGridCard'
+import LiveListView from './LiveListView'
+import LiveDetailModal from './LiveDetailModal'
+import AddModal from './LiveAddModal'
+import LiveEditModal from './LiveEditModal'
 import EmptyState from '@/components/ui/EmptyState'
 import { commonStyles } from '@/@core/styles/commonStyles'
 import { getLiveWebSocketUrl } from '@/configs/routes'
@@ -17,6 +23,75 @@ const LiveSection = ({ camera, reports = [] }) => {
   }
 
   const cameraReports = reports.filter(r => String(r.camera_id) === String(camera.id))
+  const [viewMode, setViewMode] = useState('report')
+
+  // Modal & navigation state for grid view
+  const [open, setOpen] = useState(false)
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [addOpen, setAddOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+  const [modalData, setModalData] = useState({})
+  const [personModalType, setPersonModalType] = useState(null) // 'add' | 'edit' | null
+
+  const isUnknownAccess = accessId => {
+    return accessId === 7 || accessId === 'unknown' || !accessId
+  }
+
+  const setReportDataByIndex = index => {
+    const data = cameraReports[index]
+
+    setCurrentIndex(index)
+    setModalData({
+      first_name: data.first_name || '',
+      last_name: data.last_name || '',
+      national_code: data.national_code || '',
+      gender_id: data.gender_id || '',
+      access_id: data.access_id || '',
+      person_image: data.person_image || null,
+      last_person_image: data.last_person_image || null,
+      person_id: data.person_id || '',
+      index: data.index,
+      feature_vector: data.feature_vector,
+      last_person_report_id: data.last_person_report_id,
+      date: data.date,
+      id: data.id
+    })
+  }
+
+  const handleOpen = index => {
+    if (typeof index === 'number' && index >= 0 && index < cameraReports.length) {
+      setReportDataByIndex(index)
+    } else {
+      setCurrentIndex(0)
+      setReportDataByIndex(0)
+    }
+
+    setOpen(true)
+  }
+
+  const handleClose = () => setOpen(false)
+
+  const handlePersonModalOpen = () => {
+    const accessId = modalData.access_id?.id || modalData.access_id
+
+    if (isUnknownAccess(accessId)) {
+      setPersonModalType('add')
+    } else {
+      setPersonModalType('edit')
+    }
+
+    setOpen(false)
+  }
+
+  const handlePersonModalClose = () => setPersonModalType(null)
+
+  const handleNavigate = direction => {
+    const newIndex = currentIndex + direction
+
+    if (newIndex >= 0 && newIndex < cameraReports.length) {
+      setReportDataByIndex(newIndex)
+    }
+  }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
@@ -77,16 +152,22 @@ const LiveSection = ({ camera, reports = [] }) => {
                 minHeight: 0
               }}
             >
-              <Grid container spacing={2}>
-                {cameraReports.length > 0 ? (
-                  cameraReports.map(report => (
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
+                <ViewModeToggle value={viewMode} onChange={setViewMode} />
+              </Box>
+
+              {cameraReports.length === 0 ? (
+                <EmptyState message={t('live.noReports')} minHeight={120} />
+              ) : viewMode === 'report' ? (
+                <Grid container spacing={2}>
+                  {cameraReports.map((report, idx) => (
                     <Grid
                       sx={{ display: 'flex', flexGrow: 1 }}
                       item
                       xs={12}
                       sm={6}
                       md={4}
-                      key={`report_${report.index}`}
+                      key={`report_${report.id ?? report.index ?? idx}`}
                     >
                       <LiveReportCard
                         reportData={{
@@ -108,17 +189,67 @@ const LiveSection = ({ camera, reports = [] }) => {
                         allReports={cameraReports}
                       />
                     </Grid>
-                  ))
-                ) : (
-                  <Grid sx={{ display: 'flex', justifyContent: 'center' }} item xs={12}>
-                    <EmptyState message={t('live.noReports')} minHeight={120} />
-                  </Grid>
-                )}
-              </Grid>
+                  ))}
+                </Grid>
+              ) : viewMode === 'grid' ? (
+                <Grid container spacing={2}>
+                  {cameraReports.map((report, idx) => (
+                    <Grid
+                      sx={{ display: 'flex', flexGrow: 1, minWidth: '240px', maxWidth: '280px' }}
+                      item
+                      xs={12}
+                      sm={6}
+                      md={4}
+                      key={`grid_${report.id ?? report.index ?? idx}`}
+                    >
+                      <LiveGridCard
+                        reportData={report}
+                        index={idx}
+                        allReports={cameraReports}
+                        onOpenDetail={i => handleOpen(i)}
+                      />
+                    </Grid>
+                  ))}
+                </Grid>
+              ) : (
+                <LiveListView
+                  reports={cameraReports}
+                  onOpenDetail={id => {
+                    /* not wired */
+                  }}
+                />
+              )}
             </Box>
           </Box>
         </Card>
       </Card>
+      {/* Details & Add/Edit modals for grid view */}
+      <LiveDetailModal
+        open={open}
+        onClose={handleClose}
+        modalData={modalData}
+        currentIndex={currentIndex}
+        allReports={cameraReports}
+        onNavigate={handleNavigate}
+        onPersonModalOpen={type => setPersonModalType(type)}
+        mode={''}
+      />
+
+      <AddModal
+        open={personModalType === 'add'}
+        onClose={handlePersonModalClose}
+        onSubmit={() => {}}
+        initialData={modalData}
+        mode={''}
+      />
+
+      <LiveEditModal
+        open={personModalType === 'edit'}
+        onClose={handlePersonModalClose}
+        onSubmit={() => {}}
+        initialData={modalData}
+        mode={''}
+      />
     </Box>
   )
 }

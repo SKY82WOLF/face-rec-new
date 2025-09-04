@@ -12,8 +12,11 @@ if (process.env.NEXT_PUBLIC_API_MODE === 'production') {
   const deviceIP = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
 
   frontUrl = `http://${deviceIP}`
-  backendUrl = `http://${deviceIP}:8585/api`
-  backendImgUrl = `http://${deviceIP}:8585/`
+  backendUrl = `http://${deviceIP}/api`
+  backendImgUrl = `http://${deviceIP}`
+
+  // For image assets served from device root (no trailing slash)
+  backendImgUrl2 = `http://${deviceIP}`
 } else if (process.env.NEXT_PUBLIC_API_MODE === 'remote') {
   // In remote mode, use the specified IP from environment variable
   const remoteIP = process.env.NEXT_PUBLIC_REMOTE_API_IP
@@ -23,13 +26,18 @@ if (process.env.NEXT_PUBLIC_API_MODE === 'production') {
     frontUrl = 'http://localhost'
     backendUrl = 'http://localhost/api'
     backendImgUrl = 'http://localhost/'
+
+    // Fallback to localhost root for image assets (no trailing slash)
+    backendImgUrl2 = 'http://localhost'
   } else {
     // Use the full URL from the environment variable
     backendUrl = remoteIP
 
-    // Remove /api from the end to get the frontend URL
+    // Remove trailing '/api' for non-API base URLs
     frontUrl = remoteIP.replace('/api', '')
-    backendImgUrl = remoteIP.replace('/api', '')
+    backendImgUrl = remoteIP.replace(':8585/api', '')
+
+    // Image base should be the same host without '/api' and without trailing slash
     backendImgUrl2 = remoteIP.replace(':8585/api', '')
   }
 } else {
@@ -37,8 +45,8 @@ if (process.env.NEXT_PUBLIC_API_MODE === 'production') {
   const deviceIP = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
 
   frontUrl = `http://${deviceIP}`
-  backendUrl = `http://${deviceIP}:8585/api`
-  backendImgUrl = `http://${deviceIP}:8585/`
+  backendUrl = `http://${deviceIP}/api`
+  backendImgUrl = `http://${deviceIP}`
 }
 
 // API Routes
@@ -102,7 +110,17 @@ export const getBackendImgUrl = () => {
 }
 
 export const getBackendImgUrl2 = () => {
-  return `${backendImgUrl2}`
+  // Always return a defined base without trailing slash
+  if (backendImgUrl2) return `${backendImgUrl2}`
+
+  if (typeof window !== 'undefined') {
+    const proto = window.location.protocol === 'https:' ? 'https:' : 'http:'
+    const host = window.location.hostname
+
+    return `${proto}//${host}`
+  }
+
+  return 'http://localhost'
 }
 
 // Helper function to get full frontend URL

@@ -61,8 +61,13 @@ const ReportCard = ({ reportData, allReports, onOpenDetail }) => {
   }
 
   // Person display helpers
-  const personObj = reportData.person_id && typeof reportData.person_id === 'object' ? reportData.person_id : null
-  const personCode = personObj?.person_id || personObj?.id || reportData.person_id || t('reportCard.unknown')
+  const personObj =
+    typeof reportData.person_id === 'object' && reportData.person_id !== null ? reportData.person_id : null
+
+  const personCodeRaw =
+    personObj?.person_id ?? personObj?.id ?? (typeof reportData.person_id === 'object' ? null : reportData.person_id)
+
+  const personCode = personCodeRaw == null ? t('reportCard.unknown') : String(personCodeRaw)
   const firstName = personObj?.first_name?.trim?.() || ''
   const lastName = personObj?.last_name?.trim?.() || ''
   const fullName = firstName || lastName ? `${firstName} ${lastName}`.trim() : t('reportCard.unknown')
@@ -85,7 +90,15 @@ const ReportCard = ({ reportData, allReports, onOpenDetail }) => {
   const hasUpdatePermission = useHasPermission('updatePersonReport')
 
   const confidencePercentage = Math.round((reportData.confidence || 0) * 100)
+  const similarityScore = Math.round((reportData.similarity_score || 0) * 100)
   const fiqaPercentage = Math.round((reportData.fiqa || 0) * 100)
+
+  const getSimilarityColor = similarity => {
+    if (similarity >= 0.8) return 'success'
+    if (similarity >= 0.6) return 'warning'
+
+    return 'error'
+  }
 
   const getConfidenceColor = confidence => {
     if (confidence >= 0.8) return 'success'
@@ -203,6 +216,12 @@ const ReportCard = ({ reportData, allReports, onOpenDetail }) => {
               {t('reportCard.confidence')}
             </Typography>
             <Chip label={`${confidencePercentage}%`} color={getConfidenceColor(reportData.confidence)} size='small' />
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Typography variant='caption' color='textSecondary'>
+              {t('reportCard.similarity')}
+            </Typography>
+            <Chip label={`${similarityScore}%`} color={getSimilarityColor(reportData.similarity_score)} size='small' />
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <Typography variant='caption' color='textSecondary'>

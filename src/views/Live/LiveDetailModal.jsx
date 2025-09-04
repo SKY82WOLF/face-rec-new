@@ -146,7 +146,21 @@ const LiveDetailModal = ({
         const genderId = modalData.gender_id?.id || modalData.gender_id
 
         if (genderId && genderTypes?.data) {
-          return <>{getTypeTitle(genderTypes, genderId)}</>
+          const icon =
+            genderId === 2 ? (
+              <i className='tabler tabler-gender-male' style={{ fontSize: 18, color: '#1976d2' }} />
+            ) : genderId === 3 ? (
+              <i className='tabler tabler-gender-female' style={{ fontSize: 18, color: '#d81b60' }} />
+            ) : null
+
+          return (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {icon}
+              <Box component='span' sx={{ color: 'text.secondary' }}>
+                {getTypeTitle(genderTypes, genderId)}
+              </Box>
+            </Box>
+          )
         }
 
         return t('reportCard.unknown')
@@ -166,7 +180,13 @@ const LiveDetailModal = ({
 
   // Data for the details table in the modal
   const modalInfo = [
-    { label: t('reportCard.fullName'), value: `${modalData.first_name || ''} ${modalData.last_name || ''}` },
+    {
+      label: t('reportCard.fullName'),
+      value:
+        modalData.first_name || modalData.last_name
+          ? `${modalData.first_name || ''} ${modalData.last_name || ''}`.trim()
+          : t('reportCard.unknown')
+    },
     { label: t('reportCard.nationalCode'), value: modalData.national_code || t('reportCard.unknown') },
     { label: t('reportCard.id'), value: modalData.person_id || t('reportCard.unknown') },
     {
@@ -189,6 +209,8 @@ const LiveDetailModal = ({
       valueColor: isAllowed ? 'success.main' : 'error.main'
     }
   ]
+
+  console.log(modalData.person_image, modalData.last_person_image)
 
   return (
     <Modal
@@ -287,6 +309,7 @@ const LiveDetailModal = ({
                   {item.label}
                 </Typography>
                 <Typography
+                  component='div'
                   variant='body1'
                   color={item.valueColor || 'text.primary'}
                   sx={{ display: 'flex', alignItems: 'center' }}

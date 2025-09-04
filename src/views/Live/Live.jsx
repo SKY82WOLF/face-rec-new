@@ -28,7 +28,7 @@ const LiveContent = () => {
   // Select the first camera by default when cameras load
   useEffect(() => {
     if (cameras.length > 0 && selectedCameraIds.length === 0) {
-      setSelectedCameraIds([String(cameras[0].id)])
+      setSelectedCameraIds([String(cameras[2].id)])
     }
   }, [cameras, selectedCameraIds.length])
 

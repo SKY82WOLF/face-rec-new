@@ -13,7 +13,7 @@ import { useSelector } from 'react-redux'
 
 import useCameras from '@/hooks/useCameras'
 
-import { backendImgUrl2 } from '@/configs/routes'
+import { getBackendImgUrl2 } from '@/configs/routes'
 import { useTranslation } from '@/translations/useTranslation'
 import { selectGenderTypes, selectAccessTypes } from '@/store/slices/typesSlice'
 import ShamsiDateTime from '@/components/ShamsiDateTimer'
@@ -67,24 +67,20 @@ const ReportsGridCard = ({ reportData, allReports = [], index = 0, onOpenDetail,
   const [isHovered, setIsHovered] = useState(false)
 
   // thumbnail when not hovered, full image when hovered
+  const base = getBackendImgUrl2()
+  const join = url => (url ? (url.startsWith('/') ? `${base}${url}` : `${base}/${url}`) : null)
+
   const thumbnailSrc = reportData.image_thumbnail_url
-    ? backendImgUrl2 +
-      (reportData.image_thumbnail_url.startsWith('/')
-        ? reportData.image_thumbnail_url
-        : `/${reportData.image_thumbnail_url}`)
+    ? join(reportData.image_thumbnail_url)
     : reportData.person_image_url
-      ? backendImgUrl2 +
-        (reportData.person_image_url.startsWith('/') ? reportData.person_image_url : `/${reportData.person_image_url}`)
+      ? join(reportData.person_image_url)
       : '/images/avatars/1.png'
 
   const fullSrc = reportData.image_url
-    ? backendImgUrl2 + (reportData.image_url.startsWith('/') ? reportData.image_url : `/${reportData.image_url}`)
+    ? join(reportData.image_url)
     : reportData.person_image_url
-      ? backendImgUrl2 +
-        (reportData.person_image_url.startsWith('/') ? reportData.person_image_url : `/${reportData.person_image_url}`)
+      ? join(reportData.person_image_url)
       : thumbnailSrc
-
-  const displayImage = isHovered ? fullSrc : thumbnailSrc
 
   const getTypeTitle = (types, id) => {
     if (!types?.data || !id) return t('reportCard.unknown')
@@ -231,7 +227,6 @@ const ReportsGridCard = ({ reportData, allReports = [], index = 0, onOpenDetail,
               <Typography variant='caption' color='textSecondary'>
                 <ShamsiDateTime dateTime={reportData.created_at} format='date' />
               </Typography>
-
             </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, alignItems: 'center', minWidth: 0 }}>
               <Typography variant='body2' color='primary.main' sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -248,7 +243,7 @@ const ReportsGridCard = ({ reportData, allReports = [], index = 0, onOpenDetail,
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
                 <Typography
                   variant='body2'
                   sx={{

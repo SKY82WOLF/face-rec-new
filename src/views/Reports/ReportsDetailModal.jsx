@@ -46,7 +46,19 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
   }
 
   const personObj = reportData.person_id && typeof reportData.person_id === 'object' ? reportData.person_id : null
-  const personCode = personObj?.person_id || personObj?.id || reportData.person_id || t('reportCard.unknown')
+
+  // Safely derive a primitive person code (avoid rendering objects or 0)
+  const derivedPersonId = (() => {
+    if (personObj) {
+      const idFromNested = typeof personObj.person_id === 'number' ? personObj.person_id : personObj.id
+
+      return typeof idFromNested === 'number' ? idFromNested : undefined
+    }
+
+    return typeof reportData.person_id === 'number' ? reportData.person_id : undefined
+  })()
+
+  const personCode = derivedPersonId && derivedPersonId !== 0 ? String(derivedPersonId) : t('reportCard.unknown')
   const firstName = personObj?.first_name?.trim?.() || ''
   const lastName = personObj?.last_name?.trim?.() || ''
   const fullName = firstName || lastName ? `${firstName} ${lastName}`.trim() : t('reportCard.unknown')
@@ -151,7 +163,13 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
       valueColor: getConfidenceColor(reportData.confidence)
     },
     { label: t('reportCard.fiqa'), value: `${fiqaPercentage}%`, valueColor: getFiqaColor(reportData.fiqa) },
-    { label: t('reportCard.similarityScore'), value: reportData.similarity_score || t('reportCard.unknown') },
+    {
+      label: t('reportCard.similarityScore'),
+      value:
+        typeof reportData.similarity_score === 'number' && reportData.similarity_score >= 0
+          ? reportData.similarity_score
+          : t('reportCard.unknown')
+    },
     {
       label: t('reportCard.updatedAt'),
       value: <ShamsiDateTime dateTime={reportData.updated_at} format='dateTime' />
