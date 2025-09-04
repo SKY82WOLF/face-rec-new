@@ -96,7 +96,8 @@ export const API_ROUTES = {
     detail: '/cameras/',
     add: '/cameras/add',
     update: '/cameras/',
-    delete: '/cameras/'
+    delete: '/cameras/',
+    test: '/cameras/test'
   }
 }
 
@@ -148,7 +149,8 @@ export const {
   detail: camerasDetail,
   add: camerasAdd,
   update: camerasUpdate,
-  delete: camerasDelete
+  delete: camerasDelete,
+  test: camerasTest
 } = API_ROUTES.cameras
 
 export const { list: typesList, add: typesAdd } = API_ROUTES.types

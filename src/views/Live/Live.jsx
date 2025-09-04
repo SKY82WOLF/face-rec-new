@@ -28,7 +28,11 @@ const LiveContent = () => {
   // Select the first camera by default when cameras load
   useEffect(() => {
     if (cameras.length > 0 && selectedCameraIds.length === 0) {
-      setSelectedCameraIds([String(cameras[2].id)])
+      const firstCamera = cameras[0]
+
+      if (firstCamera?.id != null) {
+        setSelectedCameraIds([String(firstCamera.id)])
+      }
     }
   }, [cameras, selectedCameraIds.length])
 
@@ -116,7 +120,11 @@ const LiveContent = () => {
                   <Card sx={{ p: 4, pt: 2 }}>
                     <Box sx={{ p: 2 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                        <Typography textAlign={'center'} variant='h5' sx={{ ...commonStyles.centeredTitle, width: '100%' }}>
+                        <Typography
+                          textAlign={'center'}
+                          variant='h5'
+                          sx={{ ...commonStyles.centeredTitle, width: '100%' }}
+                        >
                           {t('live.reports')}
                         </Typography>
                       </Box>

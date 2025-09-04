@@ -10,6 +10,7 @@ import LiveDetailModal from './LiveDetailModal'
 import AddModal from './LiveAddModal'
 import LiveEditModal from './LiveEditModal'
 import EmptyState from '@/components/ui/EmptyState'
+import { useAddPerson, useUpdatePerson } from '@/hooks/usePersons'
 import { commonStyles } from '@/@core/styles/commonStyles'
 import { getLiveWebSocketUrl } from '@/configs/routes'
 import { useTranslation } from '@/translations/useTranslation'
@@ -23,7 +24,7 @@ const LiveSection = ({ camera, reports = [] }) => {
   }
 
   const cameraReports = reports.filter(r => String(r.camera_id) === String(camera.id))
-  const [viewMode, setViewMode] = useState('report')
+  const [viewMode, setViewMode] = useState('list')
 
   // Modal & navigation state for grid view
   const [open, setOpen] = useState(false)
@@ -32,6 +33,8 @@ const LiveSection = ({ camera, reports = [] }) => {
   const [editOpen, setEditOpen] = useState(false)
   const [modalData, setModalData] = useState({})
   const [personModalType, setPersonModalType] = useState(null) // 'add' | 'edit' | null
+  const addPersonMutation = useAddPerson()
+  const updatePersonMutation = useUpdatePerson()
 
   const isUnknownAccess = accessId => {
     return accessId === 7 || accessId === 'unknown' || !accessId
@@ -90,6 +93,22 @@ const LiveSection = ({ camera, reports = [] }) => {
 
     if (newIndex >= 0 && newIndex < cameraReports.length) {
       setReportDataByIndex(newIndex)
+    }
+  }
+
+  const handleAddSubmit = async formData => {
+    try {
+      await addPersonMutation.mutateAsync(formData)
+    } catch (error) {
+      console.error('Failed to add person:', error)
+    }
+  }
+
+  const handleEditSubmit = async formData => {
+    try {
+      await updatePersonMutation.mutateAsync({ id: modalData.person_id, data: formData })
+    } catch (error) {
+      console.error('Failed to update person:', error)
     }
   }
 
@@ -238,7 +257,7 @@ const LiveSection = ({ camera, reports = [] }) => {
       <AddModal
         open={personModalType === 'add'}
         onClose={handlePersonModalClose}
-        onSubmit={() => {}}
+        onSubmit={handleAddSubmit}
         initialData={modalData}
         mode={''}
       />
@@ -246,7 +265,7 @@ const LiveSection = ({ camera, reports = [] }) => {
       <LiveEditModal
         open={personModalType === 'edit'}
         onClose={handlePersonModalClose}
-        onSubmit={() => {}}
+        onSubmit={handleEditSubmit}
         initialData={modalData}
         mode={''}
       />

@@ -1,29 +1,19 @@
 import { useState } from 'react'
 
-import {
-  Modal,
-  Fade,
-  Backdrop,
-  Box,
-  Typography,
-  Button,
-  Grid,
-  IconButton,
-  CircularProgress,
-  FormControlLabel,
-  Switch
-} from '@mui/material'
+import { Modal, Fade, Backdrop, Box, Typography, Button, Grid, IconButton, CircularProgress } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import VideocamIcon from '@mui/icons-material/Videocam'
 
 import { useTranslation } from '@/translations/useTranslation'
+import { testCamera } from '@/api/cameras'
 import CustomTextField from '@/@core/components/mui/TextField'
 import { commonStyles } from '@/@core/styles/commonStyles'
+import CropperImage from '@/components/ui/CropperImage'
 
 const modalStyle = {
   ...commonStyles.modalContainer,
-  width: '90%',
-  maxWidth: 600
+  width: '96%',
+  maxWidth: 1000
 }
 
 const CameraAddModal = ({ open, onClose, onSubmit, isLoading }) => {
@@ -31,13 +21,33 @@ const CameraAddModal = ({ open, onClose, onSubmit, isLoading }) => {
 
   const [form, setForm] = useState({
     name: '',
-    cam_url: '',
-    cam_user: '',
-    cam_password: '',
-    is_active: true
+    cam_url: ''
   })
 
   const [errors, setErrors] = useState({})
+  const [testing, setTesting] = useState(false)
+  const [testResult, setTestResult] = useState(null)
+  const [testError, setTestError] = useState('')
+  const [selectedArea, setSelectedArea] = useState(null)
+
+  const toLatinDigits = str =>
+    (str || '')
+      .replace(/[\u06F0-\u06F9]/g, d => String(d.charCodeAt(0) - 0x06f0))
+      .replace(/[\u0660-\u0669]/g, d => String(d.charCodeAt(0) - 0x0660))
+
+  const getResolutionText = res => {
+    const cleaned = toLatinDigits(res || '').replace(/\s+/g, '')
+    const parts = cleaned.split(/[x×]/i).filter(Boolean)
+
+    if (parts.length >= 2) {
+      const width = parts[0]
+      const height = parts[1]
+
+      return `${width} × ${height}`
+    }
+
+    return cleaned
+  }
 
   const handleChange = e => {
     const { name, value } = e.target
@@ -53,20 +63,8 @@ const CameraAddModal = ({ open, onClose, onSubmit, isLoading }) => {
   const validateForm = () => {
     const newErrors = {}
 
-    if (!form.name.trim()) {
-      newErrors.name = t('cameras.nameRequired')
-    }
-
     if (!form.cam_url.trim()) {
       newErrors.cam_url = t('cameras.camUrlRequired')
-    }
-
-    if (!form.cam_user.trim()) {
-      newErrors.cam_user = t('cameras.camUserRequired')
-    }
-
-    if (!form.cam_password.trim()) {
-      newErrors.cam_password = t('cameras.camPasswordRequired')
     }
 
     setErrors(newErrors)
@@ -74,23 +72,65 @@ const CameraAddModal = ({ open, onClose, onSubmit, isLoading }) => {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = e => {
+  const handleTest = async e => {
     e.preventDefault()
 
-    if (validateForm()) {
-      onSubmit(form)
+    setTestError('')
+
+    if (!form.cam_url.trim()) {
+      setErrors(prev => ({ ...prev, cam_url: t('cameras.camUrlRequired') }))
+
+      return
     }
+
+    try {
+      setTesting(true)
+
+      const response = await testCamera({ camera_url: form.cam_url })
+
+      if (response?.success) {
+        setTestResult(response.results)
+      } else {
+        setTestError(response?.message || t('cameras.testFailed'))
+        setTestResult(null)
+      }
+    } catch (err) {
+      setTestError(err?.message || t('cameras.testFailed'))
+      setTestResult(null)
+    } finally {
+      setTesting(false)
+    }
+  }
+
+  const handleSubmit = e => {
+    e.preventDefault()
+    const newErrors = {}
+
+    if (!form.cam_url.trim()) newErrors.cam_url = t('cameras.camUrlRequired')
+    if (!form.name.trim()) newErrors.name = t('cameras.nameRequired')
+    setErrors(newErrors)
+
+    if (Object.keys(newErrors).length > 0) return
+
+    if (!testResult) {
+      setTestError(t('cameras.mustTestUrlFirst'))
+
+      return
+    }
+
+    onSubmit({ cam_url: form.cam_url, name: form.name, area: selectedArea })
   }
 
   const handleClose = () => {
     setForm({
       name: '',
-      cam_url: '',
-      cam_user: '',
-      cam_password: '',
-      is_active: true
+      cam_url: ''
     })
     setErrors({})
+    setTesting(false)
+    setTestResult(null)
+    setTestError('')
+    setSelectedArea(null)
     onClose()
   }
 
@@ -120,20 +160,7 @@ const CameraAddModal = ({ open, onClose, onSubmit, isLoading }) => {
 
           <form onSubmit={handleSubmit}>
             <Grid flexDirection='column' container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <CustomTextField
-                  fullWidth
-                  label={t('cameras.name')}
-                  name='name'
-                  value={form.name}
-                  onChange={handleChange}
-                  error={!!errors.name}
-                  helperText={errors.name}
-                  required
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12}>
                 <CustomTextField
                   fullWidth
                   label={t('cameras.camUrl')}
@@ -144,61 +171,94 @@ const CameraAddModal = ({ open, onClose, onSubmit, isLoading }) => {
                   helperText={errors.cam_url}
                   required
                 />
+                {testError && (
+                  <Typography color='error.main' variant='caption' sx={{ mt: 1, display: 'block' }}>
+                    {testError}
+                  </Typography>
+                )}
               </Grid>
 
-              <Grid item xs={12} md={6}>
-                <CustomTextField
-                  fullWidth
-                  label={t('cameras.camUser')}
-                  name='cam_user'
-                  value={form.cam_user}
-                  onChange={handleChange}
-                  error={!!errors.cam_user}
-                  helperText={errors.cam_user}
-                  required
-                />
-              </Grid>
+              {!testResult && (
+                <Grid item xs={12}>
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+                    <Button onClick={handleClose} variant='outlined'>
+                      {t('common.cancel')}
+                    </Button>
+                    <Button
+                      onClick={handleTest}
+                      variant='contained'
+                      disabled={testing || !form.cam_url.trim()}
+                      startIcon={testing ? <CircularProgress size={20} /> : null}
+                    >
+                      {testing ? t('cameras.testing') : t('cameras.testCamera')}
+                    </Button>
+                  </Box>
+                  {testError && (
+                    <Typography color='error' variant='caption' sx={{ mt: 1, display: 'block' }}>
+                      {testError}
+                    </Typography>
+                  )}
+                </Grid>
+              )}
 
-              <Grid item xs={12} md={6}>
-                <CustomTextField
-                  fullWidth
-                  label={t('cameras.camPassword')}
-                  name='cam_password'
-                  type='password'
-                  value={form.cam_password}
-                  onChange={handleChange}
-                  error={!!errors.cam_password}
-                  helperText={errors.cam_password}
-                  required
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={form.is_active}
-                      onChange={e => setForm(prev => ({ ...prev, is_active: e.target.checked }))}
+              {testResult && (
+                <>
+                  <Grid item xs={12}>
+                    <Typography variant='subtitle1' sx={{ mb: 1 }}>
+                      {t('cameras.preview')}
+                    </Typography>
+                    <CropperImage
+                      imageUrl={`data:image/jpeg;base64,${testResult.frame}`}
+                      area={selectedArea}
+                      onAreaChange={setSelectedArea}
                     />
-                  }
-                  label={t('cameras.isActive')}
-                />
-              </Grid>
+                    <Box sx={{ mt: 1.5 }}>
+                      <Typography variant='body2'>
+                        {t('cameras.codec')}: {testResult.codec}
+                      </Typography>
+                      <Typography variant='body2'>
+                        {t('cameras.fps')}: {testResult.fps}
+                      </Typography>
+                      <Typography variant='body2'>
+                        {t('cameras.resolution')}:{' '}
+                        <Box component='span' sx={{ direction: 'ltr', unicodeBidi: 'isolate' }}>
+                          {getResolutionText(testResult.resolution)}
+                        </Box>
+                      </Typography>
+                    </Box>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <CustomTextField
+                      fullWidth
+                      label={t('cameras.name')}
+                      name='name'
+                      value={form.name}
+                      onChange={handleChange}
+                      error={!!errors.name}
+                      helperText={errors.name}
+                      required
+                    />
+                  </Grid>
+                </>
+              )}
             </Grid>
 
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
-              <Button onClick={handleClose} variant='outlined'>
-                {t('common.cancel')}
-              </Button>
-              <Button
-                type='submit'
-                variant='contained'
-                disabled={isLoading}
-                startIcon={isLoading ? <CircularProgress size={20} /> : null}
-              >
-                {isLoading ? t('common.loading') : t('cameras.add')}
-              </Button>
-            </Box>
+            {testResult && (
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
+                <Button onClick={handleClose} variant='outlined'>
+                  {t('common.cancel')}
+                </Button>
+                <Button
+                  type='submit'
+                  variant='contained'
+                  disabled={isLoading}
+                  startIcon={isLoading ? <CircularProgress size={20} /> : null}
+                >
+                  {isLoading ? t('common.loading') : t('cameras.add')}
+                </Button>
+              </Box>
+            )}
           </form>
         </Box>
       </Fade>

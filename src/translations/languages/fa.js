@@ -333,6 +333,18 @@ const fa = {
     camUrlRequired: 'آدرس دوربین الزامی است',
     camUserRequired: 'نام کاربری دوربین الزامی است',
     camPasswordRequired: 'رمز عبور دوربین الزامی است',
+
+    // Test flow & preview
+    testCamera: 'تست اتصال',
+    testing: 'در حال تست...',
+    testFailed: 'تست اتصال ناموفق بود',
+    mustTestUrlFirst: 'ابتدا آدرس دوربین را تست کنید',
+    changeUrlToRetest: 'آدرس دوربین تغییر کرده است؛ برای ادامه ابتدا تست کنید',
+    preview: 'پیش‌نمایش',
+    previewImageAlt: 'پیش‌نمایش تصویر دوربین',
+    codec: 'کدک',
+    fps: 'فریم بر ثانیه',
+    resolution: 'رزولوشن',
     statusOptions: {
       active: 'فعال',
       inactive: 'غیرفعال',

@@ -58,7 +58,15 @@ function CamerasContent({ initialPage = 1, initialper_page = 10 }) {
     initialper_page
   )
 
-  const { cameras = [], total, isLoading, addCamera, updateCamera, deleteCamera } = useCameras({ page, per_page })
+  const {
+    cameras = [],
+    total,
+    isLoading,
+    addCamera,
+    updateCamera,
+    deleteCamera,
+    loading: mutationLoading
+  } = useCameras({ page, per_page })
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams)
@@ -134,14 +142,14 @@ function CamerasContent({ initialPage = 1, initialper_page = 10 }) {
         open={openAddModal}
         onClose={handleCloseAddModal}
         onSubmit={handleAddCamera}
-        isLoading={isLoading}
+        isLoading={mutationLoading}
       />
       <CameraEditModal
         open={!!editCamera}
         onClose={handleCloseEditModal}
         onSubmit={handleUpdateCamera}
         camera={editCamera}
-        isLoading={isLoading}
+        isLoading={mutationLoading}
       />
 
       {/* Delete Confirmation Dialog */}
@@ -165,7 +173,13 @@ function CamerasContent({ initialPage = 1, initialper_page = 10 }) {
       />
       <Card
         elevation={0}
-        sx={{ ...commonStyles.transparentCard, overflow: 'visible', backgroundColor: '#00000000', boxShadow: 'none', '&:focus': { outline: 'none' } }}
+        sx={{
+          ...commonStyles.transparentCard,
+          overflow: 'visible',
+          backgroundColor: '#00000000',
+          boxShadow: 'none',
+          '&:focus': { outline: 'none' }
+        }}
       >
         <Box sx={{ display: 'contents', p: { xs: 2, sm: 4 }, overflow: 'visible' }}>
           {isLoading ? (
@@ -280,22 +294,22 @@ function CamerasContent({ initialPage = 1, initialper_page = 10 }) {
                       >
                         <VideocamIcon fontSize='small' />
                       </IconButton>
-                     {hasEditPermission && (
-                      <IconButton
-                        size='small'
-                        onClick={() => handleEditClick(camera)}
-                        sx={{ color: 'common.white' }}
-                        aria-label={t('cameras.editCamera')}
-                      >
-                        <EditIcon fontSize='small' />
-                      </IconButton>
+                      {hasEditPermission && (
+                        <IconButton
+                          size='small'
+                          onClick={() => handleEditClick(camera)}
+                          sx={{ color: 'common.white' }}
+                          aria-label={t('cameras.editCamera')}
+                        >
+                          <EditIcon fontSize='small' />
+                        </IconButton>
                       )}
                       {hasDeletePermission && (
-                      <IconButton
-                        size='small'
-                        sx={{ color: 'error.light' }}
-                        aria-label={t('cameras.deleteCamera')}
-                        onClick={() => handleDeleteClick(camera)}
+                        <IconButton
+                          size='small'
+                          sx={{ color: 'error.light' }}
+                          aria-label={t('cameras.deleteCamera')}
+                          onClick={() => handleDeleteClick(camera)}
                         >
                           <DeleteIcon fontSize='small' />
                         </IconButton>

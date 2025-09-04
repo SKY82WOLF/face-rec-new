@@ -27,10 +27,6 @@ export default function FullScreenImageModal({ open, imageUrl, onClose }) {
     <Modal open={!!open} onClose={onClose}>
       <Box
         onClick={onClose}
-        onContextMenu={e => {
-          e.preventDefault()
-          onClose && onClose()
-        }}
         sx={{
           width: '100vw',
           height: '100vh',
@@ -62,7 +58,6 @@ export default function FullScreenImageModal({ open, imageUrl, onClose }) {
         </IconButton>
 
         <Box
-          onClick={e => e.stopPropagation()}
           sx={{
             width: isZoomed ? '100%' : 'auto',
             height: isZoomed ? '100%' : 'auto',
@@ -74,6 +69,7 @@ export default function FullScreenImageModal({ open, imageUrl, onClose }) {
           <img
             src={imageUrl}
             alt='Full'
+            onClick={onClose}
             style={{
               maxWidth: isZoomed ? '100%' : '95%',
               maxHeight: isZoomed ? '100%' : '95%',

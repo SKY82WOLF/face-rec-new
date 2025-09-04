@@ -129,13 +129,23 @@ const LiveListView = ({ reports = [], onOpenDetail, onEdit, onAdd, onDelete }) =
 
   const handlePersonModalClose = () => setPersonModalType(null)
 
-  const handleSubmit = async formData => {
+  const handleAddSubmit = async formData => {
+    try {
+      await addPersonMutation.mutateAsync(formData)
+
+      // child modal will call onClose on success
+    } catch (error) {
+      console.error('Failed to add person:', error)
+    }
+  }
+
+  const handleEditSubmit = async formData => {
     try {
       await updatePersonMutation.mutateAsync({ id: modalData.person_id, data: formData })
 
-      handlePersonModalClose()
+      // child modal will call onClose on success
     } catch (error) {
-      console.error('Failed to add/edit person:', error)
+      console.error('Failed to update person:', error)
     }
   }
 
@@ -346,15 +356,15 @@ const LiveListView = ({ reports = [], onOpenDetail, onEdit, onAdd, onDelete }) =
       <AddModal
         open={personModalType === 'add'}
         onClose={handlePersonModalClose}
-        onSubmit={handleSubmit}
+        onSubmit={handleAddSubmit}
         initialData={modalData}
         mode={''}
       />
 
       <LiveEditModal
-        open={editOpen}
-        onClose={() => setEditOpen(false)}
-        onSubmit={handleSubmit}
+        open={personModalType === 'edit'}
+        onClose={handlePersonModalClose}
+        onSubmit={handleEditSubmit}
         initialData={modalData}
         mode={''}
       />

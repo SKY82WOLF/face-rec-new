@@ -132,18 +132,23 @@ const LiveReportCard = ({ reportData, allReports }) => {
 
   const handleEditClose = () => setEditOpen(false)
 
-  const handleSubmit = async formData => {
+  const handleAddSubmit = async formData => {
     try {
-      // Check if this is an update (person has an ID and access_id is not unknown) or add (no ID or unknown access)
-      const accessId = modalData.access_id?.id || modalData.access_id
-      const isUnknown = accessId === 7 || accessId === 'unknown' || !accessId
+      await addPersonMutation.mutateAsync(formData)
 
+      // child modal will close itself on success
+    } catch (error) {
+      console.error('Failed to add person:', error)
+    }
+  }
+
+  const handleEditSubmit = async formData => {
+    try {
       await updatePersonMutation.mutateAsync({ id: modalData.person_id, data: formData })
 
-      handleAddClose()
-      handleEditClose()
+      // child modal will close itself on success
     } catch (error) {
-      console.error('Failed to add/edit person:', error)
+      console.error('Failed to update person:', error)
     }
   }
 
@@ -264,7 +269,7 @@ const LiveReportCard = ({ reportData, allReports }) => {
       <AddModal
         open={personModalType === 'add'}
         onClose={handlePersonModalClose}
-        onSubmit={handleSubmit}
+        onSubmit={handleAddSubmit}
         initialData={{
           id: modalData.id,
           first_name: modalData.first_name || '',
@@ -286,7 +291,7 @@ const LiveReportCard = ({ reportData, allReports }) => {
       <LiveEditModal
         open={personModalType === 'edit'}
         onClose={handlePersonModalClose}
-        onSubmit={handleSubmit}
+        onSubmit={handleEditSubmit}
         initialData={{
           id: modalData.id,
           first_name: modalData.first_name || '',
