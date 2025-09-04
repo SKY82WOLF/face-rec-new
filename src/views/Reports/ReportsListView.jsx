@@ -19,6 +19,7 @@ import LockIcon from '@mui/icons-material/Lock'
 import LockOpenIcon from '@mui/icons-material/LockOpen'
 import InfoIcon from '@mui/icons-material/Info'
 import EditIcon from '@mui/icons-material/Edit'
+import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
 
 import { useSelector } from 'react-redux'
@@ -51,7 +52,7 @@ const ReportsListView = ({ reports, onOpenDetail, onEdit, onAdd, onDelete }) => 
 
   return (
     <>
-      <TableContainer component={Paper} elevation={0} sx={{  width: '100%' }}>
+      <TableContainer component={Paper} elevation={0} sx={{ width: '100%' }}>
         <Table size='medium' sx={{ minWidth: 760 }}>
           <TableHead>
             <TableRow>
@@ -109,9 +110,7 @@ const ReportsListView = ({ reports, onOpenDetail, onEdit, onAdd, onDelete }) => 
                   {(() => {
                     if (r.person_id?.first_name && r.person_id?.last_name) {
                       return (
-                        <Box sx={{ fontWeight: 600 }}>
-                          {r.person_id?.first_name + ' ' + r.person_id?.last_name}
-                        </Box>
+                        <Box sx={{ fontWeight: 600 }}>{r.person_id?.first_name + ' ' + r.person_id?.last_name}</Box>
                       )
                     }
 
@@ -209,10 +208,19 @@ const ReportsListView = ({ reports, onOpenDetail, onEdit, onAdd, onDelete }) => 
                       size='small'
                       onClick={e => {
                         e.stopPropagation()
-                        ;(onAdd || onEdit) && (onAdd ? onAdd(r) : onEdit(r))
+                        const accessId = r.access_id?.id || r.access_id || r.person_id?.access_id?.id
+                        const isUnknown = accessId === 7 || accessId === 'unknown' || !accessId
+
+                        if (isUnknown && onAdd) onAdd(r)
+                        else if (!isUnknown && onEdit) onEdit(r)
                       }}
                     >
-                      <EditIcon fontSize='small' />
+                      {(() => {
+                        const accessId = r.access_id?.id || r.access_id || r.person_id?.access_id?.id
+                        const isUnknown = accessId === 7 || accessId === 'unknown' || !accessId
+
+                        return isUnknown ? <AddIcon fontSize='small' /> : <EditIcon fontSize='small' />
+                      })()}
                     </IconButton>
                     <IconButton
                       size='small'

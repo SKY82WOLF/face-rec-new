@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
 
-import { Card, Box, Typography, Button, Avatar, Divider } from '@mui/material'
+import { Card, Box, Typography, Button, Avatar, Divider, IconButton } from '@mui/material'
 
 import { styled } from '@mui/system'
 
 import InfoIcon from '@mui/icons-material/Info'
+import EditIcon from '@mui/icons-material/Edit'
+import AddIcon from '@mui/icons-material/Add'
 import CameraAltIcon from '@mui/icons-material/CameraAlt'
 import LockIcon from '@mui/icons-material/Lock'
 import LockOpenIcon from '@mui/icons-material/LockOpen'
@@ -42,7 +44,16 @@ const StyledReportCard = styled(Card)(({ theme, mode }) => ({
   }
 }))
 
-const ReportsGridCard = ({ reportData, allReports = [], index = 0, onOpenDetail, onEdit, onDelete }) => {
+const ReportsGridCard = ({
+  reportData,
+  allReports = [],
+  index = 0,
+  onOpenDetail,
+  onEdit,
+  onDelete,
+  onOpenPersonAdd,
+  onOpenPersonEdit
+}) => {
   const { t } = useTranslation()
   const { settings } = useSettings()
   const genderTypes = useSelector(selectGenderTypes)
@@ -272,9 +283,9 @@ const ReportsGridCard = ({ reportData, allReports = [], index = 0, onOpenDetail,
             </Box>
           </Box>
 
-          <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', pt: 1 }}>
+          <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 1 }}>
             <Button
-              sx={{ width: '100%' }}
+              sx={{ flex: 1, mr: 1 }}
               variant='outlined'
               onClick={e => {
                 e.stopPropagation()
@@ -284,6 +295,24 @@ const ReportsGridCard = ({ reportData, allReports = [], index = 0, onOpenDetail,
             >
               {t('reportCard.details')}
             </Button>
+            <IconButton
+              size='small'
+              onClick={e => {
+                e.stopPropagation()
+                const accessId = reportData.access_id?.id || reportData.access_id || reportData.person_id?.access_id?.id
+                const isUnknown = accessId === 7 || accessId === 'unknown' || !accessId
+
+                if (isUnknown) onOpenPersonAdd && onOpenPersonAdd()
+                else onOpenPersonEdit && onOpenPersonEdit()
+              }}
+            >
+              {(() => {
+                const accessId = reportData.access_id?.id || reportData.access_id || reportData.person_id?.access_id?.id
+                const isUnknown = accessId === 7 || accessId === 'unknown' || !accessId
+
+                return isUnknown ? <AddIcon fontSize='small' /> : <EditIcon fontSize='small' />
+              })()}
+            </IconButton>
           </Box>
         </Box>
       </Box>

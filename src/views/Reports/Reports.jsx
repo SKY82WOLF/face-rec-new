@@ -33,9 +33,12 @@ import ViewModeToggle from './ViewModeToggle'
 import ReportsGridCard from './ReportsGridCard'
 import ReportsListView from './ReportsListView'
 import ReportsEditModal from './ReportsEditModal'
+import AddModal from '@/views/Live/LiveAddModal'
+import LiveEditModal from '@/views/Live/LiveEditModal'
 
 import useCameras from '@/hooks/useCameras'
-import { useDeletePerson } from '@/hooks/usePersons'
+import { useAddPerson, useDeletePerson, useUpdatePerson } from '@/hooks/usePersons'
+import { getBackendImgUrl2 } from '@/configs/routes'
 
 const SORT_FIELDS = [
   { value: 'created_at', label: 'reportCard.date' },
@@ -87,7 +90,74 @@ function ReportsContent() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [deleteId, setDeleteId] = useState(null)
 
+  // Person add/edit modals state
+  const [personModalType, setPersonModalType] = useState(null) // 'add' | 'edit' | null
+  const [personModalData, setPersonModalData] = useState(null)
+
+  const addPersonMutation = useAddPerson()
+  const updatePersonMutation = useUpdatePerson()
   const deletePersonMutation = useDeletePerson()
+
+  const baseUrl = getBackendImgUrl2()
+
+  const joinUrl = url => {
+    if (!url) return null
+    if (typeof url !== 'string') return null
+    if (url.startsWith('http')) return url
+    if (url.startsWith('/')) return `${baseUrl}${url}`
+
+    return `${baseUrl}/${url}`
+  }
+
+  const mapReportToPersonInitialData = report => {
+    if (!report) return {}
+    const personObj = typeof report.person_id === 'object' ? report.person_id : null
+
+    return {
+      id: report.id,
+      first_name: personObj?.first_name || report.first_name || '',
+      last_name: personObj?.last_name || report.last_name || '',
+      national_code: personObj?.national_code || report.national_code || '',
+      gender_id: report.gender_id?.id || report.gender_id || personObj?.gender_id?.id || '',
+      access_id: report.access_id?.id || report.access_id || personObj?.access_id?.id || 7,
+
+      // Prefer explicit person image from report, then person's last image
+      person_image:
+        joinUrl(report.person_image_url) || personObj?.last_person_image || joinUrl(report.image_url) || null,
+      last_person_image:
+        personObj?.last_person_image || joinUrl(report.person_image_url) || joinUrl(report.image_url) || null,
+      feature_vector: report.feature_vector || personObj?.feature_vector || '',
+      last_person_report_id: report.id,
+      person_id:
+        personObj?.person_id || personObj?.id || (typeof report.person_id === 'number' ? report.person_id : ''),
+      image_quality: report.image_quality || ''
+    }
+  }
+
+  const isUnknownAccess = access => {
+    const id = access?.id || access
+
+    return id === 7 || id === 'unknown' || !id
+  }
+
+  const openPersonModalForReport = (report, type) => {
+    setPersonModalData(mapReportToPersonInitialData(report))
+    setPersonModalType(type)
+  }
+
+  const handleOpenPersonAdd = report => openPersonModalForReport(report, 'add')
+  const handleOpenPersonEdit = report => openPersonModalForReport(report, 'edit')
+
+  const handlePersonAddSubmit = async formData => {
+    await addPersonMutation.mutateAsync(formData)
+  }
+
+  const handlePersonEditSubmit = async formData => {
+    const id = personModalData?.person_id
+
+    if (!id) return
+    await updatePersonMutation.mutateAsync({ id, data: formData })
+  }
 
   const handleEditOpen = report => {
     setEditReportData(report)
@@ -171,6 +241,8 @@ function ReportsContent() {
                   reportData={report}
                   onOpenDetail={() => handleOpenDetail(idx)}
                   onEdit={() => handleEditOpen(report)}
+                  onOpenPersonAdd={() => handleOpenPersonAdd(report)}
+                  onOpenPersonEdit={() => handleOpenPersonEdit(report)}
                   onDelete={() => handleDeleteOpen(report.id)}
                 />
               </Grid>
@@ -185,6 +257,8 @@ function ReportsContent() {
                   allReports={sortedReports}
                   onOpenDetail={() => handleOpenDetail(idx)}
                   onEdit={() => handleEditOpen(report)}
+                  onOpenPersonAdd={() => handleOpenPersonAdd(report)}
+                  onOpenPersonEdit={() => handleOpenPersonEdit(report)}
                 />
               </Grid>
             ))}
@@ -197,7 +271,8 @@ function ReportsContent() {
 
               if (idx >= 0) handleOpenDetail(idx)
             }}
-            onEdit={r => handleEditOpen(r)}
+            onAdd={r => handleOpenPersonAdd(r)}
+            onEdit={r => handleOpenPersonEdit(r)}
             onDelete={id => handleDeleteOpen(id)}
           />
         )}
@@ -223,10 +298,29 @@ function ReportsContent() {
           currentIndex={openDetailIndex}
           onNavigate={handleNavigateDetail}
           camerasDataProp={camerasData}
+          onPersonModalOpen={type =>
+            openPersonModalForReport(sortedReports[openDetailIndex], type === 'add' ? 'add' : 'edit')
+          }
         />
       )}
       {/* Edit modal */}
       <ReportsEditModal open={editOpen} onClose={handleEditClose} reportData={editReportData} />
+
+      {/* Person Add/Edit modals */}
+      <AddModal
+        open={personModalType === 'add'}
+        onClose={() => setPersonModalType(null)}
+        onSubmit={handlePersonAddSubmit}
+        initialData={personModalData}
+        mode={''}
+      />
+      <LiveEditModal
+        open={personModalType === 'edit'}
+        onClose={() => setPersonModalType(null)}
+        onSubmit={handlePersonEditSubmit}
+        initialData={personModalData}
+        mode={''}
+      />
 
       {/* Delete confirmation dialog */}
       <Dialog open={deleteConfirmOpen} onClose={handleDeleteClose} aria-labelledby='delete-confirm-dialog-title'>

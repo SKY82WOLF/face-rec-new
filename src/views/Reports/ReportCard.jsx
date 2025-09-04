@@ -4,6 +4,7 @@ import { Card, Box, Typography, Button, Avatar, Divider, Chip } from '@mui/mater
 import { styled } from '@mui/system'
 import InfoIcon from '@mui/icons-material/Info'
 import EditIcon from '@mui/icons-material/Edit'
+import AddIcon from '@mui/icons-material/Add'
 import CameraAltIcon from '@mui/icons-material/CameraAlt'
 import PersonIcon from '@mui/icons-material/Person'
 
@@ -41,7 +42,7 @@ const StyledReportCard = styled(Card)(({ theme }) => ({
   }
 }))
 
-const ReportCard = ({ reportData, allReports, onOpenDetail }) => {
+const ReportCard = ({ reportData, allReports, onOpenDetail, onOpenPersonAdd, onOpenPersonEdit }) => {
   const { t } = useTranslation()
   const [openEdit, setOpenEdit] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
@@ -255,11 +256,32 @@ const ReportCard = ({ reportData, allReports, onOpenDetail }) => {
                 size='small'
                 onClick={e => {
                   e.stopPropagation()
-                  setOpenEdit(true)
+
+                  const accessId =
+                    reportData.access_id?.id || reportData.access_id || reportData.person_id?.access_id?.id
+
+                  const isUnknown = accessId === 7 || accessId === 'unknown' || !accessId
+
+                  if (isUnknown) onOpenPersonAdd && onOpenPersonAdd()
+                  else onOpenPersonEdit && onOpenPersonEdit()
                 }}
-                startIcon={<EditIcon />}
+                startIcon={(() => {
+                  const accessId =
+                    reportData.access_id?.id || reportData.access_id || reportData.person_id?.access_id?.id
+
+                  const isUnknown = accessId === 7 || accessId === 'unknown' || !accessId
+
+                  return isUnknown ? <AddIcon /> : <EditIcon />
+                })()}
               >
-                {t('common.edit')}
+                {(() => {
+                  const accessId =
+                    reportData.access_id?.id || reportData.access_id || reportData.person_id?.access_id?.id
+
+                  const isUnknown = accessId === 7 || accessId === 'unknown' || !accessId
+
+                  return isUnknown ? t('reportCard.addToAllowed') : t('common.edit')
+                })()}
               </Button>
             )}
           </Box>

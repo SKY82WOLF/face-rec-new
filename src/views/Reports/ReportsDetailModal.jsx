@@ -27,7 +27,16 @@ const modalStyle = {
   maxWidth: 600
 }
 
-const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentIndex, onNavigate, camerasDataProp }) => {
+const ReportsDetailModal = ({
+  open,
+  onClose,
+  reportData,
+  allReports,
+  currentIndex,
+  onNavigate,
+  camerasDataProp,
+  onPersonModalOpen
+}) => {
   const { t } = useTranslation()
   const modalRef = useRef(null)
   const [fullScreenImageUrl, setFullScreenImageUrl] = useState(null)
@@ -416,6 +425,12 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, flexWrap: 'wrap' }}>
             <Button color='error' variant='outlined' onClick={onClose}>
               {t('common.close')}
+            </Button>
+            <Button variant='contained' onClick={() => onPersonModalOpen && onPersonModalOpen('add')}>
+              {t('reportCard.addToAllowed')}
+            </Button>
+            <Button variant='outlined' onClick={() => onPersonModalOpen && onPersonModalOpen('edit')}>
+              {t('reportCard.editInfo')}
             </Button>
           </Box>
         </Box>
