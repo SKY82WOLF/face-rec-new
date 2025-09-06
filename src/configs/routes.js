@@ -11,12 +11,12 @@ if (process.env.NEXT_PUBLIC_API_MODE === 'production') {
   // In production, use the device's IP address
   const deviceIP = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
 
-  frontUrl = `http://${deviceIP}`
-  backendUrl = `http://${deviceIP}/api`
-  backendImgUrl = `http://${deviceIP}`
+  frontUrl = `https://${deviceIP}`
+  backendUrl = `https://${deviceIP}/api`
+  backendImgUrl = `https://${deviceIP}`
 
   // For image assets served from device root (no trailing slash)
-  backendImgUrl2 = `http://${deviceIP}`
+  backendImgUrl2 = `https://${deviceIP}`
 } else if (process.env.NEXT_PUBLIC_API_MODE === 'remote') {
   // In remote mode, use the specified IP from environment variable
   const remoteIP = process.env.NEXT_PUBLIC_REMOTE_API_IP
@@ -44,9 +44,9 @@ if (process.env.NEXT_PUBLIC_API_MODE === 'production') {
   // Default to production mode if no mode is specified
   const deviceIP = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
 
-  frontUrl = `http://${deviceIP}`
-  backendUrl = `http://${deviceIP}/api`
-  backendImgUrl = `http://${deviceIP}`
+  frontUrl = `https://${deviceIP}`
+  backendUrl = `https://${deviceIP}/api`
+  backendImgUrl = `https://${deviceIP}`
 }
 
 // API Routes

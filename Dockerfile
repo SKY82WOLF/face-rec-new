@@ -26,18 +26,9 @@ RUN npm run build
 FROM scratch AS static
 COPY --from=builder /app/out /out
 
-# Runtime: Nginx serving the static export
-FROM nginx:1.27-alpine AS runner
-
-# Ensure optional include directory exists to avoid startup errors
-RUN mkdir -p /etc/nginx/locations
-
-# Provide server config
-COPY nginx/default.conf /etc/nginx/conf.d/default.conf
-
-# Copy static site
-COPY --from=builder /app/out /usr/share/nginx/html
-
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+# Final stage: static files only with no-op command so container can run
+FROM alpine:3.20 AS runner
+WORKDIR /app
+COPY --from=builder /app/out /static
+CMD ["sleep", "infinity"]
 

@@ -132,6 +132,7 @@ const useShifts = ({ page = 1, per_page = 10, sort_by = 'id', sort_order = 'asc'
     await new Promise(resolve => setTimeout(resolve, 800))
 
     const shiftIndex = mockShifts.findIndex(s => s.id === id)
+
     if (shiftIndex !== -1) {
       mockShifts[shiftIndex] = {
         ...mockShifts[shiftIndex],
@@ -151,6 +152,7 @@ const useShifts = ({ page = 1, per_page = 10, sort_by = 'id', sort_order = 'asc'
     await new Promise(resolve => setTimeout(resolve, 600))
 
     const shiftIndex = mockShifts.findIndex(s => s.id === id)
+
     if (shiftIndex !== -1) {
       mockShifts.splice(shiftIndex, 1)
     }
@@ -164,11 +166,13 @@ const useShifts = ({ page = 1, per_page = 10, sort_by = 'id', sort_order = 'asc'
     await new Promise(resolve => setTimeout(resolve, 300))
 
     const shift = mockShifts.find(s => s.id === id)
+
     return shift
   }, [])
 
   useEffect(() => {
     fetchShifts()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, per_page, sort_by, sort_order])
 
   return {
