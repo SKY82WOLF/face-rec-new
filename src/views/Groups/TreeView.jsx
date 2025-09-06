@@ -344,8 +344,10 @@ function PermissionTreeView({
               descendants: true,
               parents: true
             }}
-            collapseIcon={<ExpandMoreIcon />}
-            expandIcon={rtl ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+            slots={{
+              collapseIcon: ExpandMoreIcon,
+              expandIcon: rtl ? ChevronLeftIcon : ChevronRightIcon
+            }}
             sx={{
               flexGrow: 1,
               '& .MuiTreeItem-content': {

@@ -433,6 +433,70 @@ const fa = {
     }
   },
 
+  //shifts
+  shifts: {
+    title: 'مدیریت شیفت‌ها',
+    addShift: 'افزودن شیفت',
+    editShift: 'ویرایش شیفت',
+    deleteShift: 'حذف شیفت',
+    confirmDelete: 'آیا از حذف این شیفت اطمینان دارید؟',
+    confirmDeleteMessage: 'آیا از حذف شیفت "{name}" اطمینان دارید؟ این عملیات قابل بازگشت نیست.',
+    id: 'شناسه',
+    name: 'نام شیفت',
+    shiftName: 'نام شیفت',
+    startTime: 'ساعت شروع',
+    endTime: 'ساعت پایان',
+    description: 'توضیحات',
+    isActive: 'وضعیت فعال',
+    active: 'فعال',
+    inactive: 'غیرفعال',
+    users: 'کاربران',
+    createdAt: 'تاریخ ایجاد',
+    updatedAt: 'تاریخ بروزرسانی',
+    actions: 'عملیات',
+    noData: 'هیچ شیفتی یافت نشد',
+    add: 'افزودن',
+    save: 'ذخیره تغییرات',
+    cancel: 'انصراف',
+    edit: 'ویرایش',
+    delete: 'حذف',
+    itemsPerPage: 'تعداد در صفحه',
+    sortBy: 'مرتب‌سازی بر اساس',
+    sortOrder: 'ترتیب',
+    ascending: 'صعودی',
+    descending: 'نزولی',
+    addNewShift: 'افزودن شیفت جدید',
+    editShiftTitle: 'ویرایش شیفت',
+    addShiftTitle: 'افزودن شیفت جدید',
+    deleteConfirmation: 'تأیید حذف',
+    loading: 'درحال بارگزاری شیفت ها',
+    noData: 'شیفتی یافت نشد',
+    shiftDetails: 'جزئیات شیفت',
+    shiftInfo: 'اطلاعات شیفت',
+    shiftToDelete: 'شیفت برای حذف',
+    deleteWarning: 'این عملیات غیرقابل بازگشت است و تمام کاربران مرتبط با این شیفت حذف خواهند شد.',
+    noUsersAssigned: 'هیچ کاربری تخصیص داده نشده است',
+    timeRange: 'بازه زمانی',
+    status: 'وضعیت',
+    shiftInformation: 'اطلاعات شیفت',
+
+    // Sort fields
+    sortFields: {
+      id: 'شناسه',
+      name: 'نام شیفت',
+      startTime: 'ساعت شروع',
+      endTime: 'ساعت پایان',
+      createdAt: 'تاریخ ایجاد',
+      updatedAt: 'تاریخ بروزرسانی'
+    },
+
+    // Sort orders
+    sortOrders: {
+      asc: 'صعودی',
+      desc: 'نزولی'
+    }
+  },
+
   // Sidebar menu
   sidebar: {
     dashboard: 'داشبورد',
@@ -445,7 +509,8 @@ const fa = {
     notifications: 'اعلان‌ها',
     live: 'پخش زنده',
     access: 'اشخاص مجاز',
-    reports: 'گزارش‌ها' // Added missing translation
+    reports: 'گزارش‌ها', // Added missing translation
+    shifts: 'شیفت ها'
   },
 
   // Navbar

@@ -55,8 +55,9 @@ const useVerticalMenuData = () => {
 
   // Profile is always present
   const profileItem = { label: t('sidebar.profile'), href: '/profile', icon: 'tabler-user' }
+  const shiftsItem = { label: t('sidebar.shifts'), href: '/shifts', icon: 'tabler-clock' }
 
-  return [...staticItems, ...dynamicItems, profileItem]
+  return [...staticItems, ...dynamicItems, profileItem, shiftsItem]
 }
 
 export default useVerticalMenuData
