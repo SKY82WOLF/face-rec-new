@@ -214,7 +214,7 @@ function AccessContent({ initialPage = 1, initialper_page = 10 }) {
             }}
           >
             {isLoading ? (
-              <Box sx={{ gridColumn: '1 / -1' }}>
+              <Box sx={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <LoadingState message={t('access.loading')} />
               </Box>
             ) : personsData?.data?.length > 0 ? (

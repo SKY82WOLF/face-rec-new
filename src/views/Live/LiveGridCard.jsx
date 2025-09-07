@@ -12,6 +12,7 @@ import { useTranslation } from '@/translations/useTranslation'
 import { commonStyles } from '@/@core/styles/commonStyles'
 import ShamsiDateTime from '@/components/ShamsiDateTimer'
 import FullScreenImageModal from '@/components/FullScreenImageModal'
+import ImageCarousel from '@/components/ImageCarousel'
 
 const StyledReportCard = styled(Card)(({ theme, mode }) => ({
   ...commonStyles.transparentCard,
@@ -39,6 +40,24 @@ const LiveGridCard = ({ reportData, index = 0, onOpenDetail }) => {
   const accessTypes = useSelector(selectAccessTypes)
   const [fullScreenImageUrl, setFullScreenImageUrl] = useState(null)
 
+  // Prepare images for carousel
+  const images = []
+
+  // Add last person image if available
+  if (reportData.last_person_image) {
+    images.push(reportData.last_person_image)
+  }
+
+  // Add person image if available and different from last person image
+  if (reportData.person_image && !images.includes(reportData.person_image)) {
+    images.push(reportData.person_image)
+  }
+
+  // If no images found, use fallback
+  if (images.length === 0) {
+    images.push('/images/avatars/1.png')
+  }
+
   const getTypeTitle = (types, id) => {
     if (!types?.data || !id) return t('reportCard.unknown')
     const type = types.data.find(type => type.id === id)
@@ -48,40 +67,15 @@ const LiveGridCard = ({ reportData, index = 0, onOpenDetail }) => {
 
   return (
     <StyledReportCard sx={{ width: '100%', maxWidth: 360 }}>
-      <Box
-        sx={{
-          position: 'relative',
-          width: '100%',
-          aspectRatio: { xs: '3 / 2', sm: '16 / 9' },
-          flex: '0 0 auto',
-          overflow: 'hidden',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: 'transparent'
-        }}
-      >
-        <Box sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
-          <Box
-            component='img'
-            src={reportData.last_person_image || reportData.person_image || '/images/avatars/1.png'}
-            alt='image'
-            onClick={e => {
-              e.stopPropagation()
-              setFullScreenImageUrl(reportData.last_person_image || reportData.person_image || '/images/avatars/1.png')
-            }}
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              cursor: 'pointer'
-            }}
-          />
-        </Box>
-      </Box>
+      <ImageCarousel
+        images={images}
+        aspectRatio={{ xs: '3 / 2', sm: '16 / 9' }}
+        objectFit='cover'
+        objectPosition='center'
+        transitionDuration={2000}
+        onImageClick={imageUrl => setFullScreenImageUrl(imageUrl)}
+        alt={`${reportData.first_name || ''} ${reportData.last_name || ''}`}
+      />
 
       <Box
         sx={{
@@ -116,7 +110,7 @@ const LiveGridCard = ({ reportData, index = 0, onOpenDetail }) => {
             }}
           >
             <Box sx={{ display: 'flex', gap: 1, minWidth: 0, justifyContent: 'space-between', width: '100%' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexDirection: 'column', }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexDirection: 'column' }}>
                 {(() => {
                   if (genderTypes.loading) {
                     return (

@@ -56,7 +56,7 @@ const ReportsListView = ({ reports, onOpenDetail, onEdit, onAdd, onDelete }) => 
         <Table size='medium' sx={{ minWidth: 760 }}>
           <TableHead>
             <TableRow>
-              <TableCell align='center'>{t('reportCard.image')}</TableCell>
+              <TableCell sx={{ minWidth: '200px' }} align='center'>{t('reportCard.image')}</TableCell>
               <TableCell align='center'>{t('reportCard.name')}</TableCell>
               <TableCell align='center'>{t('reportCard.id')}</TableCell>
               <TableCell align='center' sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
@@ -73,7 +73,7 @@ const ReportsListView = ({ reports, onOpenDetail, onEdit, onAdd, onDelete }) => 
           <TableBody>
             {reports.map(r => (
               <TableRow key={r.id} hover>
-                <TableCell sx={{ paddingLeft: 0, paddingRight: 0 }} align='center'>
+                <TableCell sx={{ paddingLeft: 0, paddingRight: 0,width: '200px' }} align='center'>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'center' }}>
                     <Avatar
                       variant='rounded'
@@ -88,7 +88,7 @@ const ReportsListView = ({ reports, onOpenDetail, onEdit, onAdd, onDelete }) => 
                         width: 120,
                         height: 76,
                         borderRadius: 1.5,
-                        cursor: r.image_url ? 'pointer' : 'default'
+                        cursor: r.image_url ? 'pointer' : 'default',
                       }}
                       onClick={() => setFullImageUrl(r.image_url ? `${backendImgUrl}/${r.image_url}` : null)}
                     />
@@ -100,7 +100,10 @@ const ReportsListView = ({ reports, onOpenDetail, onEdit, onAdd, onDelete }) => 
                         width: 120,
                         height: 76,
                         borderRadius: 1.5,
-                        cursor: r.person_image_url ? 'pointer' : 'default'
+                        cursor: r.person_image_url ? 'pointer' : 'default',
+                        objectFit: 'contain',
+                        borderRadius: 1.5,
+                        width:'auto',
                       }}
                       onClick={() => r.person_image_url && setFullImageUrl(`${backendImgUrl}/${r.person_image_url}`)}
                     />

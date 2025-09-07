@@ -35,10 +35,10 @@ if (process.env.NEXT_PUBLIC_API_MODE === 'production') {
 
     // Remove trailing '/api' for non-API base URLs
     frontUrl = remoteIP.replace('/api', '')
-    backendImgUrl = remoteIP.replace(':8585/api', '')
+    backendImgUrl = remoteIP.replace('/api', '')
 
     // Image base should be the same host without '/api' and without trailing slash
-    backendImgUrl2 = remoteIP.replace(':8585/api', '')
+    backendImgUrl2 = remoteIP.replace('/api', '')
   }
 } else {
   // Default to production mode if no mode is specified

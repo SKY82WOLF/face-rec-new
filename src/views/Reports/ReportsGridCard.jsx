@@ -21,6 +21,7 @@ import { selectGenderTypes, selectAccessTypes } from '@/store/slices/typesSlice'
 import ShamsiDateTime from '@/components/ShamsiDateTimer'
 import { commonStyles } from '@/@core/styles/commonStyles'
 import { useSettings } from '@core/hooks/useSettings'
+import ImageCarousel from '@/components/ImageCarousel'
 
 const StyledReportCard = styled(Card)(({ theme, mode }) => ({
   ...commonStyles.transparentCard,
@@ -75,23 +76,42 @@ const ReportsGridCard = ({
 
   const currentMode = getCurrentMode()
 
-  const [isHovered, setIsHovered] = useState(false)
-
-  // thumbnail when not hovered, full image when hovered
+  // Prepare images for carousel
   const base = getBackendImgUrl2()
   const join = url => (url ? (url.startsWith('/') ? `${base}${url}` : `${base}/${url}`) : null)
 
+  // Get thumbnail as default image
   const thumbnailSrc = reportData.image_thumbnail_url
     ? join(reportData.image_thumbnail_url)
     : reportData.person_image_url
       ? join(reportData.person_image_url)
       : '/images/avatars/1.png'
 
-  const fullSrc = reportData.image_url
-    ? join(reportData.image_url)
-    : reportData.person_image_url
-      ? join(reportData.person_image_url)
-      : thumbnailSrc
+  // Collect other images for hover cycling (excluding thumbnail)
+  const hoverImages = []
+
+  // Add full image if available and different from thumbnail
+  if (reportData.image_url) {
+    const fullImageUrl = join(reportData.image_url)
+
+    if (fullImageUrl !== thumbnailSrc) {
+      hoverImages.push(fullImageUrl)
+    }
+  }
+
+  // Add person image if available and different from thumbnail
+  if (reportData.person_image_url) {
+    const personImageUrl = join(reportData.person_image_url)
+
+    if (personImageUrl !== thumbnailSrc && !hoverImages.includes(personImageUrl)) {
+      hoverImages.push(personImageUrl)
+    }
+  }
+
+  // If no hover images found, use fallback
+  if (hoverImages.length === 0) {
+    hoverImages.push('/images/avatars/1.png')
+  }
 
   const getTypeTitle = (types, id) => {
     if (!types?.data || !id) return t('reportCard.unknown')
@@ -102,58 +122,19 @@ const ReportsGridCard = ({
 
   return (
     <StyledReportCard mode={currentMode} onClick={() => onOpenDetail && onOpenDetail(index)}>
-      <Box
+      <ImageCarousel
+        images={hoverImages}
+        defaultImage={thumbnailSrc}
+        aspectRatio={{ xs: '3 / 2', sm: '16 / 9' }}
+        objectFit='cover'
+        objectPosition='center'
+        transitionDuration={2000}
+        alt={`${reportData.person_id?.first_name || ''} ${reportData.person_id?.last_name || ''}`}
         sx={{
-          position: 'relative',
-          width: '100%',
-          aspectRatio: { xs: '3 / 2', sm: '16 / 9' },
-          flex: '0 0 auto',
           borderTopLeftRadius: 0,
-          borderTopRightRadius: 0,
-          overflow: 'hidden',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: 'transparent'
+          borderTopRightRadius: 0
         }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        <Box sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
-          <Box
-            component='img'
-            src={thumbnailSrc}
-            alt='thumb'
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              objectPosition: 'center',
-              transition: 'opacity 200ms ease',
-              opacity: isHovered ? 0 : 1
-            }}
-          />
-          <Box
-            component='img'
-            src={fullSrc}
-            alt='full'
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              objectPosition: 'center',
-              transition: 'opacity 200ms ease',
-              opacity: isHovered ? 1 : 0
-            }}
-          />
-        </Box>
-      </Box>
+      />
 
       <Divider sx={{ borderColor: 'divider' }} />
 

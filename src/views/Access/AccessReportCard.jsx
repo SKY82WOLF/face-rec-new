@@ -31,6 +31,7 @@ import AccessDetailModal from './AccessDetailModal'
 import AccessEditModal from './AccessEditModal'
 import { commonStyles } from '@/@core/styles/commonStyles'
 import { backendImgUrl } from '@/configs/routes'
+import ImageCarousel from '@/components/ImageCarousel'
 
 // import FullScreenImageModal from '@/components/FullScreenImageModal'
 
@@ -167,7 +168,27 @@ const AccessReportCard = ({ reportData, allReports }) => {
     }
   }
 
-  const displayImage = reportData.person_image || reportData.last_person_image || '/images/avatars/1.png'
+  // Prepare images for carousel
+  const images = []
+
+  // Add person image if available
+  if (reportData.person_image) {
+    images.push(backendImgUrl + reportData.person_image)
+  }
+
+  // Add last person image if available and different from person image
+  if (reportData.last_person_image) {
+    const lastPersonImageUrl = backendImgUrl + reportData.last_person_image
+
+    if (!images.includes(lastPersonImageUrl)) {
+      images.push(lastPersonImageUrl)
+    }
+  }
+
+  // If no images found, use fallback
+  if (images.length === 0) {
+    images.push('/images/avatars/1.png')
+  }
 
   return (
     <>
@@ -182,39 +203,19 @@ const AccessReportCard = ({ reportData, allReports }) => {
           overflow: 'hidden'
         }}
       >
-        {/* Image wrapper with bezel - use a responsive aspect ratio so cards align and image is fully visible */}
-        <Box
+        {/* Image carousel */}
+        <ImageCarousel
+          images={images}
+          aspectRatio={{ xs: '3 / 2', sm: '16 / 9' }}
+          objectFit='cover'
+          objectPosition='center'
+          transitionDuration={2000}
+          alt={`${reportData.first_name || ''} ${reportData.last_name || ''}`}
           sx={{
-            position: 'relative',
-            width: '100%',
-
-            // enforce a predictable aspect ratio so cards align in the grid
-            aspectRatio: { xs: '3 / 2', sm: '16 / 9' },
-            flex: '0 0 auto',
             borderTopLeftRadius: 0,
-            borderTopRightRadius: 0,
-            overflow: 'hidden',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: 'transparent'
+            borderTopRightRadius: 0
           }}
-        >
-          <Box
-            component='img'
-            src={backendImgUrl + displayImage}
-            alt={`${reportData.first_name || ''} ${reportData.last_name || ''}`}
-            sx={{
-              display: 'block',
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              objectPosition: 'center'
-            }}
-          />
-
-          {/* Overlay removed - details button moved to details section below */}
-        </Box>
+        />
 
         {/* Divider between image and details */}
         <Divider sx={{ borderColor: 'divider' }} />

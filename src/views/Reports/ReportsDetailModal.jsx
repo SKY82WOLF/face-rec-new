@@ -24,7 +24,9 @@ import { commonStyles } from '@/@core/styles/commonStyles'
 const modalStyle = {
   ...commonStyles.modalContainer,
   width: '90%',
-  maxWidth: 600
+  maxWidth: 600,
+  maxHeight: { xs: '90vh', md: '100%' },
+  overflow: 'auto'
 }
 
 const ReportsDetailModal = ({
@@ -271,12 +273,13 @@ const ReportsDetailModal = ({
                   onClick={() => setFullScreenImageUrl(detectedImageUrl)}
                   sx={{
                     cursor: 'pointer',
-                    width: { xs: 100, sm: 140, md: 200 },
+                    width: 'auto',
                     height: { xs: 100, sm: 140, md: 200 },
                     mx: 'auto',
                     mb: 2,
                     border: '1px solid',
-                    borderColor: 'divider'
+                    height: 'auto',
+                    objectFit: 'contain'
                   }}
                 />
               </Box>
@@ -296,7 +299,9 @@ const ReportsDetailModal = ({
                     mx: 'auto',
                     mb: 2,
                     border: '1px solid',
-                    borderColor: 'divider'
+                    borderColor: 'divider',
+                    width: 'auto',
+                    objectFit: 'contain'
                   }}
                 />
               </Box>
@@ -426,12 +431,30 @@ const ReportsDetailModal = ({
             <Button color='error' variant='outlined' onClick={onClose}>
               {t('common.close')}
             </Button>
-            <Button variant='contained' onClick={() => onPersonModalOpen && onPersonModalOpen('add')}>
-              {t('reportCard.addToAllowed')}
-            </Button>
-            <Button variant='outlined' onClick={() => onPersonModalOpen && onPersonModalOpen('edit')}>
-              {t('reportCard.editInfo')}
-            </Button>
+            {reportData.access_id === 7 && (
+              <Button
+                variant='contained'
+                onClick={e => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  onPersonModalOpen && onPersonModalOpen('add')
+                }}
+              >
+                {t('reportCard.addToAllowed')}
+              </Button>
+            )}
+            {(reportData.access_id === 5 || reportData.access_id === 6) && (
+              <Button
+                variant='outlined'
+                onClick={e => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  onPersonModalOpen && onPersonModalOpen('edit')
+                }}
+              >
+                {t('reportCard.editInfo')}
+              </Button>
+            )}
           </Box>
         </Box>
       </Fade>

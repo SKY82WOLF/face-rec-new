@@ -194,7 +194,7 @@ const LiveReportCard = ({ reportData, allReports }) => {
             variant='rounded'
             src={displayImage}
             alt={reportData.first_name}
-            sx={{ width: 60, height: 60, mr: 2, cursor: 'pointer' }}
+            sx={{height: 90, mr: 2, cursor: 'pointer', width: 'auto', objectFit: 'contain' }}
             onClick={e => {
               e.stopPropagation()
               setFullScreenImageUrl(displayImage)
@@ -202,7 +202,7 @@ const LiveReportCard = ({ reportData, allReports }) => {
           />
           <Box sx={{ flexGrow: 1 }}>
             <Typography variant='h6' gutterBottom>
-              {`${reportData.first_name || ''} ${reportData.last_name || ''}`}
+              {`${reportData.first_name || t('reportCard.unknown')} ${reportData.last_name || ''}`}
             </Typography>
             <Typography variant='body1' color='textSecondary'>
               <ShamsiDateTime dateTime={modalData.date} format='time' />

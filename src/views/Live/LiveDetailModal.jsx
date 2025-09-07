@@ -243,11 +243,9 @@ const LiveDetailModal = ({
                   alt={modalData.first_name}
                   onClick={() => setFullScreenImageUrl(modalData.person_image || '/images/avatars/1.png')}
                   sx={{
-                    width: '100%',
-                    height: '100%',
-                    maxWidth: 200,
-                    maxHeight: 200,
-                    minHeight: 100,
+                    height: '200px',
+                    width:'auto',
+                    objectFit: 'contain',
                     mx: 'auto',
                     mb: 2,
                     border: '1px solid',
@@ -266,11 +264,9 @@ const LiveDetailModal = ({
                   alt={modalData.first_name}
                   onClick={() => setFullScreenImageUrl(modalData.last_person_image || '/images/avatars/1.png')}
                   sx={{
-                    width: '100%',
-                    height: '100%',
-                    maxWidth: 200,
-                    maxHeight: 200,
-                    minHeight: 100,
+                    width: 'auto',
+                    height: '200px',
+                    objectFit: 'contain',
                     mx: 'auto',
                     mb: 2,
                     border: '1px solid',

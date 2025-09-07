@@ -178,16 +178,18 @@ const LiveListView = ({ reports = [], onOpenDetail, onEdit, onAdd, onDelete }) =
           <TableBody>
             {reports.map((r, idx) => (
               <TableRow key={r.id ?? r.index ?? idx} hover>
-                <TableCell sx={{ paddingLeft: 0, paddingRight: 0 }} align='center'>
+                <TableCell sx={{ paddingLeft: 0, paddingRight: 0,width: '180px' }} align='center'>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'center' }}>
                     <Avatar
                       variant='rounded'
                       src={resolve(r.image_url || r.last_person_image)}
                       sx={{
-                        width: 120,
-                        height: 76,
+                        width: 'auto',
+                        height: 96,
                         borderRadius: 1.5,
-                        cursor: r.image_url || r.last_person_image ? 'pointer' : 'default'
+                        cursor: r.image_url || r.last_person_image ? 'pointer' : 'default',
+                        width: 'auto',
+                        objectFit: 'contain',
                       }}
                       onClick={() => setFullImageUrl(resolve(r.image_url || r.last_person_image))}
                     />
@@ -195,7 +197,10 @@ const LiveListView = ({ reports = [], onOpenDetail, onEdit, onAdd, onDelete }) =
                     <Avatar
                       variant='rounded'
                       src={resolve(r.person_image)}
-                      sx={{ width: 120, height: 76, borderRadius: 1.5, cursor: r.person_image ? 'pointer' : 'default' }}
+                      sx={{ width: 'auto', height: 96, borderRadius: 1.5, cursor: r.person_image ? 'pointer' : 'default',
+                        width: 'auto',
+                        objectFit: 'contain',
+                      }}
                       onClick={() => r.person_image && setFullImageUrl(resolve(r.person_image))}
                     />
                   </Box>

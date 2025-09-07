@@ -59,7 +59,7 @@ const AccessListView = ({ persons, onOpenDetail }) => {
         <Table size='medium' sx={{ minWidth: 760, tableLayout: 'fixed' }}>
           <TableHead>
             <TableRow>
-              <TableCell align='center' sx={{ width: 260 }}>
+              <TableCell align='center' sx={{ width: 280 }}>
                 {t('reportCard.person')}
               </TableCell>
               <TableCell align='center' sx={{ display: { xs: 'none', sm: 'table-cell' }, width: 80 }}>
@@ -87,7 +87,7 @@ const AccessListView = ({ persons, onOpenDetail }) => {
               <TableRow key={person.id} hover>
                 <TableCell>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, whiteSpace: 'nowrap' }}>
-                    <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
+                    <Box sx={{ display: 'flex', gap: 1, flexShrink: 0,height: '100px' }}>
                       <Avatar
                         variant='rounded'
                         src={person.person_image ? backendImgUrl + person.person_image : '/images/avatars/1.png'}
@@ -96,7 +96,9 @@ const AccessListView = ({ persons, onOpenDetail }) => {
                           height: 56,
                           borderRadius: 1.5,
                           cursor: person.person_image ? 'pointer' : 'default',
-                          flexShrink: 0
+                          flexShrink: 0,
+                          width: 'auto',
+                          objectFit: 'contain',
                         }}
                         onClick={() => person.person_image && openFullImage(backendImgUrl + person.person_image)}
                       />
@@ -110,7 +112,9 @@ const AccessListView = ({ persons, onOpenDetail }) => {
                           height: 56,
                           borderRadius: 1.5,
                           cursor: person.last_person_image ? 'pointer' : 'default',
-                          flexShrink: 0
+                          flexShrink: 0,
+                          width: 'auto',
+                          objectFit: 'contain',
                         }}
                         onClick={() =>
                           person.last_person_image && openFullImage(backendImgUrl + person.last_person_image)

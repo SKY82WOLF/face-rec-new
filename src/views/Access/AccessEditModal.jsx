@@ -26,6 +26,7 @@ import { useUpdatePerson } from '@/hooks/usePersons'
 import { selectGenderTypes, selectAccessTypes } from '@/store/slices/typesSlice'
 import { useSettings } from '@core/hooks/useSettings'
 import { commonStyles } from '@/@core/styles/commonStyles'
+import { getBackendImgUrl2 } from '@/configs/routes'
 
 const editModalStyle = mode => ({
   ...commonStyles.modalContainer,
@@ -56,6 +57,7 @@ const AccessEditModal = ({ open, onClose, formData, setFormData, isAllowed, setI
   // Get types data
   const genderTypes = useSelector(selectGenderTypes)
   const accessTypes = useSelector(selectAccessTypes)
+  const backendImgUrl2 = getBackendImgUrl2()
 
   // Get current mode from settings
   const getCurrentMode = () => {
@@ -157,7 +159,7 @@ const AccessEditModal = ({ open, onClose, formData, setFormData, isAllowed, setI
     }
 
     if (formData.person_image && typeof formData.person_image === 'string') {
-      return formData.person_image
+      return backendImgUrl2 + formData.person_image
     }
 
     return '/images/defaultAvatar.png'

@@ -227,7 +227,9 @@ const AccessDetailModal = ({
                     mx: 'auto',
                     mb: 2,
                     border: '1px solid',
-                    borderColor: 'divider'
+                    borderColor: 'divider',
+                    width: 'auto',
+                    objectFit: 'contain',
                   }}
                 />
               </Box>
@@ -247,7 +249,9 @@ const AccessDetailModal = ({
                     mx: 'auto',
                     mb: 2,
                     border: '1px solid',
-                    borderColor: 'divider'
+                    borderColor: 'divider',
+                    width: 'auto',
+                    objectFit: 'contain',
                   }}
                 />
               </Box>

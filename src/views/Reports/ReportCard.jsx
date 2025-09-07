@@ -124,7 +124,7 @@ const ReportCard = ({ reportData, allReports, onOpenDetail, onOpenPersonAdd, onO
             src={isHovered ? fullImage : thumbnailImage}
             alt={`Person ${fullName || personCode}`}
             sx={{
-              width: 60,
+              width: 100,
               height: 60,
               mr: 2,
               cursor: 'pointer',

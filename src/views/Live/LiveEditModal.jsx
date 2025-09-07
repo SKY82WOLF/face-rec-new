@@ -161,7 +161,7 @@ const LiveEditModal = ({ open, onClose, onSubmit, initialData, mode }) => {
 
     // Validate required fields
     if (!formData.first_name || !formData.last_name || !formData.national_code || formData.gender_id === '') {
-      alert(t('reportCard.fillRequiredFields'))
+      console.error('Validation failed: Required fields are missing')
 
       return
     }
@@ -206,7 +206,8 @@ const LiveEditModal = ({ open, onClose, onSubmit, initialData, mode }) => {
       onClose()
     } catch (error) {
       console.error('Update failed:', error)
-      alert(t('reportCard.updateFailed'))
+
+      // Error handling - could be replaced with toast notification or other UI feedback
     }
   }
 
