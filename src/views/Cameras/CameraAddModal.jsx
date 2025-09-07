@@ -176,6 +176,21 @@ const CameraAddModal = ({ open, onClose, onSubmit, isLoading }) => {
                     {testError}
                   </Typography>
                 )}
+                {testResult && (
+                  <>
+                    <CustomTextField
+                      fullWidth
+                      label={t('cameras.name')}
+                      name='name'
+                      value={form.name}
+                      onChange={handleChange}
+                      error={!!errors.name}
+                      helperText={errors.name}
+                      required
+                      sx={{ mt: 2 }}
+                    />
+                  </>
+                )}
               </Grid>
 
               {!testResult && (
@@ -226,19 +241,6 @@ const CameraAddModal = ({ open, onClose, onSubmit, isLoading }) => {
                         </Box>
                       </Typography>
                     </Box>
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <CustomTextField
-                      fullWidth
-                      label={t('cameras.name')}
-                      name='name'
-                      value={form.name}
-                      onChange={handleChange}
-                      error={!!errors.name}
-                      helperText={errors.name}
-                      required
-                    />
                   </Grid>
                 </>
               )}
