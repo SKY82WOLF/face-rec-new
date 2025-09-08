@@ -166,7 +166,7 @@ const ReportsListView = ({ reports, onOpenDetail, onEdit, onAdd, onDelete }) => 
                 </TableCell>
 
                 <TableCell align='center'>
-                  <ShamsiDateTime dateTime={r.created_at} format='date' />
+                  <ShamsiDateTime dateTime={r.created_at} format='datetime' />
                 </TableCell>
 
                 <TableCell align='center'>

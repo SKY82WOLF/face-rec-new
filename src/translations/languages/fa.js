@@ -102,6 +102,8 @@ const fa = {
     id: 'آیدی',
     date: 'تاریخ تشخیص',
     time: 'زمان تشخیص',
+    addDate: 'تاریخ افزودن',
+    addTime: 'زمان افزودن',
     downloadCardAsImage: 'دانلود گزارش',
     downloadProfileImage: 'دانلود تصویر پروفایل',
     downloadLastImage: 'دانلود تصویر آخرین تردد',
@@ -126,7 +128,7 @@ const fa = {
     sortFields: {
       created_at: 'تاریخ',
       person_id: 'شناسه شخص',
-      confidence: 'دقت',
+      confidence: 'دقت تشخیص',
       fiqa: 'کیفیت تصویر',
       camera_id: 'دوربین'
     },
@@ -137,10 +139,10 @@ const fa = {
     // New keys for person reports
     personId: 'شناسه شخص',
     camera: 'دوربین',
-    confidence: 'دقت',
+    confidence: 'دقت تشخیص',
     fiqa: 'کیفیت تصویر',
     similarity: 'شباهت',
-    similarityScore: 'امتیاز شباهت',
+    similarityScore: 'میزان شباهت',
     createdAt: 'تاریخ ایجاد',
     updatedAt: 'تاریخ بروزرسانی',
     detectedImage: 'تصویر تشخیص داده شده',

@@ -178,7 +178,7 @@ const ReportsDetailModal = ({
       label: t('reportCard.similarityScore'),
       value:
         typeof reportData.similarity_score === 'number' && reportData.similarity_score >= 0
-          ? reportData.similarity_score
+          ? `${(reportData.similarity_score * 100).toFixed(4)}%`
           : t('reportCard.unknown')
     },
     {

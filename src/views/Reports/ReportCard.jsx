@@ -189,7 +189,7 @@ const ReportCard = ({ reportData, allReports, onOpenDetail, onOpenPersonAdd, onO
               variant='outlined'
             />
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Typography variant='body2' color={reportData.access_id?.id === 5 ? 'success.main' : 'error.main'}>
+              <Typography variant='body2' color={reportData.access_id === 5 || reportData.access_id?.id === 5 ? 'success.main' : 'error.main'}>
                 {accessTypes.loading
                   ? t('reportCard.loading')
                   : (() => {
@@ -200,7 +200,7 @@ const ReportCard = ({ reportData, allReports, onOpenDetail, onOpenPersonAdd, onO
                       return t('reportCard.unknown')
                     })()}
               </Typography>
-              {reportData.access_id?.id === 5 ? (
+              {reportData.access_id === 5 || reportData.access_id?.id === 5 ? (
                 <LockOpenIcon sx={{ fontSize: 16, color: 'success.main' }} />
               ) : (
                 <LockIcon sx={{ fontSize: 16, color: 'error.main' }} />
@@ -236,7 +236,7 @@ const ReportCard = ({ reportData, allReports, onOpenDetail, onOpenPersonAdd, onO
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
           <Typography variant='body2' color='textSecondary'>
-            {t('reportCard.date')}: <ShamsiDateTime dateTime={reportData.created_at} format='date' />
+            <ShamsiDateTime dateTime={reportData.created_at} format='datetime' />
           </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Button

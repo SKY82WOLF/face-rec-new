@@ -6,9 +6,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { getCameras, getCamera, createCamera, updateCamera, deleteCamera } from '@/api/cameras'
 
-const useCameras = ({ page = 1, per_page = 10 } = {}) => {
+const useCameras = ({ page = 1, per_page = 10, filters = {}, order_by = null } = {}) => {
   const queryClient = useQueryClient()
-  const queryKey = ['cameras', page, per_page]
+
+  const filtersKey = JSON.stringify(filters || {})
+  const parsedFilters = filtersKey ? JSON.parse(filtersKey) : {}
+  const queryKey = ['cameras', page, per_page, filtersKey, order_by]
 
   const {
     data = { cameras: [], total: 0 },
@@ -18,7 +21,7 @@ const useCameras = ({ page = 1, per_page = 10 } = {}) => {
   } = useQuery({
     queryKey,
     queryFn: async () => {
-      const response = await getCameras({ page, per_page })
+      const response = await getCameras({ page, per_page, filters: parsedFilters, order_by })
 
       return {
         cameras: response.results || [],
@@ -40,11 +43,13 @@ const useCameras = ({ page = 1, per_page = 10 } = {}) => {
       const nextPage = page + 1
 
       queryClient.prefetchQuery({
-        queryKey: ['cameras', nextPage, per_page],
+        queryKey: ['cameras', nextPage, per_page, filtersKey, order_by],
         queryFn: async () => {
           const response = await getCameras({
             page: nextPage,
-            per_page
+            per_page,
+            filters: parsedFilters,
+            order_by
           })
 
           return {
@@ -60,11 +65,13 @@ const useCameras = ({ page = 1, per_page = 10 } = {}) => {
       const prevPage = page - 1
 
       queryClient.prefetchQuery({
-        queryKey: ['cameras', prevPage, per_page],
+        queryKey: ['cameras', prevPage, per_page, filtersKey, order_by],
         queryFn: async () => {
           const response = await getCameras({
             page: prevPage,
-            per_page
+            per_page,
+            filters: parsedFilters,
+            order_by
           })
 
           return {
@@ -74,7 +81,8 @@ const useCameras = ({ page = 1, per_page = 10 } = {}) => {
         }
       })
     }
-  }, [page, per_page, data?.total, queryClient])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, per_page, data?.total, queryClient, filtersKey, order_by])
 
   const createMutation = useMutation({
     mutationFn: createCamera,

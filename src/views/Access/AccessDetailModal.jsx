@@ -107,8 +107,8 @@ const AccessDetailModal = ({
             return getTypeTitle(genderTypes, genderId)
           })()
     },
-    { label: t('reportCard.date'), value: <ShamsiDateTime dateTime={modalData.created_at} format='date' /> },
-    { label: t('reportCard.time'), value: <ShamsiDateTime dateTime={modalData.created_at} format='time' /> },
+    { label: t('reportCard.addDate'), value: <ShamsiDateTime dateTime={modalData.created_at} format='date' /> },
+    { label: t('reportCard.addTime'), value: <ShamsiDateTime dateTime={modalData.created_at} format='time' /> },
     {
       label: t('reportCard.status'),
       value: accessTypes.loading

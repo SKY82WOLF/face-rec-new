@@ -8,6 +8,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 import storee from '@/store'
 import { useTypesReduxSync } from '@/hooks/useTypes'
+import GlobalShirzadListener from '@/components/GlobalShirzadListener'
 
 // 1. Create a new component that will be rendered *inside* the QueryClientProvider
 function SyncAndRenderChildren({ children }) {
@@ -43,7 +44,10 @@ export default function Providers({ children }) {
     <ReduxProvider store={storee}>
       <QueryClientProvider client={queryClient}>
         {/* 2. Use the new component here */}
-        <SyncAndRenderChildren>{children}</SyncAndRenderChildren>
+        <SyncAndRenderChildren>
+          <GlobalShirzadListener />
+          {children}
+        </SyncAndRenderChildren>
 
         {/* Devtools can stay here */}
         {process.env.NODE_ENV === 'development' && isClient && (

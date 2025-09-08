@@ -187,17 +187,43 @@ const ReportsFilters = ({ onFilter }) => {
         }}
       >
         <Accordion
-          sx={{ boxShadow: 'none', backgroundColor: 'transparent', width: '100%', ml: 1, '&.Mui-expanded': { boxShadow: 'none' }, p: 0 }}
+          sx={{
+            boxShadow: 'none',
+            backgroundColor: 'transparent',
+            width: '100%',
+            ml: 1,
+            '&.Mui-expanded': { boxShadow: 'none' },
+            p: 0
+          }}
           disableGutters
           defaultExpanded
         >
-          <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ rotate: '90deg', transition: 'transform 0.3s ease-in-out' }} />} sx={{ minHeight: 36, '& .MuiAccordionSummary-content': { my: 0 } }}>
-            <Typography sx={{ fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center' }}><SearchIcon sx={{ fontSize: 16, mr: 1 }} />{t('reportCard.search')}</Typography>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon sx={{ rotate: '90deg', transition: 'transform 0.3s ease-in-out' }} />}
+            sx={{ minHeight: 36, '& .MuiAccordionSummary-content': { my: 0 } }}
+          >
+            <Typography sx={{ fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+              <SearchIcon sx={{ fontSize: 16, mr: 1 }} />
+              {t('reportCard.search')}
+            </Typography>
           </AccordionSummary>
-          <AccordionDetails sx={{ backgroundColor: 'transparent', boxShadow: 'none', display: 'flex', gap: 1, flexWrap: 'wrap', py: 1 }}>
-            <Box component='form' onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}>
+          <AccordionDetails
+            sx={{ backgroundColor: 'transparent', boxShadow: 'none', display: 'flex', gap: 1, flexWrap: 'wrap', py: 1 }}
+          >
+            <Box
+              component='form'
+              onSubmit={handleSubmit}
+              sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}
+            >
               {/* API Filters Row - full width using CSS Grid */}
-              <Box sx={{ width: '100%', display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))', md: 'repeat(3, minmax(0, 1fr))' }, gap: 2 }}>
+              <Box
+                sx={{
+                  width: '100%',
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))', md: 'repeat(3, minmax(0, 1fr))' },
+                  gap: 2
+                }}
+              >
                 <Box>
                   <FormControl size='small' fullWidth sx={{ width: '100%!important' }}>
                     <InputLabel>{t('access.filter.access') || 'Access'}</InputLabel>
@@ -315,19 +341,43 @@ const ReportsFilters = ({ onFilter }) => {
               </FormControl>
 
               {/* Date Range Row - full width */}
-              <LocalizationProvider dateAdapter={AdapterDateFnsJalali} localeText={{ okButtonLabel: t('common.ok'), cancelButtonLabel: t('common.cancel') }}>
-                <Box sx={{ width: '100%', display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' }, gap: 2 }}>
+              <LocalizationProvider
+                dateAdapter={AdapterDateFnsJalali}
+                localeText={{ okButtonLabel: t('common.ok'), cancelButtonLabel: t('common.cancel') }}
+              >
+                <Box
+                  sx={{
+                    width: '100%',
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' },
+                    gap: 2
+                  }}
+                >
                   <Box>
-                    <DateTimePicker label={t('reportCard.date') + ' (از)'} value={dateFilters.created_at_from ? new Date(dateFilters.created_at_from) : null} onChange={value => handleDateChange('created_at_from', value)} ampm={false} slotProps={{ textField: { size: 'small', fullWidth: true, sx: { width: '100%!important' } } }} />
+                    <DateTimePicker
+                      label={t('reportCard.date') + ' (از)'}
+                      value={dateFilters.created_at_from ? new Date(dateFilters.created_at_from) : null}
+                      onChange={value => handleDateChange('created_at_from', value)}
+                      ampm={false}
+                      timeSteps={{ minutes: 1 }}
+                      slotProps={{ textField: { size: 'small', fullWidth: true, sx: { width: '100%!important' } } }}
+                    />
                   </Box>
                   <Box>
-                    <DateTimePicker label={t('reportCard.date') + ' (تا)'} value={dateFilters.created_at_to ? new Date(dateFilters.created_at_to) : null} onChange={value => handleDateChange('created_at_to', value)} ampm={false} slotProps={{ textField: { size: 'small', fullWidth: true, sx: { width: '100%!important' } } }} />
+                    <DateTimePicker
+                      label={t('reportCard.date') + ' (تا)'}
+                      value={dateFilters.created_at_to ? new Date(dateFilters.created_at_to) : null}
+                      onChange={value => handleDateChange('created_at_to', value)}
+                      ampm={false}
+                      timeSteps={{ minutes: 1 }}
+                      slotProps={{ textField: { size: 'small', fullWidth: true, sx: { width: '100%!important' } } }}
+                    />
                   </Box>
                 </Box>
               </LocalizationProvider>
 
               {/* Action Buttons */}
-              <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end',mb:1 }}>
+              <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mb: 1 }}>
                 <Button type='submit' variant='contained' sx={{ minWidth: 100 }}>
                   {t('common.search')}
                 </Button>

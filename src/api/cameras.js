@@ -1,10 +1,25 @@
 import axiosInstance from './axios'
 import { camerasList, camerasDetail, camerasAdd, camerasUpdate, camerasDelete, camerasTest } from '@/configs/routes'
 
-export const getCameras = async ({ page = 1, per_page = 10 } = {}) => {
+export const getCameras = async ({ page = 1, per_page = 10, filters = {}, order_by = null } = {}) => {
   try {
+    const params = { page, per_page }
+
+    // Merge in optional filters
+    Object.entries(filters || {}).forEach(([key, value]) => {
+      if (value === undefined || value === null) return
+
+      if (Array.isArray(value)) {
+        if (value.length > 0) params[key] = value.join(',')
+      } else if (String(value).trim() !== '') {
+        params[key] = value
+      }
+    })
+
+    if (order_by) params.order_by = order_by
+
     const response = await axiosInstance.get(camerasList, {
-      params: { page, per_page }
+      params
     })
 
     return response
