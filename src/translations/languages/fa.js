@@ -110,6 +110,8 @@ const fa = {
     fullName: 'نام و نام خانوادگی',
     invalidImageType: 'نوع فایل نامعتبر است. لطفاً یک تصویر انتخاب کنید.',
     imageTooLarge: 'حجم فایل بسیار بزرگ است. حداکثر 5 مگابایت مجاز است.',
+    usePersonImage: 'استفاده از تصویر شخص',
+    useReportImage: 'استفاده از تصویر آخرین تردد',
 
     // Add any missing keys for Reports modals/filters
     filter: 'فیلترها',

@@ -34,7 +34,7 @@ import ReportsGridCard from './ReportsGridCard'
 import ReportsListView from './ReportsListView'
 import ReportsEditModal from './ReportsEditModal'
 import AddModal from '@/views/Live/LiveAddModal'
-import LiveEditModal from '@/views/Live/LiveEditModal'
+import ReportsPersonEditModal from '@/views/Reports/ReportsPersonEditModal'
 
 import useCameras from '@/hooks/useCameras'
 import { useAddPerson, useDeletePerson, useUpdatePerson } from '@/hooks/usePersons'
@@ -121,11 +121,13 @@ function ReportsContent() {
       gender_id: report.gender_id?.id || report.gender_id || personObj?.gender_id?.id || '',
       access_id: report.access_id?.id || report.access_id || personObj?.access_id?.id || 7,
 
-      // Prefer explicit person image from report, then person's last image
-      person_image:
-        joinUrl(report.person_image_url) || personObj?.last_person_image || joinUrl(report.image_url) || null,
+      // Map profile image vs last captured image explicitly
+      // person_image => profile image from person record
+      person_image: joinUrl(personObj?.person_image) || null,
+
+      // last_person_image => last captured image (prefer nested person last, then report's person_image_url, then report.image_url)
       last_person_image:
-        personObj?.last_person_image || joinUrl(report.person_image_url) || joinUrl(report.image_url) || null,
+        joinUrl(personObj?.last_person_image) || joinUrl(report.person_image_url) || joinUrl(report.image_url) || null,
       feature_vector: report.feature_vector || personObj?.feature_vector || '',
       last_person_report_id: report.id,
       person_id:
@@ -314,7 +316,7 @@ function ReportsContent() {
         initialData={personModalData}
         mode={''}
       />
-      <LiveEditModal
+      <ReportsPersonEditModal
         open={personModalType === 'edit'}
         onClose={() => setPersonModalType(null)}
         onSubmit={handlePersonEditSubmit}
