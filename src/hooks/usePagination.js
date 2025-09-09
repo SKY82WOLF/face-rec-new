@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 
 import { useRouter, useSearchParams } from 'next/navigation'
 
-const usePagination = (initialPage = 1, initialPerPage = 10, perPageOptions = [5, 10, 15, 20]) => {
+const usePagination = (initialPage = 1, initialPerPage = 10, perPageOptions = [10, 15, 20, 25, 30, 40, 50, 100]) => {
   const router = useRouter()
   const searchParams = useSearchParams()
 

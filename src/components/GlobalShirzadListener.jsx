@@ -52,10 +52,10 @@ export default function GlobalShirzadListener() {
             break
           }
 
-          if (ownText.includes('طالبی') || lower.includes('talebi')) {
-            playTalebiSound()
-            break
-          }
+          // if (ownText.includes('طالبی') || lower.includes('talebi')) {
+          //   playTalebiSound()
+          //   break
+          // }
 
           if (ownText.includes('نخست') || lower.includes('nokhost')) {
             playNokhostSound()

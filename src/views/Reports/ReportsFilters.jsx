@@ -158,6 +158,23 @@ const ReportsFilters = ({ onFilter }) => {
   const handlePersonChange = e =>
     setSelectedPersons(typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value)
 
+  // Handlers to remove individual selected items when chip delete icon is clicked
+  const handleRemoveAccess = id => {
+    setSelectedAccess(prev => prev.filter(x => x !== id))
+  }
+
+  const handleRemoveGender = id => {
+    setSelectedGender(prev => prev.filter(x => x !== id))
+  }
+
+  const handleRemoveCamera = id => {
+    setSelectedCameras(prev => prev.filter(x => x !== id))
+  }
+
+  const handleRemovePerson = id => {
+    setSelectedPersons(prev => prev.filter(x => x !== id))
+  }
+
   const handleSubmit = e => {
     e && e.preventDefault()
     sendFilters()
@@ -232,15 +249,47 @@ const ReportsFilters = ({ onFilter }) => {
                       value={selectedAccess}
                       onChange={handleAccessChange}
                       input={<OutlinedInput label={t('access.filter.access') || 'Access'} />}
-                      renderValue={selected => (
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                          {selected.map(value => {
-                            const type = accessTypes?.data?.find(t => t.id === value)
+                      renderValue={selected => {
+                        const items = Array.isArray(selected) ? selected : []
+                        const MAX_VISIBLE = 3
+                        const visible = items.slice(0, MAX_VISIBLE)
+                        const overflow = items.length > MAX_VISIBLE ? items.length - MAX_VISIBLE : 0
 
-                            return <Chip key={value} label={type?.translate || type?.title || value} size='small' />
-                          })}
-                        </Box>
-                      )}
+                        return (
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                            {visible.map(value => {
+                              const type = accessTypes?.data?.find(t => t.id === value)
+                              const label = type?.translate || type?.title || value
+
+                              return (
+                                <Chip
+                                  key={value}
+                                  label={label}
+                                  size='small'
+                                  sx={{
+                                    bgcolor: 'primary.main',
+                                    color: '#fff'
+                                  }}
+                                  onMouseDown={e => e.stopPropagation()}
+                                  onDelete={e => {
+                                    e.stopPropagation()
+                                    handleRemoveAccess(value)
+                                  }}
+                                />
+                              )
+                            })}
+
+                            {overflow > 0 && (
+                              <Chip
+                                label={`+${overflow}`}
+                                size='small'
+                                sx={{ bgcolor: 'primary.main', color: '#fff' }}
+                                onMouseDown={e => e.stopPropagation()}
+                              />
+                            )}
+                          </Box>
+                        )
+                      }}
                       MenuProps={MenuProps}
                     >
                       {accessTypes?.data?.map(type => (
@@ -260,15 +309,47 @@ const ReportsFilters = ({ onFilter }) => {
                       value={selectedGender}
                       onChange={handleGenderChange}
                       input={<OutlinedInput label={t('access.filter.gender') || 'Gender'} />}
-                      renderValue={selected => (
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                          {selected.map(value => {
-                            const type = genderTypes?.data?.find(t => t.id === value)
+                      renderValue={selected => {
+                        const items = Array.isArray(selected) ? selected : []
+                        const MAX_VISIBLE = 3
+                        const visible = items.slice(0, MAX_VISIBLE)
+                        const overflow = items.length > MAX_VISIBLE ? items.length - MAX_VISIBLE : 0
 
-                            return <Chip key={value} label={type?.translate || type?.title || value} size='small' />
-                          })}
-                        </Box>
-                      )}
+                        return (
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                            {visible.map(value => {
+                              const type = genderTypes?.data?.find(t => t.id === value)
+                              const label = type?.translate || type?.title || value
+
+                              return (
+                                <Chip
+                                  key={value}
+                                  label={label}
+                                  size='small'
+                                  sx={{
+                                    bgcolor: 'primary.main',
+                                    color: '#fff'
+                                  }}
+                                  onMouseDown={e => e.stopPropagation()}
+                                  onDelete={e => {
+                                    e.stopPropagation()
+                                    handleRemoveGender(value)
+                                  }}
+                                />
+                              )
+                            })}
+
+                            {overflow > 0 && (
+                              <Chip
+                                label={`+${overflow}`}
+                                size='small'
+                                sx={{ bgcolor: 'primary.main', color: '#fff' }}
+                                onMouseDown={e => e.stopPropagation()}
+                              />
+                            )}
+                          </Box>
+                        )
+                      }}
                       MenuProps={MenuProps}
                     >
                       {genderTypes?.data?.map(type => (
@@ -288,13 +369,47 @@ const ReportsFilters = ({ onFilter }) => {
                       value={selectedCameras}
                       onChange={handleCamerasChange}
                       input={<OutlinedInput label={t('reportCard.camera') || 'Camera'} />}
-                      renderValue={selected => (
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                          {selected.map(value => (
-                            <Chip key={value} label={`Camera ${value}`} size='small' />
-                          ))}
-                        </Box>
-                      )}
+                      renderValue={selected => {
+                        const items = Array.isArray(selected) ? selected : []
+                        const MAX_VISIBLE = 3
+                        const visible = items.slice(0, MAX_VISIBLE)
+                        const overflow = items.length > MAX_VISIBLE ? items.length - MAX_VISIBLE : 0
+
+                        return (
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                            {visible.map(value => {
+                              const cam = camerasData?.find(c => c.id === value || c.camera_id === value)
+                              const label = cam ? cam.title || cam.name || `Camera ${value}` : `Camera ${value}`
+
+                              return (
+                                <Chip
+                                  key={value}
+                                  label={label}
+                                  size='small'
+                                  sx={{
+                                    bgcolor: 'primary.main',
+                                    color: '#fff'
+                                  }}
+                                  onMouseDown={e => e.stopPropagation()}
+                                  onDelete={e => {
+                                    e.stopPropagation()
+                                    handleRemoveCamera(value)
+                                  }}
+                                />
+                              )
+                            })}
+
+                            {overflow > 0 && (
+                              <Chip
+                                label={`+${overflow}`}
+                                size='small'
+                                sx={{ bgcolor: 'primary.main', color: '#fff' }}
+                                onMouseDown={e => e.stopPropagation()}
+                              />
+                            )}
+                          </Box>
+                        )
+                      }}
                       MenuProps={MenuProps}
                     >
                       {camerasData?.map(cam => (
@@ -315,21 +430,52 @@ const ReportsFilters = ({ onFilter }) => {
                   value={selectedPersons}
                   onChange={handlePersonChange}
                   input={<OutlinedInput label={t('access.filter.persons') || 'Persons'} />}
-                  renderValue={selected => (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {selected.map(value => {
-                        const p =
-                          personsData?.data?.find(x => x.person_id === value || x.id === value) ||
-                          personsData?.find?.(x => x.person_id === value || x.id === value)
+                  renderValue={selected => {
+                    const items = Array.isArray(selected) ? selected : []
+                    const MAX_VISIBLE = 3
+                    const visible = items.slice(0, MAX_VISIBLE)
+                    const overflow = items.length > MAX_VISIBLE ? items.length - MAX_VISIBLE : 0
 
-                        const label = p
-                          ? `${p.first_name || ''} ${p.last_name || ''}`.trim() || p.person_id || p.id || value
-                          : value
+                    return (
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {visible.map(value => {
+                          const p =
+                            personsData?.data?.find(x => x.person_id === value || x.id === value) ||
+                            personsData?.find?.(x => x.person_id === value || x.id === value)
 
-                        return <Chip key={value} label={label} size='small' />
-                      })}
-                    </Box>
-                  )}
+                          const label = p
+                            ? `${p.first_name || ''} ${p.last_name || ''}`.trim() || p.person_id || p.id || value
+                            : value
+
+                          return (
+                            <Chip
+                              key={value}
+                              label={label}
+                              size='small'
+                              sx={{
+                                bgcolor: 'primary.main',
+                                color: '#fff'
+                              }}
+                              onMouseDown={e => e.stopPropagation()}
+                              onDelete={e => {
+                                e.stopPropagation()
+                                handleRemovePerson(value)
+                              }}
+                            />
+                          )
+                        })}
+
+                        {overflow > 0 && (
+                          <Chip
+                            label={`+${overflow}`}
+                            size='small'
+                            sx={{ bgcolor: 'primary.main', color: '#fff' }}
+                            onMouseDown={e => e.stopPropagation()}
+                          />
+                        )}
+                      </Box>
+                    )
+                  }}
                   MenuProps={MenuProps}
                 >
                   {(personsData?.data || personsData || []).map(person => (

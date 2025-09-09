@@ -210,8 +210,6 @@ const LiveDetailModal = ({
     }
   ]
 
-  console.log(modalData.person_image, modalData.last_person_image)
-
   return (
     <Modal
       open={open}
