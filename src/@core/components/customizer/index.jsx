@@ -46,6 +46,7 @@ import customizerEvents, { CUSTOMIZER_EVENTS } from '@core/utils/customizerEvent
 
 // Style Imports
 import styles from './styles.module.css'
+import { setSoundsEnabled, getSoundsEnabled } from '@/utils/sound'
 
 const getLocalePath = (pathName, locale) => {
   if (!pathName) return '/'
@@ -222,7 +223,26 @@ const Customizer = ({ breakpoint = 'lg', dir = 'ltr', disableDirection = false }
       </div> */}
       <div className={styles.header}>
         <div className='flex flex-col'>
-          <h4 className={styles.customizerTitle}>شخصی سازی تم</h4>
+          {/* Hidden toggle: clicking this text toggles global sounds (default off) */}
+          <h4
+            className={styles.customizerTitle}
+            role='button'
+            tabIndex={0}
+            onClick={() => {
+              try {
+                setSoundsEnabled(!getSoundsEnabled())
+              } catch (error) {}
+            }}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                try {
+                  setSoundsEnabled(!getSoundsEnabled())
+                } catch (error) {}
+              }
+            }}
+          >
+            شخصی سازی تم
+          </h4>
           <p className={styles.customizerSubtitle}>پیشنمایش و شخصی سازی تم در لحظه</p>
         </div>
         <div className='flex gap-4'>
