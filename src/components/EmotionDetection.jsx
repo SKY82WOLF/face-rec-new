@@ -118,7 +118,7 @@ export default function EmotionDetection({ imageUrl }) {
                 <Box sx={{ width: '100%', backgroundColor: 'background.paper', borderRadius: 1, height: 8 }}>
                   <Box
                     sx={{
-                      height: 'auto',
+                      height: '100%',
                       borderRadius: 1,
                       width: `${item.score * 100}%`,
                       bgcolor: getEmotionColor(item.score)

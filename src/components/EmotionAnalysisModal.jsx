@@ -238,7 +238,7 @@ const EmotionAnalysisModal = ({ open, onClose, reportData }) => {
               sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                height: '100%',
+                height: 'auto',
                 justifyContent: 'space-between'
               }}
             >
