@@ -158,7 +158,52 @@ const fa = {
     max: 'حداکثر',
     to: 'تا',
     loading: 'در حال بارگذاری...',
-    unknown: 'نامشخص'
+    unknown: 'نامشخص',
+
+    // Emotion analysis
+    emotionAnalysis: 'تحلیل احساسات',
+    emotion: 'احساس',
+    emotions: 'احساسات',
+    primaryEmotion: 'احساس اصلی',
+    emotionScore: 'نمره احساس',
+    noEmotionsDetected: 'هیچ احساسی تشخیص داده نشد',
+    noImageProvided: 'تصویری برای تحلیل وجود ندارد',
+    detectionFailed: 'تشخیص احساسات با خطا مواجه شد',
+
+    // Emotion labels
+    emotionLabels: {
+      // Common facial emotions from the Xenova model
+      happy: 'خوشحال',
+      sad: 'غمگین',
+      angry: 'عصبانی',
+      fear: 'ترس',
+      fearful: 'ترسیده',
+      disgust: 'انزجار',
+      disgusted: 'منزجر',
+      surprise: 'تعجب',
+      surprised: 'متعجب',
+      neutral: 'خنثی',
+
+      // Additional emotions that might be detected
+      contempt: 'تحقیر',
+      worried: 'نگران',
+      confused: 'سردرگم',
+      calm: 'آرام',
+
+      // For model outputs like "happiness" instead of "happy"
+      happiness: 'خوشحالی',
+      sadness: 'غم',
+      anger: 'خشم',
+      excitement: 'هیجان',
+      frustration: 'ناامیدی',
+      disappointment: 'دلسردی',
+      satisfaction: 'رضایت',
+      joy: 'شادی',
+      anxiety: 'اضطراب',
+      boredom: 'خستگی',
+
+      unknown: 'نامشخص'
+    }
   },
 
   access: {
