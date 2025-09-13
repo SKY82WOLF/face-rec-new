@@ -1,58 +1,114 @@
 import { addReport, setConnectionStatus, setError } from '../slices/websocketSlice'
-import { getDataWebSocketUrl, getImgWebSocketUrl, getBackendImgUrl } from '@/configs/routes'
+import { getDataWebSocketUrl, getBackendImgUrl2, getBackendImgUrl } from '@/configs/routes'
 import { toastError, toastSuccess } from '@/utils/toast'
+import { logout as apiLogout } from '@/api/auth'
 
 export const websocketMiddleware = store => {
   let socket = null
   let reconnectAttempts = 0
   const maxReconnectAttempts = 5
-  const imgSocket = getImgWebSocketUrl()
-  const backendImgUrl = getBackendImgUrl()
+  const imageBaseUrl = getBackendImgUrl2()
+  const imageBaseUrl2 = getBackendImgUrl()
   let isFirstConnection = true
-  let hasShownConnectionToast = false
+  let hasShownInitialToast = false
+
+  // Prevent reconnects after an intentional disconnect
+  let shouldReconnect = true
+
+  // Track connection instances to ignore stale event handlers
+  let currentConnectionId = 0
 
   const connect = () => {
-    // Use the main ws url (for report)
     const wsUrl = getDataWebSocketUrl('/ws')
+
+    if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
+      console.log('WebSocket already connecting or open, skipping new connect')
+
+      return
+    }
+
+    shouldReconnect = true
+    currentConnectionId += 1
+    const connectionId = currentConnectionId
 
     socket = new WebSocket(wsUrl)
 
     socket.onopen = () => {
+      if (connectionId !== currentConnectionId) return
+
       console.log('WebSocket Connected:', wsUrl)
       store.dispatch(setConnectionStatus(true))
       store.dispatch(setError(null))
       reconnectAttempts = 0
 
-      // Only show success toast on very first connection, not on reconnections
-      if (isFirstConnection && !hasShownConnectionToast) {
+      if (isFirstConnection && !hasShownInitialToast) {
         toastSuccess('success')
-        hasShownConnectionToast = true
+        hasShownInitialToast = true
       }
 
       isFirstConnection = false
 
-      socket.send(JSON.stringify({ action: 'report', token: 'diana' }))
+      const token = localStorage.getItem('refresh_token')
+
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ action: 'report', token: token }))
+      }
     }
 
     socket.onmessage = event => {
-      // console.log('WebSocket message received:', event.data)
+      if (connectionId !== currentConnectionId) return
 
       try {
         const data = JSON.parse(event.data)
 
-        // console.log('Parsed WebSocket data:', data)
-        // console.log('Result data:', data.result)
-        // console.log('Report index:', data.result?.index)
+        if (data.status === 401 || data.message === 'Authentication failed' || data.message === 'Invalid token') {
+          console.warn('WebSocket authentication failed, logging out')
+          shouldReconnect = false
+
+          try {
+            apiLogout()
+          } catch (e) {
+            console.error('Failed to call API logout:', e)
+          }
+
+          localStorage.removeItem('access_token')
+          localStorage.removeItem('refresh_token')
+          localStorage.removeItem('user')
+          localStorage.removeItem('permissions')
+          localStorage.removeItem('sidebar_nav')
+
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login'
+          }
+
+          return
+        }
 
         if (data.status === 200 && data.result) {
+          const joinUrl = path => {
+            if (!path) return null
+            if (typeof path === 'string' && path.startsWith('http')) return path
+
+            if (typeof path === 'string') {
+              if (path.includes('/assets')) {
+                return `${imageBaseUrl}${path}`
+              } else if (path.includes('/uploads')) {
+                return `${imageBaseUrl2}${path}`
+              }
+            }
+
+            return null
+          }
+
           const transformedData = {
             first_name: data.result.first_name || '',
             last_name: data.result.last_name || '',
             national_code: data.result.national_code || '',
             access_id: data.result.access_id,
+            camera_id: data.result.camera_id,
             gender_id: data.result.gender_id,
-            person_image: data.result.person_image ? `${backendImgUrl}/${data.result.person_image}` : null,
-            last_person_image: data.result.last_person_image ? `${imgSocket}${data.result.last_person_image}` : null,
+            person_image: joinUrl(data.result.person_image),
+            last_person_image: joinUrl(data.result.last_person_image),
             person_id: data.result.person_id || '',
             index: data.result.index || `index_${Date.now()}_${Math.random()}`,
             feature_vector: data.result.feature_vector,
@@ -71,32 +127,32 @@ export const websocketMiddleware = store => {
     }
 
     socket.onerror = error => {
+      if (connectionId !== currentConnectionId) return
+
       console.error('WebSocket error:', error)
       store.dispatch(setError('WebSocket connection error'))
 
-      // Only show error toast on first connection attempt
-      if (isFirstConnection) {
+      if (isFirstConnection && !hasShownInitialToast) {
         toastError('networkError')
+        hasShownInitialToast = true
       }
     }
 
     socket.onclose = () => {
+      if (connectionId !== currentConnectionId) return
+
       console.log('WebSocket Disconnected')
       store.dispatch(setConnectionStatus(false))
 
-      // Don't show error toast on reconnection attempts
-      if (reconnectAttempts < maxReconnectAttempts) {
-        const delay = Math.min(10000 * Math.pow(2, reconnectAttempts), 30000)
+      if (shouldReconnect) {
+        if (reconnectAttempts < maxReconnectAttempts) {
+          const delay = Math.min(10000 * Math.pow(2, reconnectAttempts), 30000)
 
-        reconnectAttempts++
-        console.log(`Attempting to reconnect in ${delay}ms (Attempt ${reconnectAttempts})`)
-        setTimeout(() => connect(), delay)
-      } else {
-        store.dispatch(setError('Max reconnection attempts reached'))
-
-        // Only show final error toast if we haven't shown connection toast yet
-        if (!hasShownConnectionToast) {
-          toastError('networkError')
+          reconnectAttempts++
+          console.log(`Attempting to reconnect in ${delay}ms (Attempt ${reconnectAttempts})`)
+          setTimeout(() => connect(), delay)
+        } else {
+          store.dispatch(setError('Max reconnection attempts reached'))
         }
       }
     }

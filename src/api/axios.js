@@ -78,6 +78,17 @@ const shouldShowToast = (requestKey, config, isError = false) => {
     return false
   }
 
+  // Don't show toast for sidebar API endpoint
+  const isSidebarRequest = () => {
+    const url = config.url || ''
+
+    return url.includes('/sidebar')
+  }
+
+  if (isSidebarRequest()) {
+    return false
+  }
+
   return true
 }
 

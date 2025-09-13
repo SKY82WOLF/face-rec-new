@@ -1,10 +1,25 @@
 import axiosInstance from './axios'
-import { camerasList, camerasDetail, camerasAdd, camerasUpdate, camerasDelete } from '@/configs/routes'
+import { camerasList, camerasDetail, camerasAdd, camerasUpdate, camerasDelete, camerasTest } from '@/configs/routes'
 
-export const getCameras = async ({ page = 1, per_page = 10 } = {}) => {
+export const getCameras = async ({ page = 1, per_page = 10, filters = {}, order_by = null } = {}) => {
   try {
+    const params = { page, per_page }
+
+    // Merge in optional filters
+    Object.entries(filters || {}).forEach(([key, value]) => {
+      if (value === undefined || value === null) return
+
+      if (Array.isArray(value)) {
+        if (value.length > 0) params[key] = value.join(',')
+      } else if (String(value).trim() !== '') {
+        params[key] = value
+      }
+    })
+
+    if (order_by) params.order_by = order_by
+
     const response = await axiosInstance.get(camerasList, {
-      params: { page, per_page }
+      params
     })
 
     return response
@@ -25,7 +40,14 @@ export const getCamera = async id => {
 
 export const createCamera = async data => {
   try {
-    const response = await axiosInstance.post(camerasAdd, data, {
+    // Only send required fields
+    const payload = {
+      cam_url: data.cam_url,
+      name: data.name,
+      area: data.area
+    }
+
+    const response = await axiosInstance.post(camerasAdd, payload, {
       headers: {
         'Content-Type': 'application/json'
       }
@@ -39,7 +61,14 @@ export const createCamera = async data => {
 
 export const updateCamera = async ({ id, data }) => {
   try {
-    const response = await axiosInstance.put(`${camerasUpdate}${id}`, data, {
+    // Only send required fields
+    const payload = {
+      cam_url: data.cam_url,
+      name: data.name,
+      area: data.area
+    }
+
+    const response = await axiosInstance.put(`${camerasUpdate}${id}`, payload, {
       headers: {
         'Content-Type': 'application/json'
       }
@@ -58,5 +87,23 @@ export const deleteCamera = async id => {
     return response
   } catch (error) {
     throw error.response?.results || error.message
+  }
+}
+
+export const testCamera = async ({ camera_url }) => {
+  try {
+    const response = await axiosInstance.post(
+      camerasTest,
+      { camera_url },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    )
+
+    return response
+  } catch (error) {
+    throw error.response?.data || error.message
   }
 }

@@ -22,6 +22,8 @@ import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import PersonIcon from '@mui/icons-material/Person'
 
+import VisibilityIcon from '@mui/icons-material/Visibility'
+
 import SEO from '@/components/SEO'
 import { useTranslation } from '@/translations/useTranslation'
 import useUsers from '@/hooks/useUsers'
@@ -33,6 +35,8 @@ import LoadingState from '@/components/ui/LoadingState'
 import PaginationControls from '@/components/ui/PaginationControls'
 import usePagination from '@/hooks/usePagination'
 import { commonStyles } from '@/@core/styles/commonStyles'
+import useHasPermission from '@/utils/HasPermission'
+
 
 const per_page_OPTIONS = [5, 10, 15, 20]
 
@@ -46,6 +50,9 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [userToDelete, setUserToDelete] = useState(null)
   const [hoveredId, setHoveredId] = useState(null)
+
+  const hasAddPermission = useHasPermission('addUser')
+  const hasDeletePermission = useHasPermission('deleteUser')
 
   const { page, per_page, handlePageChange, handlePerPageChange, perPageOptions } = usePagination(
     initialPage,
@@ -121,8 +128,8 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
 
       <PageHeader
         title={t('users.title')}
-        actionButton={t('users.addUser')}
-        actionButtonProps={{ onClick: handleOpenAddModal, startIcon: <AddIcon /> }}
+        actionButton={hasAddPermission ? t('users.addUser') : null}
+        actionButtonProps={{ onClick: handleOpenAddModal, startIcon: <AddIcon />, disabled: !hasAddPermission }}
       />
       <Card
         elevation={0}
@@ -162,6 +169,8 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
                       overflow: 'hidden',
                       boxShadow: '5 8px 32px rgba(0,0,0,0.08)',
                       transform: 'translateY(0)',
+                      border: '1px solid',
+                      borderColor: hoveredId === user.id ? 'primary.main' : 'transparent',
                       transition: 'box-shadow .25s ease, transform .25s ease',
                       '&:hover': {
                         transform: 'translateY(-8px)',
@@ -181,7 +190,6 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
                           width: '100%',
                           height: '100%',
                           objectFit: 'cover',
-                          bgcolor: 'background.default'
                         }}
                       />
                     ) : (
@@ -192,7 +200,6 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          bgcolor: 'background.default'
                         }}
                       >
                         <PersonIcon sx={{ fontSize: 72, color: 'primary.main', opacity: 0.6 }} />
@@ -259,26 +266,28 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
                     >
                       <IconButton
                         size='small'
+                        sx={{ color: 'common.white' }}
+                        aria-label={t('users.viewUser')}
                         onClick={e => {
                           e.stopPropagation()
                           setSelectedUser(user)
                         }}
-                        sx={{ color: 'common.white' }}
-                        aria-label={t('users.editUser')}
                       >
-                        <EditIcon fontSize='small' />
+                        <VisibilityIcon fontSize='small' />
                       </IconButton>
-                      <IconButton
-                        size='small'
-                        sx={{ color: 'error.light' }}
-                        aria-label={t('users.deleteUser')}
-                        onClick={e => {
-                          e.stopPropagation()
-                          handleDeleteClick(user)
-                        }}
-                      >
-                        <DeleteIcon fontSize='small' />
-                      </IconButton>
+                      {hasDeletePermission && (
+                        <IconButton
+                          size='small'
+                          sx={{ color: 'error.light' }}
+                          aria-label={t('users.deleteUser')}
+                          onClick={e => {
+                            e.stopPropagation()
+                            handleDeleteClick(user)
+                          }}
+                        >
+                          <DeleteIcon fontSize='small' />
+                        </IconButton>
+                      )}
                     </Box>
                   </Card>
                 ))}

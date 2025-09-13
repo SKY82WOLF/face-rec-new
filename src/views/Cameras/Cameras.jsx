@@ -35,6 +35,9 @@ import LoadingState from '@/components/ui/LoadingState'
 import PaginationControls from '@/components/ui/PaginationControls'
 import usePagination from '@/hooks/usePagination'
 import { commonStyles } from '@/@core/styles/commonStyles'
+import useHasPermission from '@/utils/HasPermission'
+import CamerasFilter from '@/views/Cameras/CamerasFilter'
+import CameraSort from '@/views/Cameras/CameraSort'
 
 const per_page_OPTIONS = [5, 10, 15, 20]
 
@@ -48,21 +51,52 @@ function CamerasContent({ initialPage = 1, initialper_page = 10 }) {
   const [editCamera, setEditCamera] = useState(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [cameraToDelete, setCameraToDelete] = useState(null)
+  const hasAddPermission = useHasPermission('addCamera')
+  const hasEditPermission = useHasPermission('updateCamera')
+  const hasDeletePermission = useHasPermission('deleteCamera')
 
-  const { page, per_page, handlePageChange, handlePerPageChange, perPageOptions } = usePagination(
+  const { page, per_page, setPage, handlePageChange, handlePerPageChange, perPageOptions } = usePagination(
     initialPage,
     initialper_page
   )
 
-  const { cameras = [], total, isLoading, addCamera, updateCamera, deleteCamera } = useCameras({ page, per_page })
+  // Filters and sorting
+  const [filters, setFilters] = useState({})
+  const [orderBy, setOrderBy] = useState('-created_at')
+
+  const {
+    cameras = [],
+    total,
+    isLoading,
+    addCamera,
+    updateCamera,
+    deleteCamera,
+    loading: mutationLoading
+  } = useCameras({ page, per_page, filters, order_by: orderBy })
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams)
 
     params.set('page', page.toString())
     params.set('per_page', per_page.toString())
+
+    // sync filter fields
+    if (filters?.name) params.set('name', String(filters.name))
+    else params.delete('name')
+    if (filters?.id) params.set('id', String(filters.id))
+    else params.delete('id')
+
+    // sync sort
+    if (orderBy) params.set('order_by', orderBy)
+    else params.delete('order_by')
+
     router.replace(`?${params.toString()}`, { scroll: false })
-  }, [page, per_page, router, searchParams])
+  }, [page, per_page, router, searchParams, filters, orderBy])
+
+  const handleFiltersChange = nextFilters => {
+    setFilters(nextFilters || {})
+    setPage(1)
+  }
 
   const handleOpenAddModal = () => setOpenAddModal(true)
 
@@ -130,14 +164,14 @@ function CamerasContent({ initialPage = 1, initialper_page = 10 }) {
         open={openAddModal}
         onClose={handleCloseAddModal}
         onSubmit={handleAddCamera}
-        isLoading={isLoading}
+        isLoading={mutationLoading}
       />
       <CameraEditModal
         open={!!editCamera}
         onClose={handleCloseEditModal}
         onSubmit={handleUpdateCamera}
         camera={editCamera}
-        isLoading={isLoading}
+        isLoading={mutationLoading}
       />
 
       {/* Delete Confirmation Dialog */}
@@ -156,12 +190,20 @@ function CamerasContent({ initialPage = 1, initialper_page = 10 }) {
 
       <PageHeader
         title={t('cameras.title')}
-        actionButton={t('cameras.addCamera')}
-        actionButtonProps={{ onClick: handleOpenAddModal, startIcon: <AddIcon /> }}
+        actionButton={hasAddPermission ? t('cameras.addCamera') : null}
+        actionButtonProps={{ onClick: handleOpenAddModal, startIcon: <AddIcon />, disabled: !hasAddPermission }}
       />
+      <CamerasFilter onChange={handleFiltersChange} />
+      <CameraSort orderBy={orderBy} setOrderBy={setOrderBy} />
       <Card
         elevation={0}
-        sx={{ ...commonStyles.transparentCard, overflow: 'visible', backgroundColor: '#00000000', boxShadow: 'none', '&:focus': { outline: 'none' } }}
+        sx={{
+          ...commonStyles.transparentCard,
+          overflow: 'visible',
+          backgroundColor: '#00000000',
+          boxShadow: 'none',
+          '&:focus': { outline: 'none' }
+        }}
       >
         <Box sx={{ display: 'contents', p: { xs: 2, sm: 4 }, overflow: 'visible' }}>
           {isLoading ? (
@@ -276,22 +318,26 @@ function CamerasContent({ initialPage = 1, initialper_page = 10 }) {
                       >
                         <VideocamIcon fontSize='small' />
                       </IconButton>
-                      <IconButton
-                        size='small'
-                        onClick={() => handleEditClick(camera)}
-                        sx={{ color: 'common.white' }}
-                        aria-label={t('cameras.editCamera')}
-                      >
-                        <EditIcon fontSize='small' />
-                      </IconButton>
-                      <IconButton
-                        size='small'
-                        sx={{ color: 'error.light' }}
-                        aria-label={t('cameras.deleteCamera')}
-                        onClick={() => handleDeleteClick(camera)}
-                      >
-                        <DeleteIcon fontSize='small' />
-                      </IconButton>
+                      {hasEditPermission && (
+                        <IconButton
+                          size='small'
+                          onClick={() => handleEditClick(camera)}
+                          sx={{ color: 'common.white' }}
+                          aria-label={t('cameras.editCamera')}
+                        >
+                          <EditIcon fontSize='small' />
+                        </IconButton>
+                      )}
+                      {hasDeletePermission && (
+                        <IconButton
+                          size='small'
+                          sx={{ color: 'error.light' }}
+                          aria-label={t('cameras.deleteCamera')}
+                          onClick={() => handleDeleteClick(camera)}
+                        >
+                          <DeleteIcon fontSize='small' />
+                        </IconButton>
+                      )}
                     </Box>
                   </Card>
                 ))}

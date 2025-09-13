@@ -2,12 +2,16 @@ import { useState } from 'react'
 
 import { useRouter } from 'next/navigation'
 
+import { useDispatch } from 'react-redux'
+
 import { login, logout as logoutApi } from '@/api/auth'
+import { setPermissions, setPermissionsLoading, clearPermissions } from '@/store/slices/permissionsSlice'
 
 export const useAuth = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const router = useRouter()
+  const dispatch = useDispatch()
 
   const handleLogin = async (username, password) => {
     try {
@@ -23,6 +27,13 @@ export const useAuth = () => {
 
         // Store user info
         localStorage.setItem('user', JSON.stringify(response.results.user))
+
+        // Sidebar/permissions come in login response under results.sidebar
+        // We store the sidebar array and derive codenames in the slice
+        dispatch(setPermissionsLoading())
+        const sidebarPermissions = response.results.sidebar || []
+
+        dispatch(setPermissions(sidebarPermissions))
 
         // Redirect to dashboard
         router.push('/live')
@@ -49,6 +60,9 @@ export const useAuth = () => {
     localStorage.removeItem('access_token')
     localStorage.removeItem('refresh_token')
     localStorage.removeItem('user')
+    localStorage.removeItem('permissions')
+    localStorage.removeItem('sidebar_nav')
+    dispatch(clearPermissions())
     router.push('/login')
   }
 

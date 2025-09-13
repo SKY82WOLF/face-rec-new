@@ -1,8 +1,9 @@
 'use client'
 
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 
 import { Modal, Fade, Backdrop, Box, Typography, Button, Avatar, Divider, IconButton, Grid } from '@mui/material'
+
 import { styled } from '@mui/system'
 import LockIcon from '@mui/icons-material/Lock'
 import LockOpenIcon from '@mui/icons-material/LockOpen'
@@ -15,11 +16,14 @@ import * as htmlToImage from 'html-to-image'
 
 import { useSelector } from 'react-redux'
 
+import FullScreenImageModal from '@/components/FullScreenImageModal'
+
 import { useTranslation } from '@/translations/useTranslation'
 import { useSettings } from '@core/hooks/useSettings'
 import { selectGenderTypes, selectAccessTypes } from '@/store/slices/typesSlice'
 import ShamsiDateTime from '@/components/ShamsiDateTimer'
 import { commonStyles } from '@/@core/styles/commonStyles'
+import useHasPermission from '@/utils/HasPermission'
 
 const modalStyle = mode => ({
   ...commonStyles.modalContainer,
@@ -40,10 +44,15 @@ const LiveDetailModal = ({
 }) => {
   const { t } = useTranslation()
   const modalRef = useRef(null)
+  const [fullScreenImageUrl, setFullScreenImageUrl] = useState(null)
 
   // Get types data
   const genderTypes = useSelector(selectGenderTypes)
   const accessTypes = useSelector(selectAccessTypes)
+
+  // Permission checks (hooks must be called unconditionally)
+  const canCreate = useHasPermission('createPerson')
+  const canUpdate = useHasPermission('updatePerson')
 
   // Helper function to get type title by ID
   const getTypeTitle = (types, id) => {
@@ -137,7 +146,21 @@ const LiveDetailModal = ({
         const genderId = modalData.gender_id?.id || modalData.gender_id
 
         if (genderId && genderTypes?.data) {
-          return <>{getTypeTitle(genderTypes, genderId)}</>
+          const icon =
+            genderId === 2 ? (
+              <i className='tabler tabler-gender-male' style={{ fontSize: 18, color: '#1976d2' }} />
+            ) : genderId === 3 ? (
+              <i className='tabler tabler-gender-female' style={{ fontSize: 18, color: '#d81b60' }} />
+            ) : null
+
+          return (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {icon}
+              <Box component='span' sx={{ color: 'text.secondary' }}>
+                {getTypeTitle(genderTypes, genderId)}
+              </Box>
+            </Box>
+          )
         }
 
         return t('reportCard.unknown')
@@ -157,7 +180,13 @@ const LiveDetailModal = ({
 
   // Data for the details table in the modal
   const modalInfo = [
-    { label: t('reportCard.fullName'), value: `${modalData.first_name || ''} ${modalData.last_name || ''}` },
+    {
+      label: t('reportCard.fullName'),
+      value:
+        modalData.first_name || modalData.last_name
+          ? `${modalData.first_name || ''} ${modalData.last_name || ''}`.trim()
+          : t('reportCard.unknown')
+    },
     { label: t('reportCard.nationalCode'), value: modalData.national_code || t('reportCard.unknown') },
     { label: t('reportCard.id'), value: modalData.person_id || t('reportCard.unknown') },
     {
@@ -165,7 +194,10 @@ const LiveDetailModal = ({
       value: genderValue
     },
     { label: t('reportCard.date'), value: <ShamsiDateTime dateTime={modalData.date} format='date' /> },
-    { label: t('reportCard.time'), value: <ShamsiDateTime dateTime={modalData.date} format='time' disableTimeConversion /> },
+    {
+      label: t('reportCard.time'),
+      value: <ShamsiDateTime dateTime={modalData.date} format='time' />
+    },
     {
       label: t('reportCard.status'),
       value: (
@@ -207,16 +239,16 @@ const LiveDetailModal = ({
                   variant='rounded'
                   src={modalData.person_image || '/images/avatars/1.png'}
                   alt={modalData.first_name}
+                  onClick={() => setFullScreenImageUrl(modalData.person_image || '/images/avatars/1.png')}
                   sx={{
-                    width: '100%',
-                    height: '100%',
-                    maxWidth: 200,
-                    maxHeight: 200,
-                    minHeight: 100,
+                    height: '200px',
+                    width:'auto',
+                    objectFit: 'contain',
                     mx: 'auto',
                     mb: 2,
                     border: '1px solid',
-                    borderColor: 'divider'
+                    borderColor: 'divider',
+                    cursor: 'pointer'
                   }}
                 />
               </Box>
@@ -228,16 +260,16 @@ const LiveDetailModal = ({
                   variant='rounded'
                   src={modalData.last_person_image || '/images/avatars/1.png'}
                   alt={modalData.first_name}
+                  onClick={() => setFullScreenImageUrl(modalData.last_person_image || '/images/avatars/1.png')}
                   sx={{
-                    width: '100%',
-                    height: '100%',
-                    maxWidth: 200,
-                    maxHeight: 200,
-                    minHeight: 100,
+                    width: 'auto',
+                    height: '200px',
+                    objectFit: 'contain',
                     mx: 'auto',
                     mb: 2,
                     border: '1px solid',
-                    borderColor: 'divider'
+                    borderColor: 'divider',
+                    cursor: 'pointer'
                   }}
                 />
               </Box>
@@ -271,6 +303,7 @@ const LiveDetailModal = ({
                   {item.label}
                 </Typography>
                 <Typography
+                  component='div'
                   variant='body1'
                   color={item.valueColor || 'text.primary'}
                   sx={{ display: 'flex', alignItems: 'center' }}
@@ -329,13 +362,24 @@ const LiveDetailModal = ({
             <Button color='error' variant='outlined' onClick={onClose}>
               {t('common.close')}
             </Button>
-            <Button
-              variant='contained'
-              onClick={handlePersonModalOpen}
-              startIcon={isAdd ? <PersonAddIcon /> : <EditIcon />}
-            >
-              {isAdd ? t('reportCard.addToAllowed') : t('reportCard.editInfo')}
-            </Button>
+            {isAdd
+              ? canCreate && (
+                  <Button variant='contained' onClick={handlePersonModalOpen} startIcon={<PersonAddIcon />}>
+                    {t('reportCard.addToAllowed')}
+                  </Button>
+                )
+              : canUpdate && (
+                  <Button variant='contained' onClick={handlePersonModalOpen} startIcon={<EditIcon />}>
+                    {t('reportCard.editInfo')}
+                  </Button>
+                )}
+            {fullScreenImageUrl && (
+              <FullScreenImageModal
+                open={!!fullScreenImageUrl}
+                imageUrl={fullScreenImageUrl}
+                onClose={() => setFullScreenImageUrl(null)}
+              />
+            )}
           </Box>
         </Box>
       </Fade>

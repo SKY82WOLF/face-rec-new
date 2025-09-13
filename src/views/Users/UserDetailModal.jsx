@@ -20,8 +20,11 @@ import {
 import CustomTextField from '@/@core/components/mui/TextField'
 import { useTranslation } from '@/translations/useTranslation'
 import useUsers from '@/hooks/useUsers'
+import useHasPermission from '@/utils/HasPermission'
 
 const UserDetailModal = ({ open, onClose, user }) => {
+  const hasUpdatePermission = useHasPermission('updateUser')
+
   const { t } = useTranslation()
   const { editUser, loading } = useUsers()
 
@@ -123,11 +126,14 @@ const UserDetailModal = ({ open, onClose, user }) => {
               <Typography variant='body2' color='text.secondary'>
                 @{user.username}
               </Typography>
-
-              {!isEditing && (
-                <Button variant='contained' sx={{ mt: 4 }} fullWidth onClick={() => setIsEditing(true)}>
-                  {t('profile.editProfile')}
-                </Button>
+              {hasUpdatePermission && (
+                <>
+                  {!isEditing && (
+                    <Button variant='contained' sx={{ mt: 4 }} fullWidth onClick={() => setIsEditing(true)}>
+                      {t('profile.editProfile')}
+                    </Button>
+                  )}
+                </>
               )}
 
               <Divider sx={{ my: 3 }} />

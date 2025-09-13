@@ -32,7 +32,9 @@ const fa = {
     to: 'تا',
     error: 'خطا',
     success: 'موفقیت',
-    reset: 'بازنشانی'
+    reset: 'بازنشانی',
+    sortBy: 'مرتب‌سازی بر اساس',
+    order: 'ترتیب'
   },
 
   // Not Found Page
@@ -51,6 +53,8 @@ const fa = {
     addNewPerson: 'افزودن شخص جدید',
     loading: 'در حال بارگذاری...',
     noReports: 'گزارشی موجود نیست',
+    noCameras: 'دوربینی موجود نیست',
+    loadingCameras: 'در حال بارگذاری دوربین ها...',
     addPersonModal: {
       title: 'افزودن شخص جدید',
       name: 'نام',
@@ -70,6 +74,8 @@ const fa = {
 
   // Report Card
   reportCard: {
+    image: 'تصویر',
+    noReport: 'گزارشی موجود نیست',
     nationalCode: 'کد ملی',
     gender: 'جنسیت',
     male: 'آقا',
@@ -96,15 +102,19 @@ const fa = {
     id: 'آیدی',
     date: 'تاریخ تشخیص',
     time: 'زمان تشخیص',
+    addDate: 'تاریخ افزودن',
+    addTime: 'زمان افزودن',
     downloadCardAsImage: 'دانلود گزارش',
     downloadProfileImage: 'دانلود تصویر پروفایل',
     downloadLastImage: 'دانلود تصویر آخرین تردد',
     fullName: 'نام و نام خانوادگی',
     invalidImageType: 'نوع فایل نامعتبر است. لطفاً یک تصویر انتخاب کنید.',
     imageTooLarge: 'حجم فایل بسیار بزرگ است. حداکثر 5 مگابایت مجاز است.',
+    usePersonImage: 'استفاده از تصویر شخص',
+    useReportImage: 'استفاده از تصویر آخرین تردد',
 
     // Add any missing keys for Reports modals/filters
-    filter: 'فیلتر',
+    filter: 'فیلترها',
     reset: 'بازنشانی',
     edit: 'ویرایش',
     save: 'ذخیره',
@@ -116,6 +126,14 @@ const fa = {
     sortOrder: 'ترتیب',
     ascending: 'صعودی',
     descending: 'نزولی',
+    order: 'ترتیب',
+    sortFields: {
+      created_at: 'تاریخ',
+      person_id: 'شناسه شخص',
+      confidence: 'دقت تشخیص',
+      fiqa: 'کیفیت تصویر',
+      camera_id: 'دوربین'
+    },
     itemsPerPage: 'تعداد در هر صفحه',
     noReports: 'گزارشی موجود نیست',
     loading: 'در حال بارگذاری...',
@@ -123,13 +141,16 @@ const fa = {
     // New keys for person reports
     personId: 'شناسه شخص',
     camera: 'دوربین',
-    confidence: 'دقت',
+    confidence: 'دقت تشخیص',
     fiqa: 'کیفیت تصویر',
-    similarityScore: 'امتیاز شباهت',
+    similarity: 'شباهت',
+    similarityScore: 'میزان شباهت',
     createdAt: 'تاریخ ایجاد',
     updatedAt: 'تاریخ بروزرسانی',
     detectedImage: 'تصویر تشخیص داده شده',
     personImage: 'تصویر شخص',
+    actions: 'عملیات',
+    person: 'شخص',
     downloadDetectedImage: 'دانلود تصویر تشخیص',
     downloadPersonImage: 'دانلود تصویر شخص',
     boundingBox: 'محدوده تشخیص',
@@ -141,11 +162,29 @@ const fa = {
   },
 
   access: {
-    title: 'اشخاص مجاز',
+    title: 'اشخاص',
     addNewPerson: 'افزودن شخص جدید',
     loading: 'در حال بارگذاری...',
     noPersons: 'شخصی موجود نیست',
     itemsPerPage: 'تعداد در هر صفحه',
+    filter: {
+      persons: 'اشخاص',
+      access: 'دسترسی',
+      gender: 'جنسیت',
+      searchBy: 'جستجو بر اساس',
+      name: 'نام',
+      id: 'آیدی',
+      nationalCode: 'کد ملی',
+      firstName: 'نام',
+      lastName: 'نام خانوادگی',
+      searchPlaceholder: 'جستجو...',
+      reset: 'بازنشانی',
+      placeholder_first_name: 'نام',
+      placeholder_last_name: 'نام خانوادگی',
+      placeholder_person_id: 'آیدی',
+      placeholder_national_code: 'کد ملی',
+      search: 'جستجو'
+    },
     confirmDelete: 'تأیید حذف',
     confirmDeleteMessage: 'آیا مطمئن هستید که می‌خواهید این شخص را حذف کنید؟',
     delete: 'حذف',
@@ -298,6 +337,18 @@ const fa = {
     camUrlRequired: 'آدرس دوربین الزامی است',
     camUserRequired: 'نام کاربری دوربین الزامی است',
     camPasswordRequired: 'رمز عبور دوربین الزامی است',
+
+    // Test flow & preview
+    testCamera: 'تست اتصال',
+    testing: 'در حال تست...',
+    testFailed: 'تست اتصال ناموفق بود',
+    mustTestUrlFirst: 'ابتدا آدرس دوربین را تست کنید',
+    changeUrlToRetest: 'آدرس دوربین تغییر کرده است؛ برای ادامه ابتدا تست کنید',
+    preview: 'پیش‌نمایش',
+    previewImageAlt: 'پیش‌نمایش تصویر دوربین',
+    codec: 'کدک',
+    fps: 'فریم بر ثانیه',
+    resolution: 'رزولوشن',
     statusOptions: {
       active: 'فعال',
       inactive: 'غیرفعال',
@@ -386,6 +437,70 @@ const fa = {
     }
   },
 
+  //shifts
+  shifts: {
+    title: 'مدیریت شیفت‌ها',
+    addShift: 'افزودن شیفت',
+    editShift: 'ویرایش شیفت',
+    deleteShift: 'حذف شیفت',
+    confirmDelete: 'آیا از حذف این شیفت اطمینان دارید؟',
+    confirmDeleteMessage: 'آیا از حذف شیفت "{name}" اطمینان دارید؟ این عملیات قابل بازگشت نیست.',
+    id: 'شناسه',
+    name: 'نام شیفت',
+    shiftName: 'نام شیفت',
+    startTime: 'ساعت شروع',
+    endTime: 'ساعت پایان',
+    description: 'توضیحات',
+    isActive: 'وضعیت فعال',
+    active: 'فعال',
+    inactive: 'غیرفعال',
+    users: 'کاربران',
+    createdAt: 'تاریخ ایجاد',
+    updatedAt: 'تاریخ بروزرسانی',
+    actions: 'عملیات',
+    noData: 'هیچ شیفتی یافت نشد',
+    add: 'افزودن',
+    save: 'ذخیره تغییرات',
+    cancel: 'انصراف',
+    edit: 'ویرایش',
+    delete: 'حذف',
+    itemsPerPage: 'تعداد در صفحه',
+    sortBy: 'مرتب‌سازی بر اساس',
+    sortOrder: 'ترتیب',
+    ascending: 'صعودی',
+    descending: 'نزولی',
+    addNewShift: 'افزودن شیفت جدید',
+    editShiftTitle: 'ویرایش شیفت',
+    addShiftTitle: 'افزودن شیفت جدید',
+    deleteConfirmation: 'تأیید حذف',
+    loading: 'درحال بارگزاری شیفت ها',
+    noData: 'شیفتی یافت نشد',
+    shiftDetails: 'جزئیات شیفت',
+    shiftInfo: 'اطلاعات شیفت',
+    shiftToDelete: 'شیفت برای حذف',
+    deleteWarning: 'این عملیات غیرقابل بازگشت است و تمام کاربران مرتبط با این شیفت حذف خواهند شد.',
+    noUsersAssigned: 'هیچ کاربری تخصیص داده نشده است',
+    timeRange: 'بازه زمانی',
+    status: 'وضعیت',
+    shiftInformation: 'اطلاعات شیفت',
+
+    // Sort fields
+    sortFields: {
+      id: 'شناسه',
+      name: 'نام شیفت',
+      startTime: 'ساعت شروع',
+      endTime: 'ساعت پایان',
+      createdAt: 'تاریخ ایجاد',
+      updatedAt: 'تاریخ بروزرسانی'
+    },
+
+    // Sort orders
+    sortOrders: {
+      asc: 'صعودی',
+      desc: 'نزولی'
+    }
+  },
+
   // Sidebar menu
   sidebar: {
     dashboard: 'داشبورد',
@@ -398,7 +513,8 @@ const fa = {
     notifications: 'اعلان‌ها',
     live: 'پخش زنده',
     access: 'اشخاص مجاز',
-    reports: 'گزارش‌ها' // Added missing translation
+    reports: 'گزارش‌ها', // Added missing translation
+    shifts: 'شیفت ها'
   },
 
   // Navbar

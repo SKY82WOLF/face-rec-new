@@ -17,6 +17,7 @@ import AddModal from './LiveAddModal'
 import LiveEditModal from './LiveEditModal'
 import LiveDetailModal from './LiveDetailModal'
 import { commonStyles } from '@/@core/styles/commonStyles'
+import FullScreenImageModal from '@/components/FullScreenImageModal'
 
 const StyledReportCard = styled(Card)(({ theme, mode }) => ({
   ...commonStyles.transparentCard,
@@ -43,6 +44,7 @@ const LiveReportCard = ({ reportData, allReports }) => {
   const [addOpen, setAddOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [modalData, setModalData] = useState(reportData)
+  const [fullScreenImageUrl, setFullScreenImageUrl] = useState(null)
   const addPersonMutation = useAddPerson()
   const updatePersonMutation = useUpdatePerson()
   const [personModalType, setPersonModalType] = useState(null) // 'add' | 'edit' | null
@@ -130,18 +132,23 @@ const LiveReportCard = ({ reportData, allReports }) => {
 
   const handleEditClose = () => setEditOpen(false)
 
-  const handleSubmit = async formData => {
+  const handleAddSubmit = async formData => {
     try {
-      // Check if this is an update (person has an ID and access_id is not unknown) or add (no ID or unknown access)
-      const accessId = modalData.access_id?.id || modalData.access_id
-      const isUnknown = accessId === 7 || accessId === 'unknown' || !accessId
+      await addPersonMutation.mutateAsync(formData)
 
+      // child modal will close itself on success
+    } catch (error) {
+      console.error('Failed to add person:', error)
+    }
+  }
+
+  const handleEditSubmit = async formData => {
+    try {
       await updatePersonMutation.mutateAsync({ id: modalData.person_id, data: formData })
 
-      handleAddClose()
-      handleEditClose()
+      // child modal will close itself on success
     } catch (error) {
-      console.error('Failed to add/edit person:', error)
+      console.error('Failed to update person:', error)
     }
   }
 
@@ -181,20 +188,24 @@ const LiveReportCard = ({ reportData, allReports }) => {
 
   return (
     <>
-      <StyledReportCard mode={currentMode}>
+      <StyledReportCard mode={currentMode} onClick={handleOpen} sx={{ cursor: 'pointer' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
           <Avatar
             variant='rounded'
             src={displayImage}
             alt={reportData.first_name}
-            sx={{ width: 60, height: 60, mr: 2 }}
+            sx={{height: 90, mr: 2, cursor: 'pointer', width: 'auto', objectFit: 'contain' }}
+            onClick={e => {
+              e.stopPropagation()
+              setFullScreenImageUrl(displayImage)
+            }}
           />
           <Box sx={{ flexGrow: 1 }}>
             <Typography variant='h6' gutterBottom>
-              {`${reportData.first_name || ''} ${reportData.last_name || ''}`}
+              {`${reportData.first_name || t('reportCard.unknown')} ${reportData.last_name || ''}`}
             </Typography>
             <Typography variant='body1' color='textSecondary'>
-              <ShamsiDateTime dateTime={modalData.date} format='time' disableTimeConversion />
+              <ShamsiDateTime dateTime={modalData.date} format='time' />
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -258,7 +269,7 @@ const LiveReportCard = ({ reportData, allReports }) => {
       <AddModal
         open={personModalType === 'add'}
         onClose={handlePersonModalClose}
-        onSubmit={handleSubmit}
+        onSubmit={handleAddSubmit}
         initialData={{
           id: modalData.id,
           first_name: modalData.first_name || '',
@@ -280,7 +291,7 @@ const LiveReportCard = ({ reportData, allReports }) => {
       <LiveEditModal
         open={personModalType === 'edit'}
         onClose={handlePersonModalClose}
-        onSubmit={handleSubmit}
+        onSubmit={handleEditSubmit}
         initialData={{
           id: modalData.id,
           first_name: modalData.first_name || '',
@@ -295,6 +306,11 @@ const LiveReportCard = ({ reportData, allReports }) => {
           image_quality: modalData.image_quality
         }}
         mode={currentMode}
+      />
+      <FullScreenImageModal
+        open={!!fullScreenImageUrl}
+        imageUrl={fullScreenImageUrl}
+        onClose={() => setFullScreenImageUrl(null)}
       />
     </>
   )

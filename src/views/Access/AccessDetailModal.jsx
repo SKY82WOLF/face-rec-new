@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 
 import { Box, Typography, Button, Modal, Fade, Backdrop, Avatar, Divider, IconButton, Grid } from '@mui/material'
+
 import LockIcon from '@mui/icons-material/Lock'
 import LockOpenIcon from '@mui/icons-material/LockOpen'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -11,12 +12,16 @@ import * as htmlToImage from 'html-to-image'
 
 import { useSelector } from 'react-redux'
 
+import FullScreenImageModal from '@/components/FullScreenImageModal'
+
 import { useTranslation } from '@/translations/useTranslation'
 import { useDeletePerson } from '@/hooks/usePersons'
 import { selectGenderTypes, selectAccessTypes } from '@/store/slices/typesSlice'
 import { useSettings } from '@core/hooks/useSettings'
 import ShamsiDateTime from '@/components/ShamsiDateTimer'
 import { commonStyles } from '@/@core/styles/commonStyles'
+import useHasPermission from '@/utils/HasPermission'
+import { backendImgUrl } from '@/configs/routes'
 
 const modalStyle = mode => ({
   ...commonStyles.modalContainer,
@@ -38,6 +43,7 @@ const AccessDetailModal = ({
   const { t } = useTranslation()
   const { settings } = useSettings()
   const modalRef = useRef(null)
+  const [fullScreenImageUrl, setFullScreenImageUrl] = useState(null)
 
   const deletePersonMutation = useDeletePerson()
 
@@ -101,8 +107,8 @@ const AccessDetailModal = ({
             return getTypeTitle(genderTypes, genderId)
           })()
     },
-    { label: t('reportCard.date'), value: <ShamsiDateTime dateTime={modalData.created_at} format='date' /> },
-    { label: t('reportCard.time'), value: <ShamsiDateTime dateTime={modalData.created_at} format='time' /> },
+    { label: t('reportCard.addDate'), value: <ShamsiDateTime dateTime={modalData.created_at} format='date' /> },
+    { label: t('reportCard.addTime'), value: <ShamsiDateTime dateTime={modalData.created_at} format='time' /> },
     {
       label: t('reportCard.status'),
       value: accessTypes.loading
@@ -172,6 +178,11 @@ const AccessDetailModal = ({
       .catch(err => console.error('Download card image failed:', err))
   }
 
+  const hasUpdatePermission = useHasPermission('updatePerson')
+
+  const personImageUrl = modalData.person_image ? backendImgUrl + modalData.person_image : null
+  const lastPersonImageUrl = modalData.last_person_image ? backendImgUrl + modalData.last_person_image : null
+
   return (
     <Modal
       open={open}
@@ -206,15 +217,19 @@ const AccessDetailModal = ({
                 <Typography variant='subtitle1'>{t('reportCard.userImage')}</Typography>
                 <Avatar
                   variant='rounded'
-                  src={modalData.person_image || '/images/avatars/1.png'}
+                  src={personImageUrl || '/images/avatars/1.png'}
                   alt={modalData.first_name}
+                  onClick={() => setFullScreenImageUrl(personImageUrl || '/images/avatars/1.png')}
                   sx={{
+                    cursor: 'pointer',
                     width: { xs: 100, sm: 140, md: 200 },
                     height: { xs: 100, sm: 140, md: 200 },
                     mx: 'auto',
                     mb: 2,
                     border: '1px solid',
-                    borderColor: 'divider'
+                    borderColor: 'divider',
+                    width: 'auto',
+                    objectFit: 'contain',
                   }}
                 />
               </Box>
@@ -224,15 +239,19 @@ const AccessDetailModal = ({
                 <Typography variant='subtitle1'>{t('reportCard.apiImage')}</Typography>
                 <Avatar
                   variant='rounded'
-                  src={modalData.last_person_image || '/images/avatars/1.png'}
+                  src={lastPersonImageUrl || '/images/avatars/1.png'}
                   alt={modalData.first_name}
+                  onClick={() => setFullScreenImageUrl(lastPersonImageUrl || '/images/avatars/1.png')}
                   sx={{
+                    cursor: 'pointer',
                     width: { xs: 100, sm: 140, md: 200 },
                     height: { xs: 100, sm: 140, md: 200 },
                     mx: 'auto',
                     mb: 2,
                     border: '1px solid',
-                    borderColor: 'divider'
+                    borderColor: 'divider',
+                    width: 'auto',
+                    objectFit: 'contain',
                   }}
                 />
               </Box>
@@ -341,9 +360,18 @@ const AccessDetailModal = ({
             >
               {deletePersonMutation.isLoading ? t('access.deleting') : t('access.delete')}
             </Button>
-            <Button variant='contained' onClick={onEditOpen} startIcon={<PersonAddIcon />}>
-              {t('reportCard.editInfo')}
-            </Button>
+            {hasUpdatePermission && (
+              <Button variant='contained' onClick={onEditOpen} startIcon={<PersonAddIcon />}>
+                {t('reportCard.editInfo')}
+              </Button>
+            )}
+            {fullScreenImageUrl && (
+              <FullScreenImageModal
+                open={!!fullScreenImageUrl}
+                imageUrl={fullScreenImageUrl}
+                onClose={() => setFullScreenImageUrl(null)}
+              />
+            )}
           </Box>
         </Box>
       </Fade>

@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react'
+
 import {
   Modal,
   Fade,
@@ -12,13 +14,15 @@ import {
   TableContainer,
   TableRow,
   Paper,
-  Chip
+  Chip,
+  CircularProgress
 } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import VideocamIcon from '@mui/icons-material/Videocam'
 
 import { useTranslation } from '@/translations/useTranslation'
 import { commonStyles } from '@/@core/styles/commonStyles'
+import { testCamera } from '@/api/cameras'
 
 const modalStyle = {
   ...commonStyles.modalContainer,
@@ -28,6 +32,17 @@ const modalStyle = {
 
 const CameraDetailModal = ({ open, onClose, camera }) => {
   const { t } = useTranslation()
+  const [testing, setTesting] = useState(false)
+  const [testResult, setTestResult] = useState(null)
+  const [testError, setTestError] = useState('')
+
+  // Reset preview state when switching cameras or closing
+  useEffect(() => {
+    if (!open || !camera) {
+      setTestResult(null)
+      setTestError('')
+    }
+  }, [open, camera])
 
   if (!camera) return null
 
@@ -83,18 +98,6 @@ const CameraDetailModal = ({ open, onClose, camera }) => {
                   </TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 600 }}>{t('cameras.camUser')}</TableCell>
-                  <TableCell>{camera.cam_user}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 600 }}>{t('cameras.camPassword')}</TableCell>
-                  <TableCell>
-                    <Typography variant='body2' color='text.secondary'>
-                      {camera.cam_password}
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-                <TableRow>
                   <TableCell sx={{ fontWeight: 600 }}>{t('cameras.id')}</TableCell>
                   <TableCell>{camera.id}</TableCell>
                 </TableRow>
@@ -121,6 +124,82 @@ const CameraDetailModal = ({ open, onClose, camera }) => {
               </TableBody>
             </Table>
           </TableContainer>
+
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+            <Typography variant='subtitle1'>{t('cameras.preview')}</Typography>
+            <Button
+              size='small'
+              onClick={async () => {
+                try {
+                  setTesting(true)
+                  setTestError('')
+                  const response = await testCamera({ camera_url: camera.cam_url })
+
+                  if (response?.success) {
+                    setTestResult(response.results)
+                  } else {
+                    setTestError(response?.message || t('cameras.testFailed'))
+                    setTestResult(null)
+                  }
+                } catch (err) {
+                  setTestError(err?.message || t('cameras.testFailed'))
+                  setTestResult(null)
+                } finally {
+                  setTesting(false)
+                }
+              }}
+              variant='contained'
+              disabled={testing}
+              startIcon={testing ? <CircularProgress size={20} /> : null}
+            >
+              {testing ? t('cameras.testing') : t('cameras.testCamera')}
+            </Button>
+          </Box>
+
+          {testError && (
+            <Typography color='error.main' variant='caption' sx={{ mt: 1, display: 'block' }}>
+              {testError}
+            </Typography>
+          )}
+
+          {testResult && (
+            <Box sx={{ mt: 2 }}>
+              <Box
+                component='img'
+                src={`data:image/jpeg;base64,${testResult.frame}`}
+                alt={t('cameras.previewImageAlt')}
+                sx={{ width: '100%', borderRadius: 2, border: theme => `1px solid ${theme.palette.divider}` }}
+              />
+              <Box sx={{ mt: 1.5 }}>
+                <Typography variant='body2'>
+                  {t('cameras.codec')}: {testResult.codec}
+                </Typography>
+                <Typography variant='body2'>
+                  {t('cameras.fps')}: {testResult.fps}
+                </Typography>
+                <Typography variant='body2'>
+                  {t('cameras.resolution')}:{' '}
+                  <Box component='span' sx={{ direction: 'ltr', unicodeBidi: 'isolate' }}>
+                    {(() => {
+                      const toLatinDigits = str =>
+                        (str || '')
+                          .replace(/[\u06F0-\u06F9]/g, d => String(d.charCodeAt(0) - 0x06f0))
+                          .replace(/[\u0660-\u0669]/g, d => String(d.charCodeAt(0) - 0x0660))
+
+                      const cleaned = toLatinDigits(testResult.resolution || '').replace(/\s+/g, '')
+                      const parts = cleaned.split(/[x×]/i).filter(Boolean)
+
+                      if (parts.length >= 2) {
+                        return `${parts[0]} × ${parts[1]}`
+                      }
+
+                      return cleaned
+                    })()}
+                  </Box>
+                </Typography>
+              </Box>
+            </Box>
+          )}
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
             <Button onClick={onClose} variant='contained'>

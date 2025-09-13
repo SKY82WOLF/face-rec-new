@@ -67,6 +67,28 @@ const AddModal = ({ open, onClose, onSubmit, initialData, mode }) => {
 
   const fileInputRef = useRef(null)
 
+  // Initialize form data when modal opens or selected report changes
+  useEffect(() => {
+    if (open) {
+      setFormData({
+        first_name: initialData?.first_name || '',
+        last_name: initialData?.last_name || '',
+        national_code: initialData?.national_code || '',
+        gender_id: initialData?.gender_id?.id ?? initialData?.gender_id ?? '',
+        access_id: initialData?.access_id?.id ?? initialData?.access_id ?? 7,
+        person_image: null,
+        last_person_image: initialData?.last_person_image || null,
+        feature_vector: initialData?.feature_vector || '',
+        last_person_report_id: initialData?.last_person_report_id || '',
+        person_id: initialData?.person_id || '',
+        image_quality: initialData?.image_quality || ''
+      })
+
+      // Reset preview to rely on provided last_person_image unless user uploads new one
+      setImagePreview(null)
+    }
+  }, [open, initialData])
+
   const handleInputChange = e => {
     const { name, value, checked } = e.target
 
@@ -124,9 +146,9 @@ const AddModal = ({ open, onClose, onSubmit, initialData, mode }) => {
 
     // Validate required fields
     if (!formData.first_name || !formData.last_name || !formData.national_code || formData.gender_id === '') {
-      alert(t('reportCard.fillRequiredFields'))
+      console.error('Validation failed: Required fields are missing')
 
-      return
+return
     }
 
     let profileImage = formData.person_image // Use the newly uploaded image if available
@@ -165,22 +187,12 @@ const AddModal = ({ open, onClose, onSubmit, initialData, mode }) => {
     try {
       await onSubmit(submitData)
 
-      // Reset form after successful submission
-      setFormData({
-        first_name: '',
-        last_name: '',
-        national_code: '',
-        gender_id: '',
-        access_id: 7, // Reset to default
-        person_image: null,
-        feature_vector: '',
-        last_person_report_id: '',
-        image_quality: ''
-      })
-      setImagePreview(null)
+      // Close modal on successful submission; keep state intact on parent if needed
+      onClose()
     } catch (error) {
       console.error('Submission failed:', error)
-      alert(t('reportCard.submissionFailed'))
+
+      // Error handling - could be replaced with toast notification or other UI feedback
     }
   }
 

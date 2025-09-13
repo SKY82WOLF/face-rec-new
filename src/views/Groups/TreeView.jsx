@@ -25,14 +25,19 @@ function buildTreeItems(permissions) {
   const roots = []
 
   permissions.forEach(p => {
-    map[p.id] = { ...p, children: [] }
+    // Ensure ids are strings for MUI X stability
+    const id = String(p.id)
+
+    map[id] = { ...p, id, children: [] }
   })
 
-  permissions.forEach(p => {
-    if (p.parent_id && map[p.parent_id]) {
-      map[p.parent_id].children.push(map[p.id])
+  Object.values(map).forEach(p => {
+    const parentId = p.parent_id != null ? String(p.parent_id) : null
+
+    if (parentId && map[parentId]) {
+      map[parentId].children.push(p)
     } else {
-      roots.push(map[p.id])
+      roots.push(p)
     }
   })
 
@@ -43,8 +48,10 @@ function buildTreeItems(permissions) {
 function filterTree(items, onlyShowIds) {
   if (!onlyShowIds) return items
 
+  const set = new Set(onlyShowIds.map(String))
+
   const filterRecursive = node => {
-    if (onlyShowIds.includes(node.id)) return { ...node }
+    if (set.has(String(node.id))) return { ...node }
 
     if (node.children) {
       const filteredChildren = node.children.map(filterRecursive).filter(Boolean)
@@ -116,15 +123,17 @@ function PermissionTreeView({
     return filtered
   }, [items, onlyShowIds, searchTerm])
 
-  // Convert selected IDs to strings for RichTreeView
-  const selectedItems = React.useMemo(() => selected.map(String), [selected])
+  // Convert selected numeric permission IDs to string item IDs with prefix
+  const selectedItems = React.useMemo(() => selected.map(id => `perm-${id}`), [selected])
 
   // Handle selection change
   const handleSelectedItemsChange = React.useCallback(
     (event, newSelectedItems) => {
       if (onChange) {
-        // Convert back to numbers
-        const numericIds = newSelectedItems.map(id => parseInt(id, 10))
+        // Keep only permission item ids and convert back to numeric IDs
+        const numericIds = newSelectedItems
+          .filter(id => String(id).startsWith('perm-'))
+          .map(id => parseInt(String(id).replace('perm-', ''), 10))
 
         onChange(numericIds)
       }
@@ -164,21 +173,27 @@ function PermissionTreeView({
   // Select all items
   const handleSelectAll = React.useCallback(() => {
     if (onChange) {
-      const getAllIds = items => {
+      const getAllPermIds = items => {
         let ids = []
 
         items.forEach(item => {
-          ids.push(item.id)
+          if (!item.isCategory) {
+            const rawId = String(item.id)
+
+            if (rawId.startsWith('perm-')) {
+              ids.push(parseInt(rawId.replace('perm-', ''), 10))
+            }
+          }
 
           if (item.children && item.children.length > 0) {
-            ids = ids.concat(getAllIds(item.children))
+            ids = ids.concat(getAllPermIds(item.children))
           }
         })
 
         return ids
       }
 
-      onChange(getAllIds(filteredItems))
+      onChange(getAllPermIds(filteredItems))
     }
   }, [filteredItems, onChange])
 
@@ -329,8 +344,10 @@ function PermissionTreeView({
               descendants: true,
               parents: true
             }}
-            collapseIcon={<ExpandMoreIcon />}
-            expandIcon={rtl ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+            slots={{
+              collapseIcon: ExpandMoreIcon,
+              expandIcon: rtl ? ChevronLeftIcon : ChevronRightIcon
+            }}
             sx={{
               flexGrow: 1,
               '& .MuiTreeItem-content': {

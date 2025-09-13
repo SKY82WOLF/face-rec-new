@@ -1,10 +1,27 @@
 import axiosInstance from './axios'
 import { personsList, personsAdd, personsDelete, personsUpdate } from '@/configs/routes'
 
-export const getPersons = async ({ page = 1, per_page = 10 }) => {
+export const getPersons = async ({ page = 1, per_page = 10, filters = {}, order_by = null } = {}) => {
   try {
+    // Build params merging page/per_page with filters.
+    const params = { page, per_page }
+
+    Object.entries(filters || {}).forEach(([key, value]) => {
+      if (value === undefined || value === null) return
+
+      // If value is an array, join with commas for API multi-value support
+      if (Array.isArray(value)) {
+        if (value.length > 0) params[key] = value.join(',')
+      } else if (String(value).trim() !== '') {
+        params[key] = value
+      }
+    })
+
+    // Include order_by if provided (API expects order_by param)
+    if (order_by) params.order_by = order_by
+
     const response = await axiosInstance.get(personsList, {
-      params: { page, per_page }
+      params
     })
 
     return response

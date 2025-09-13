@@ -1,7 +1,13 @@
 'use client'
 
+import PermissionGuard from '@/utils/PermissionGuard'
+
 import Reports from '@/views/Reports/Reports'
 
 export default function ReportPage() {
-  return <Reports />
+  return (
+    <PermissionGuard permission="listPersonReports">
+      <Reports />
+    </PermissionGuard>
+  )
 }

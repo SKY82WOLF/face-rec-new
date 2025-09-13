@@ -29,6 +29,7 @@ import SEO from '@/components/SEO'
 
 // API imports
 import { getUser, updateUser } from '@/api/users'
+import PermissionGuard from '@/utils/PermissionGuard'
 
 const ProfilePage = () => {
   const { t } = useTranslation()
@@ -204,6 +205,7 @@ const ProfilePage = () => {
   const fullName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username
 
   return (
+    <PermissionGuard permission='getUser'>
     <Box className='flex flex-col gap-6'>
       <SEO
         title='پروفایل کاربری | سیستم تشخیص چهره دیانا'
@@ -487,9 +489,10 @@ const ProfilePage = () => {
               </form>
             </Box>
           )}
-        </Card>
+          </Card>
+        </Box>
       </Box>
-    </Box>
+    </PermissionGuard>
   )
 }
 

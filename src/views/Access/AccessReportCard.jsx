@@ -30,17 +30,28 @@ import { useSettings } from '@core/hooks/useSettings'
 import AccessDetailModal from './AccessDetailModal'
 import AccessEditModal from './AccessEditModal'
 import { commonStyles } from '@/@core/styles/commonStyles'
+import { backendImgUrl } from '@/configs/routes'
+import ImageCarousel from '@/components/ImageCarousel'
+
+// import FullScreenImageModal from '@/components/FullScreenImageModal'
 
 const StyledReportCard = styled(Card)(({ theme, mode }) => ({
   ...commonStyles.transparentCard,
   display: 'flex',
   flexDirection: 'column',
-  padding: theme.spacing(2),
+  padding: 0,
   marginBottom: theme.spacing(2),
-  flexGrow: 1,
+
+  // Keep the card shape but limit width so it doesn't stretch across the row
+  width: '100%',
+  maxWidth: 440,
   border: `1px solid ${mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.12)'}`,
   boxShadow: mode === 'dark' ? '0px 4px 8px rgba(0, 0, 0, 0.3), 0px 2px 4px rgba(0, 0, 0, 0.2)' : theme.shadows[1],
   transition: 'all 0.2s ease-in-out',
+  borderRadius: theme.spacing(3),
+  overflow: 'hidden',
+  height: '100%',
+  boxSizing: 'border-box',
   '&:hover': {
     boxShadow: mode === 'dark' ? '0px 6px 12px rgba(0, 0, 0, 0.4), 0px 4px 8px rgba(0, 0, 0, 0.3)' : theme.shadows[4],
     transform: 'translateY(-2px)'
@@ -57,6 +68,8 @@ const AccessReportCard = ({ reportData, allReports }) => {
   const [isAllowed, setIsAllowed] = useState(reportData.access_id?.id === 5)
   const [modalData, setModalData] = useState(reportData)
   const [formData, setFormData] = useState({})
+
+  // const [fullScreenImageUrl, setFullScreenImageUrl] = useState(null)
 
   const deletePersonMutation = useDeletePerson()
 
@@ -155,65 +168,162 @@ const AccessReportCard = ({ reportData, allReports }) => {
     }
   }
 
-  const displayImage = reportData.person_image || reportData.last_person_image || '/images/avatars/1.png'
+  // Prepare images for carousel
+  const images = []
+
+  // Add person image if available
+  if (reportData.person_image) {
+    images.push(backendImgUrl + reportData.person_image)
+  }
+
+  // Add last person image if available and different from person image
+  if (reportData.last_person_image) {
+    const lastPersonImageUrl = backendImgUrl + reportData.last_person_image
+
+    if (!images.includes(lastPersonImageUrl)) {
+      images.push(lastPersonImageUrl)
+    }
+  }
+
+  // If no images found, use fallback
+  if (images.length === 0) {
+    images.push('/images/avatars/1.png')
+  }
 
   return (
     <>
-      <StyledReportCard mode={currentMode}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <Avatar
-            variant='rounded'
-            src={displayImage}
-            alt={reportData.first_name}
-            sx={{ width: 60, height: 60, mr: 2 }}
-          />
-          <Box sx={{ flexGrow: 1 }}>
-            <Typography variant='h6' gutterBottom>
+      <StyledReportCard
+        mode={currentMode}
+        onClick={handleOpen}
+        sx={{
+          cursor: 'pointer',
+          width: '100%',
+          boxSizing: 'border-box',
+          borderRadius: 2,
+          overflow: 'hidden'
+        }}
+      >
+        {/* Image carousel */}
+        <ImageCarousel
+          images={images}
+          aspectRatio={{ xs: '3 / 2', sm: '16 / 9' }}
+          objectFit='cover'
+          objectPosition='center'
+          transitionDuration={2000}
+          alt={`${reportData.first_name || ''} ${reportData.last_name || ''}`}
+          sx={{
+            borderTopLeftRadius: 0,
+            borderTopRightRadius: 0
+          }}
+        />
+
+        {/* Divider between image and details */}
+        <Divider sx={{ borderColor: 'divider' }} />
+
+        {/* Details section beneath image - compact, centered, responsive */}
+        <Box
+          sx={{
+            p: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 0.5,
+            alignItems: 'center',
+            justifyContent: 'center',
+            flex: '1 1 auto',
+            minHeight: { xs: 56, sm: 72 }
+          }}
+        >
+          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+            <Typography
+              variant='h6'
+              align='center'
+              sx={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+            >
               {`${reportData.first_name || ''} ${reportData.last_name || ''}`}
             </Typography>
-            <Typography variant='body2' color='textSecondary'>
-              {t('reportCard.id')}: {reportData.person_id || t('reportCard.unknown')}
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant='body2' color='textSecondary' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              {genderTypes.loading
-                ? t('reportCard.loading')
-                : (() => {
-                    const genderId = reportData.gender_id?.id || reportData.gender_id
 
-                    if (genderId && genderTypes?.data) {
-                      return <span>{getTypeTitle(genderTypes, genderId)}</span>
-                    }
-
-                    return t('reportCard.unknown')
-                  })()}
-            </Typography>
-          </Box>
-        </Box>
-        <Divider sx={{ my: 1 }} />
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
-          <Typography
-            variant='body2'
-            color={isAllowed ? 'success.main' : 'error.main'}
-            sx={{ display: 'flex', alignItems: 'center', mr: 1 }}
-          >
-            {accessTypes.loading
-              ? t('reportCard.loading')
-              : (() => {
-                  const accessId = reportData.access_id?.id || reportData.access_id
-
-                  if (accessId && accessTypes?.data) {
-                    return getTypeTitle(accessTypes, accessId)
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                mt: 0.5,
+                justifyContent: 'space-between',
+                width: '100%'
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
+                {(() => {
+                  if (genderTypes.loading) {
+                    return (
+                      <>
+                        <Typography variant='body2' color='textSecondary'>
+                          {t('reportCard.loading')}
+                        </Typography>
+                      </>
+                    )
                   }
 
-                  return t('reportCard.unknown')
+                  const genderId = reportData.gender_id?.id || reportData.gender_id
+                  let icon = null
+
+                  if (genderId === 2) {
+                    icon = <i className='tabler tabler-gender-male' style={{ fontSize: 18, color: '#1976d2' }} />
+                  } else if (genderId === 3) {
+                    icon = <i className='tabler tabler-gender-female' style={{ fontSize: 18, color: '#d81b60' }} />
+                  }
+
+                  return (
+                    <>
+                      {icon}
+                      <Typography variant='body2' color='textSecondary'>
+                        {genderId && genderTypes?.data ? getTypeTitle(genderTypes, genderId) : t('reportCard.unknown')}
+                      </Typography>
+                    </>
+                  )
                 })()}
-            {isAllowed ? <LockOpenIcon sx={{ fontSize: 16, ml: 0.5 }} /> : <LockIcon sx={{ fontSize: 16, ml: 0.5 }} />}
-          </Typography>
-          <Button variant='outlined' size='small' onClick={handleOpen} startIcon={<Info />}>
-            {t('reportCard.details')}
-          </Button>
+              </Box>
+
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                <Typography
+                  variant='body2'
+                  color={isAllowed ? 'success.main' : 'error.main'}
+                  sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+                >
+                  {accessTypes.loading
+                    ? t('reportCard.loading')
+                    : (() => {
+                        const accessId = reportData.access_id?.id || reportData.access_id
+
+                        if (accessId && accessTypes?.data) {
+                          return getTypeTitle(accessTypes, accessId)
+                        }
+
+                        return t('reportCard.unknown')
+                      })()}
+                </Typography>
+                {isAllowed ? (
+                  <LockOpenIcon sx={{ fontSize: 16, color: 'success.main' }} />
+                ) : (
+                  <LockIcon sx={{ fontSize: 16, color: 'error.main' }} />
+                )}
+              </Box>
+            </Box>
+
+            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', pt: 1 }}>
+              <Button
+                sx={{ width: '100%' }}
+                variant='outlined'
+                onClick={e => {
+                  e.stopPropagation()
+                  handleOpen()
+                }}
+                startIcon={<Info />}
+              >
+                {t('reportCard.details')}
+              </Button>
+            </Box>
+          </Box>
         </Box>
       </StyledReportCard>
 
@@ -264,6 +374,11 @@ const AccessReportCard = ({ reportData, allReports }) => {
           </Button>
         </DialogActions>
       </Dialog>
+      {/* <FullScreenImageModal
+        open={!!fullScreenImageUrl}
+        imageUrl={fullScreenImageUrl}
+        onClose={() => setFullScreenImageUrl(null)}
+      /> */}
     </>
   )
 }

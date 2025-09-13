@@ -1,33 +1,52 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { Box, Typography, Button, Modal, Fade, Backdrop, Avatar, Divider, IconButton, Grid, Chip } from '@mui/material'
-import CloseIcon from '@mui/icons-material/Close'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore'
 import CameraAltIcon from '@mui/icons-material/CameraAlt'
 import PersonIcon from '@mui/icons-material/Person'
+import LockIcon from '@mui/icons-material/Lock'
+import LockOpenIcon from '@mui/icons-material/LockOpen'
 import * as htmlToImage from 'html-to-image'
 
 import { useSelector } from 'react-redux'
 
+import FullScreenImageModal from '@/components/FullScreenImageModal'
+
+// cameras are passed from parent to avoid refetching on every modal open
+
 import { useTranslation } from '@/translations/useTranslation'
 import { getBackendImgUrl2 } from '@/configs/routes'
-import { selectGenderTypes } from '@/store/slices/typesSlice'
+import { selectGenderTypes, selectAccessTypes } from '@/store/slices/typesSlice'
 import ShamsiDateTime from '@/components/ShamsiDateTimer'
 import { commonStyles } from '@/@core/styles/commonStyles'
 
 const modalStyle = {
   ...commonStyles.modalContainer,
   width: '90%',
-  maxWidth: 600
+  maxWidth: 600,
+  maxHeight: { xs: '90vh', md: '100%' },
+  overflow: 'auto'
 }
 
-const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentIndex, onNavigate }) => {
+const ReportsDetailModal = ({
+  open,
+  onClose,
+  reportData,
+  allReports,
+  currentIndex,
+  onNavigate,
+  camerasDataProp,
+  onPersonModalOpen
+}) => {
   const { t } = useTranslation()
   const modalRef = useRef(null)
+  const [fullScreenImageUrl, setFullScreenImageUrl] = useState(null)
 
   // Get types data
   const genderTypes = useSelector(selectGenderTypes)
+  const accessTypes = useSelector(selectAccessTypes)
+  const camerasData = camerasDataProp || []
 
   // Helper function to get type title by ID
   const getTypeTitle = (types, id) => {
@@ -37,13 +56,34 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
     return type?.translate?.trim() || type?.title?.trim() || t('reportCard.unknown')
   }
 
+  const personObj = reportData.person_id && typeof reportData.person_id === 'object' ? reportData.person_id : null
+
+  // Safely derive a primitive person code (avoid rendering objects or 0)
+  const derivedPersonId = (() => {
+    if (personObj) {
+      const idFromNested = typeof personObj.person_id === 'number' ? personObj.person_id : personObj.id
+
+      return typeof idFromNested === 'number' ? idFromNested : undefined
+    }
+
+    return typeof reportData.person_id === 'number' ? reportData.person_id : undefined
+  })()
+
+  const personCode = derivedPersonId && derivedPersonId !== 0 ? String(derivedPersonId) : t('reportCard.unknown')
+  const firstName = personObj?.first_name?.trim?.() || ''
+  const lastName = personObj?.last_name?.trim?.() || ''
+  const fullName = firstName || lastName ? `${firstName} ${lastName}`.trim() : t('reportCard.unknown')
+
   // Get proper image URLs
   const backendImgUrl = getBackendImgUrl2()
   const detectedImageUrl = reportData.image_url ? `${backendImgUrl}/${reportData.image_url}` : '/images/avatars/1.png'
 
+  // Prefer reportData.person_image_url; if absent, try nested person last image
   const personImageUrl = reportData.person_image_url
     ? `${backendImgUrl}/${reportData.person_image_url}`
-    : '/images/avatars/1.png'
+    : personObj?.last_person_image
+      ? personObj.last_person_image
+      : '/images/avatars/1.png'
 
   const confidencePercentage = Math.round((reportData.confidence || 0) * 100)
   const fiqaPercentage = Math.round((reportData.fiqa || 0) * 100)
@@ -62,25 +102,84 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
     return 'error'
   }
 
-  // Info table with actual API data
+  // Info table with actual API data — include id, camera, date and time
   const modalInfo = [
-    { label: t('reportCard.id'), value: reportData.id || t('reportCard.unknown') },
-    { label: t('reportCard.personId'), value: reportData.person_id || t('reportCard.unknown') },
+    { label: t('reportCard.name'), value: fullName },
+    { label: t('reportCard.personId'), value: personCode },
     {
       label: t('reportCard.gender'),
-      value: genderTypes.loading ? t('reportCard.loading') : getTypeTitle(genderTypes, reportData.gender_id)
+      value: (
+        <>
+          {(() => {
+            const genderId = reportData.gender_id?.id || reportData.gender_id
+
+            if (genderTypes.loading) return t('reportCard.loading')
+
+            const icon =
+              genderId === 2 ? (
+                <i className='tabler tabler-gender-male' style={{ fontSize: 18, color: '#1976d2' }} />
+              ) : genderId === 3 ? (
+                <i className='tabler tabler-gender-female' style={{ fontSize: 18, color: '#d81b60' }} />
+              ) : null
+
+            return (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {icon}
+                <Box component='span' sx={{ color: 'text.secondary' }}>
+                  {genderId && genderTypes?.data ? getTypeTitle(genderTypes, genderId) : t('reportCard.unknown')}
+                </Box>
+              </Box>
+            )
+          })()}
+        </>
+      )
     },
-    { label: t('reportCard.camera'), value: `Camera ${reportData.camera_id || 'Unknown'}` },
+    {
+      label: t('reportCard.camera'),
+      value: (camerasData || []).find?.(c => c.id === reportData.camera_id || c.camera_id === reportData.camera_id)
+        ? camerasData.find(c => c.id === reportData.camera_id || c.camera_id === reportData.camera_id).title ||
+          camerasData.find(c => c.id === reportData.camera_id || c.camera_id === reportData.camera_id).name
+        : `Camera ${reportData.camera_id || 'Unknown'}`
+    },
+    {
+      label: t('reportCard.access'),
+      value: (
+        <>
+          {(() => {
+            const accessId = reportData.access_id?.id || reportData.access_id
+
+            if (accessTypes.loading) return t('reportCard.loading')
+
+            return (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box component='span' sx={{ color: accessId === 5 ? 'success.main' : 'error.main' }}>
+                  {accessId && accessTypes?.data ? getTypeTitle(accessTypes, accessId) : t('reportCard.unknown')}
+                </Box>
+                {accessId === 5 ? (
+                  <LockOpenIcon sx={{ fontSize: 18, color: 'success.main' }} />
+                ) : (
+                  <LockIcon sx={{ fontSize: 18, color: 'error.main' }} />
+                )}
+              </Box>
+            )
+          })()}
+        </>
+      )
+    },
+    { label: t('reportCard.date'), value: <ShamsiDateTime dateTime={reportData.created_at} format='date' /> },
+    { label: t('reportCard.time'), value: <ShamsiDateTime dateTime={reportData.created_at} format='time' /> },
     {
       label: t('reportCard.confidence'),
       value: `${confidencePercentage}%`,
       valueColor: getConfidenceColor(reportData.confidence)
     },
     { label: t('reportCard.fiqa'), value: `${fiqaPercentage}%`, valueColor: getFiqaColor(reportData.fiqa) },
-    { label: t('reportCard.similarityScore'), value: reportData.similarity_score || t('reportCard.unknown') },
     {
-      label: t('reportCard.createdAt'),
-      value: <ShamsiDateTime dateTime={reportData.created_at} format='dateTime' />
+      label: t('reportCard.similarityScore'),
+      value:
+        typeof reportData.similarity_score === 'number' && reportData.similarity_score >= 0
+          ? `${(reportData.similarity_score * 100).toFixed(4)}%`
+          : t('reportCard.unknown')
     },
     {
       label: t('reportCard.updatedAt'),
@@ -170,14 +269,17 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
                 <Avatar
                   variant='rounded'
                   src={detectedImageUrl}
-                  alt={`Person ${reportData.person_id}`}
+                  alt={`Person ${fullName || personCode}`}
+                  onClick={() => setFullScreenImageUrl(detectedImageUrl)}
                   sx={{
-                    width: { xs: 100, sm: 140, md: 200 },
+                    cursor: 'pointer',
+                    width: 'auto',
                     height: { xs: 100, sm: 140, md: 200 },
                     mx: 'auto',
                     mb: 2,
                     border: '1px solid',
-                    borderColor: 'divider'
+                    height: 'auto',
+                    objectFit: 'contain'
                   }}
                 />
               </Box>
@@ -188,19 +290,30 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
                 <Avatar
                   variant='rounded'
                   src={personImageUrl}
-                  alt={`Person ${reportData.person_id}`}
+                  alt={`Person ${fullName || personCode}`}
+                  onClick={() => setFullScreenImageUrl(personImageUrl)}
                   sx={{
+                    cursor: 'pointer',
                     width: { xs: 100, sm: 140, md: 200 },
                     height: { xs: 100, sm: 140, md: 200 },
                     mx: 'auto',
                     mb: 2,
                     border: '1px solid',
-                    borderColor: 'divider'
+                    borderColor: 'divider',
+                    width: 'auto',
+                    objectFit: 'contain'
                   }}
                 />
               </Box>
             </Grid>
           </Grid>
+
+          {/* Fullscreen image modal for detail modal images */}
+          <FullScreenImageModal
+            open={!!fullScreenImageUrl}
+            imageUrl={fullScreenImageUrl}
+            onClose={() => setFullScreenImageUrl(null)}
+          />
 
           {/* Bounding Box Info */}
           {reportData.bounding_box && (
@@ -262,6 +375,7 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
                 </Typography>
                 <Typography
                   variant='body1'
+                  component='div'
                   color={item.valueColor || 'text.primary'}
                   sx={{ display: 'flex', alignItems: 'center' }}
                 >
@@ -317,6 +431,30 @@ const ReportsDetailModal = ({ open, onClose, reportData, allReports, currentInde
             <Button color='error' variant='outlined' onClick={onClose}>
               {t('common.close')}
             </Button>
+            {reportData.access_id === 7 && (
+              <Button
+                variant='contained'
+                onClick={e => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  onPersonModalOpen && onPersonModalOpen('add')
+                }}
+              >
+                {t('reportCard.addToAllowed')}
+              </Button>
+            )}
+            {(reportData.access_id === 5 || reportData.access_id === 6) && (
+              <Button
+                variant='outlined'
+                onClick={e => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  onPersonModalOpen && onPersonModalOpen('edit')
+                }}
+              >
+                {t('reportCard.editInfo')}
+              </Button>
+            )}
           </Box>
         </Box>
       </Fade>

@@ -10,31 +10,26 @@ const nextConfig = {
         headers: [
           {
             key: 'Access-Control-Allow-Origin',
-            value: '*',
+            value: '*'
           },
           {
             key: 'Access-Control-Allow-Methods',
-            value: 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+            value: 'GET, POST, PUT, DELETE, PATCH, OPTIONS'
           },
           {
             key: 'Access-Control-Allow-Headers',
-            value: 'Content-Type, Authorization',
-          },
-        ],
-      },
-    ];
+            value: 'Content-Type, Authorization'
+          }
+        ]
+      }
+    ]
   },
 
-  // ✅ Add this to handle SVGs with SVGR:
-  webpack(config) {
-    config.module.rules.push({
-      test: /\.svg$/,
-      issuer: /\.[jt]sx?$/,
-      use: ['@svgr/webpack'],
-    });
-    
-    return config;
-  },
-};
+  turbopack: {
+    rules: {
+      '*.svg': ['@svgr/webpack']
+    }
+  }
+}
 
-export default nextConfig;
+export default nextConfig
