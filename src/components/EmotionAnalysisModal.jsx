@@ -244,7 +244,7 @@ const EmotionAnalysisModal = ({ open, onClose, reportData }) => {
             >
               {fullDisplayImageUrl ? (
                 <>
-                  <EmotionDetection imageUrl={fullImageUrl} />
+                  <EmotionDetection imageUrl={fullDisplayImageUrl} />
                 </>
               ) : (
                 <Typography variant='body2' color='error'>

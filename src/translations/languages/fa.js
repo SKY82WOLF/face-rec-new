@@ -163,6 +163,7 @@ const fa = {
     // Emotion analysis
     emotionAnalysis: 'تحلیل احساسات',
     emotion: 'احساس',
+    age: 'سن حدودی',
     emotions: 'احساسات',
     primaryEmotion: 'احساس اصلی',
     emotionScore: 'نمره احساس',
