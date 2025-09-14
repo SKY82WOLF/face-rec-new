@@ -7,6 +7,7 @@ import EditIcon from '@mui/icons-material/Edit'
 import AddIcon from '@mui/icons-material/Add'
 import CameraAltIcon from '@mui/icons-material/CameraAlt'
 import PersonIcon from '@mui/icons-material/Person'
+import PsychologyIcon from '@mui/icons-material/Psychology'
 
 import { useSelector } from 'react-redux'
 
@@ -25,6 +26,7 @@ import ShamsiDateTime from '@/components/ShamsiDateTimer'
 import ReportsEditModal from './ReportsEditModal'
 import { commonStyles } from '@/@core/styles/commonStyles'
 import useHasPermission from '@/utils/HasPermission'
+import EmotionAnalysisModal from '@/components/EmotionAnalysisModal'
 
 const StyledReportCard = styled(Card)(({ theme }) => ({
   ...commonStyles.transparentCard,
@@ -47,6 +49,7 @@ const ReportCard = ({ reportData, allReports, onOpenDetail, onOpenPersonAdd, onO
   const [openEdit, setOpenEdit] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
   const [fullScreenImageUrl, setFullScreenImageUrl] = useState(null)
+  const [openEmotionModal, setOpenEmotionModal] = useState(false)
 
   // Get types data
   const genderTypes = useSelector(selectGenderTypes)
@@ -189,7 +192,10 @@ const ReportCard = ({ reportData, allReports, onOpenDetail, onOpenPersonAdd, onO
               variant='outlined'
             />
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Typography variant='body2' color={reportData.access_id === 5 || reportData.access_id?.id === 5 ? 'success.main' : 'error.main'}>
+              <Typography
+                variant='body2'
+                color={reportData.access_id === 5 || reportData.access_id?.id === 5 ? 'success.main' : 'error.main'}
+              >
                 {accessTypes.loading
                   ? t('reportCard.loading')
                   : (() => {
@@ -250,6 +256,17 @@ const ReportCard = ({ reportData, allReports, onOpenDetail, onOpenPersonAdd, onO
             >
               {t('reportCard.details')}
             </Button>
+            <Button
+              variant='outlined'
+              size='small'
+              onClick={e => {
+                e.stopPropagation()
+                setOpenEmotionModal(true)
+              }}
+              startIcon={<PsychologyIcon />}
+            >
+              {t('reportCard.emotions')}
+            </Button>
             {hasUpdatePermission && (
               <Button
                 variant='outlined'
@@ -292,6 +309,11 @@ const ReportCard = ({ reportData, allReports, onOpenDetail, onOpenPersonAdd, onO
         open={!!fullScreenImageUrl}
         imageUrl={fullScreenImageUrl}
         onClose={() => setFullScreenImageUrl(null)}
+      />
+      <EmotionAnalysisModal
+        open={openEmotionModal}
+        onClose={() => setOpenEmotionModal(false)}
+        reportData={reportData}
       />
     </>
   )

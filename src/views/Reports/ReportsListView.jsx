@@ -21,11 +21,13 @@ import InfoIcon from '@mui/icons-material/Info'
 import EditIcon from '@mui/icons-material/Edit'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
+import PsychologyIcon from '@mui/icons-material/Psychology'
 
 import { useSelector } from 'react-redux'
 
 import { getBackendImgUrl2 } from '@/configs/routes'
 import FullScreenImageModal from '@/components/FullScreenImageModal'
+import EmotionAnalysisModal from '@/components/EmotionAnalysisModal'
 
 import ShamsiDateTime from '@/components/ShamsiDateTimer'
 import { useTranslation } from '@/translations/useTranslation'
@@ -36,6 +38,7 @@ import useCameras from '@/hooks/useCameras'
 const ReportsListView = ({ reports, onOpenDetail, onEdit, onAdd, onDelete }) => {
   const { t } = useTranslation()
   const [fullImageUrl, setFullImageUrl] = useState(null)
+  const [emotionModalData, setEmotionModalData] = useState(null)
 
   const backendImgUrl = getBackendImgUrl2()
 
@@ -56,7 +59,9 @@ const ReportsListView = ({ reports, onOpenDetail, onEdit, onAdd, onDelete }) => 
         <Table size='medium' sx={{ minWidth: 760 }}>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ minWidth: '200px' }} align='center'>{t('reportCard.image')}</TableCell>
+              <TableCell sx={{ minWidth: '200px' }} align='center'>
+                {t('reportCard.image')}
+              </TableCell>
               <TableCell align='center'>{t('reportCard.name')}</TableCell>
               <TableCell align='center'>{t('reportCard.id')}</TableCell>
               <TableCell align='center' sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
@@ -73,7 +78,7 @@ const ReportsListView = ({ reports, onOpenDetail, onEdit, onAdd, onDelete }) => 
           <TableBody>
             {reports.map(r => (
               <TableRow key={r.id} hover>
-                <TableCell sx={{ paddingLeft: 0, paddingRight: 0,width: '200px' }} align='center'>
+                <TableCell sx={{ paddingLeft: 0, paddingRight: 0, width: '200px' }} align='center'>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'center' }}>
                     <Avatar
                       variant='rounded'
@@ -88,7 +93,7 @@ const ReportsListView = ({ reports, onOpenDetail, onEdit, onAdd, onDelete }) => 
                         width: 120,
                         height: 76,
                         borderRadius: 1.5,
-                        cursor: r.image_url ? 'pointer' : 'default',
+                        cursor: r.image_url ? 'pointer' : 'default'
                       }}
                       onClick={() => setFullImageUrl(r.image_url ? `${backendImgUrl}/${r.image_url}` : null)}
                     />
@@ -103,7 +108,7 @@ const ReportsListView = ({ reports, onOpenDetail, onEdit, onAdd, onDelete }) => 
                         cursor: r.person_image_url ? 'pointer' : 'default',
                         objectFit: 'contain',
                         borderRadius: 1.5,
-                        width:'auto',
+                        width: 'auto'
                       }}
                       onClick={() => r.person_image_url && setFullImageUrl(`${backendImgUrl}/${r.person_image_url}`)}
                     />
@@ -120,7 +125,7 @@ const ReportsListView = ({ reports, onOpenDetail, onEdit, onAdd, onDelete }) => 
                     return <Box sx={{ fontWeight: 600 }}>{t('reportCard.unknown')}</Box>
                   })()}
                 </TableCell>
-                <TableCell align='center'>{r.id}</TableCell>
+                <TableCell align='center'>{r.person_id?.person_id}</TableCell>
                 <TableCell align='center' sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                   {(() => {
                     if (genderTypes.loading) {
@@ -209,6 +214,16 @@ const ReportsListView = ({ reports, onOpenDetail, onEdit, onAdd, onDelete }) => 
                     </IconButton>
                     <IconButton
                       size='small'
+                      color='secondary'
+                      onClick={e => {
+                        e.stopPropagation()
+                        setEmotionModalData(r)
+                      }}
+                    >
+                      <PsychologyIcon fontSize='small' />
+                    </IconButton>
+                    <IconButton
+                      size='small'
                       onClick={e => {
                         e.stopPropagation()
                         const accessId = r.access_id?.id || r.access_id || r.person_id?.access_id?.id
@@ -244,6 +259,15 @@ const ReportsListView = ({ reports, onOpenDetail, onEdit, onAdd, onDelete }) => 
       </TableContainer>
 
       <FullScreenImageModal open={!!fullImageUrl} imageUrl={fullImageUrl} onClose={() => setFullImageUrl(null)} />
+
+      {/* Emotion Analysis Modal */}
+      {emotionModalData && (
+        <EmotionAnalysisModal
+          open={!!emotionModalData}
+          onClose={() => setEmotionModalData(null)}
+          reportData={emotionModalData}
+        />
+      )}
     </>
   )
 }

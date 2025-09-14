@@ -10,6 +10,7 @@ import AddIcon from '@mui/icons-material/Add'
 import CameraAltIcon from '@mui/icons-material/CameraAlt'
 import LockIcon from '@mui/icons-material/Lock'
 import LockOpenIcon from '@mui/icons-material/LockOpen'
+import PsychologyIcon from '@mui/icons-material/Psychology'
 
 import { useSelector } from 'react-redux'
 
@@ -22,6 +23,7 @@ import ShamsiDateTime from '@/components/ShamsiDateTimer'
 import { commonStyles } from '@/@core/styles/commonStyles'
 import { useSettings } from '@core/hooks/useSettings'
 import ImageCarousel from '@/components/ImageCarousel'
+import EmotionAnalysisModal from '@/components/EmotionAnalysisModal'
 
 const StyledReportCard = styled(Card)(({ theme, mode }) => ({
   ...commonStyles.transparentCard,
@@ -57,6 +59,7 @@ const ReportsGridCard = ({
 }) => {
   const { t } = useTranslation()
   const { settings } = useSettings()
+  const [openEmotionModal, setOpenEmotionModal] = useState(false)
   const genderTypes = useSelector(selectGenderTypes)
   const accessTypes = useSelector(selectAccessTypes)
   const { cameras: camerasData } = useCameras({ page: 1, per_page: 200 })
@@ -121,183 +124,220 @@ const ReportsGridCard = ({
   }
 
   return (
-    <StyledReportCard mode={currentMode} onClick={() => onOpenDetail && onOpenDetail(index)}>
-      <ImageCarousel
-        images={hoverImages}
-        defaultImage={thumbnailSrc}
-        aspectRatio={{ xs: '3 / 2', sm: '16 / 9' }}
-        objectFit='cover'
-        objectPosition='center'
-        transitionDuration={2000}
-        alt={`${reportData.person_id?.first_name || ''} ${reportData.person_id?.last_name || ''}`}
-        sx={{
-          borderTopLeftRadius: 0,
-          borderTopRightRadius: 0
-        }}
-      />
+    <>
+      <StyledReportCard mode={currentMode} onClick={() => onOpenDetail && onOpenDetail(index)}>
+        <ImageCarousel
+          images={hoverImages}
+          defaultImage={thumbnailSrc}
+          aspectRatio={{ xs: '3 / 2', sm: '16 / 9' }}
+          objectFit='cover'
+          objectPosition='center'
+          transitionDuration={2000}
+          alt={`${reportData.person_id?.first_name || ''} ${reportData.person_id?.last_name || ''}`}
+          sx={{
+            borderTopLeftRadius: 0,
+            borderTopRightRadius: 0
+          }}
+        />
 
-      <Divider sx={{ borderColor: 'divider' }} />
+        <Divider sx={{ borderColor: 'divider' }} />
 
-      <Box
-        sx={{
-          p: 2,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 1.5,
-          alignItems: 'center',
-          justifyContent: 'center',
-          flex: '1 1 auto',
-          minHeight: { xs: 80, sm: 110 }
-        }}
-      >
-        <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-          {(() => {
-            if (reportData.person_id?.first_name && reportData.person_id?.last_name) {
-              return (
-                <Typography
-                  variant='h6'
-                  align='center'
-                  sx={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                >
-                  {reportData.person_id?.first_name + ' ' + reportData.person_id?.last_name}
-                </Typography>
-              )
-            } else {
-              return (
-                <Typography
-                  variant='h6'
-                  align='center'
-                  sx={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                >
-                  {t('reportCard.unknown')}
-                </Typography>
-              )
-            }
-          })()}
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              mt: 0.5,
-              justifyContent: 'space-between',
-              width: '100%'
-            }}
-          >
-            <Box sx={{ display: 'flex', gap: 0.5, minWidth: 0, flexDirection: 'column' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
-                {(() => {
-                  if (genderTypes.loading) {
+        <Box
+          sx={{
+            p: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1.5,
+            alignItems: 'center',
+            justifyContent: 'center',
+            flex: '1 1 auto',
+            minHeight: { xs: 80, sm: 110 }
+          }}
+        >
+          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+            {(() => {
+              if (reportData.person_id?.first_name && reportData.person_id?.last_name) {
+                return (
+                  <Typography
+                    variant='h6'
+                    align='center'
+                    sx={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                  >
+                    {reportData.person_id?.first_name + ' ' + reportData.person_id?.last_name}
+                  </Typography>
+                )
+              } else {
+                return (
+                  <Typography
+                    variant='h6'
+                    align='center'
+                    sx={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                  >
+                    {t('reportCard.unknown')}
+                  </Typography>
+                )
+              }
+            })()}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                mt: 0.5,
+                justifyContent: 'space-between',
+                width: '100%'
+              }}
+            >
+              <Box sx={{ display: 'flex', gap: 0.5, minWidth: 0, flexDirection: 'column' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
+                  {(() => {
+                    if (genderTypes.loading) {
+                      return (
+                        <Typography variant='body2' color='textSecondary'>
+                          {t('reportCard.loading')}
+                        </Typography>
+                      )
+                    }
+
+                    const genderId =
+                      reportData.gender_id?.id || reportData.gender_id || reportData.person_id?.gender_id?.id
+
+                    let icon = null
+
+                    if (genderId === 2) {
+                      icon = <i className='tabler tabler-gender-male' style={{ fontSize: 18, color: '#1976d2' }} />
+                    } else if (genderId === 3) {
+                      icon = <i className='tabler tabler-gender-female' style={{ fontSize: 18, color: '#d81b60' }} />
+                    }
+
                     return (
-                      <Typography variant='body2' color='textSecondary'>
-                        {t('reportCard.loading')}
-                      </Typography>
+                      <>
+                        {icon}
+                        <Typography variant='body2' color='textSecondary'>
+                          {genderId && genderTypes?.data
+                            ? getTypeTitle(genderTypes, genderId)
+                            : t('reportCard.unknown')}
+                        </Typography>
+                      </>
                     )
-                  }
-
-                  const genderId =
-                    reportData.gender_id?.id || reportData.gender_id || reportData.person_id?.gender_id?.id
-
-                  let icon = null
-
-                  if (genderId === 2) {
-                    icon = <i className='tabler tabler-gender-male' style={{ fontSize: 18, color: '#1976d2' }} />
-                  } else if (genderId === 3) {
-                    icon = <i className='tabler tabler-gender-female' style={{ fontSize: 18, color: '#d81b60' }} />
-                  }
-
-                  return (
-                    <>
-                      {icon}
-                      <Typography variant='body2' color='textSecondary'>
-                        {genderId && genderTypes?.data ? getTypeTitle(genderTypes, genderId) : t('reportCard.unknown')}
-                      </Typography>
-                    </>
-                  )
-                })()}
+                  })()}
+                </Box>
+                <Typography variant='caption' color='textSecondary'>
+                  <ShamsiDateTime dateTime={reportData.created_at} format='date' />
+                </Typography>
               </Box>
-              <Typography variant='caption' color='textSecondary'>
-                <ShamsiDateTime dateTime={reportData.created_at} format='date' />
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, alignItems: 'center', minWidth: 0 }}>
-              <Typography variant='body2' color='primary.main' sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <CameraAltIcon sx={{ fontSize: 16, color: 'primary.main' }} />
-                {(camerasData || []).find?.(c => c.id === reportData.camera_id || c.camera_id === reportData.camera_id)
-                  ? camerasData.find(c => c.id === reportData.camera_id || c.camera_id === reportData.camera_id)
-                      .title ||
-                    camerasData.find(c => c.id === reportData.camera_id || c.camera_id === reportData.camera_id).name
-                  : `Camera ${reportData.camera_id}`}
-              </Typography>
-              <Typography variant='body2' color='textSecondary'>
-                {t('reportCard.id')}: {reportData.person_id?.person_id}
-              </Typography>
-            </Box>
-
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, alignItems: 'center', minWidth: 0 }}>
                 <Typography
                   variant='body2'
-                  sx={{
-                    color: reportData.access_id?.id === 5 || reportData.access_id === 5 ? 'success.main' : 'error.main'
-                  }}
+                  color='primary.main'
+                  sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
                 >
-                  {accessTypes.loading
-                    ? t('reportCard.loading')
-                    : (() => {
-                        const accessId = reportData.access_id?.id || reportData.access_id
-
-                        return accessId && accessTypes?.data
-                          ? getTypeTitle(accessTypes, accessId)
-                          : t('reportCard.unknown')
-                      })()}
+                  <CameraAltIcon sx={{ fontSize: 16, color: 'primary.main' }} />
+                  {(camerasData || []).find?.(
+                    c => c.id === reportData.camera_id || c.camera_id === reportData.camera_id
+                  )
+                    ? camerasData.find(c => c.id === reportData.camera_id || c.camera_id === reportData.camera_id)
+                        .title ||
+                      camerasData.find(c => c.id === reportData.camera_id || c.camera_id === reportData.camera_id).name
+                    : `Camera ${reportData.camera_id}`}
                 </Typography>
-                {reportData.access_id?.id === 5 || reportData.access_id === 5 ? (
-                  <LockOpenIcon sx={{ fontSize: 16, color: 'success.main' }} />
-                ) : (
-                  <LockIcon sx={{ fontSize: 16, color: 'error.main' }} />
-                )}
+                <Typography variant='body2' color='textSecondary'>
+                  {t('reportCard.id')}: {reportData.person_id?.person_id}
+                </Typography>
               </Box>
-              <Typography variant='caption' color='textSecondary'>
-                <ShamsiDateTime dateTime={reportData.created_at} format='time' />
-              </Typography>
+
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color:
+                        reportData.access_id?.id === 5 || reportData.access_id === 5 ? 'success.main' : 'error.main'
+                    }}
+                  >
+                    {accessTypes.loading
+                      ? t('reportCard.loading')
+                      : (() => {
+                          const accessId = reportData.access_id?.id || reportData.access_id
+
+                          return accessId && accessTypes?.data
+                            ? getTypeTitle(accessTypes, accessId)
+                            : t('reportCard.unknown')
+                        })()}
+                  </Typography>
+                  {reportData.access_id?.id === 5 || reportData.access_id === 5 ? (
+                    <LockOpenIcon sx={{ fontSize: 16, color: 'success.main' }} />
+                  ) : (
+                    <LockIcon sx={{ fontSize: 16, color: 'error.main' }} />
+                  )}
+                </Box>
+                <Typography variant='caption' color='textSecondary'>
+                  <ShamsiDateTime dateTime={reportData.created_at} format='time' />
+                </Typography>
+              </Box>
+            </Box>
+
+            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 1 }}>
+              <Box sx={{ display: 'flex', gap: 1, flex: 1 }}>
+                <Button
+                  sx={{ flex: 1 }}
+                  variant='outlined'
+                  size='small'
+                  onClick={e => {
+                    e.stopPropagation()
+                    onOpenDetail && onOpenDetail(index)
+                  }}
+                  startIcon={<InfoIcon />}
+                >
+                  {t('reportCard.details')}
+                </Button>
+                <Button
+                  variant='outlined'
+                  size='small'
+                  color='secondary'
+                  onClick={e => {
+                    e.stopPropagation()
+                    setOpenEmotionModal(true)
+                  }}
+                  startIcon={<PsychologyIcon />}
+                >
+                  {t('reportCard.emotions')}
+                </Button>
+              </Box>
+              <IconButton
+                size='small'
+                onClick={e => {
+                  e.stopPropagation()
+
+                  const accessId =
+                    reportData.access_id?.id || reportData.access_id || reportData.person_id?.access_id?.id
+
+                  const isUnknown = accessId === 7 || accessId === 'unknown' || !accessId
+
+                  if (isUnknown) onOpenPersonAdd && onOpenPersonAdd()
+                  else onOpenPersonEdit && onOpenPersonEdit()
+                }}
+              >
+                {(() => {
+                  const accessId =
+                    reportData.access_id?.id || reportData.access_id || reportData.person_id?.access_id?.id
+
+                  const isUnknown = accessId === 7 || accessId === 'unknown' || !accessId
+
+                  return isUnknown ? <AddIcon fontSize='small' /> : <EditIcon fontSize='small' />
+                })()}
+              </IconButton>
             </Box>
           </Box>
-
-          <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 1 }}>
-            <Button
-              sx={{ flex: 1, mr: 1 }}
-              variant='outlined'
-              onClick={e => {
-                e.stopPropagation()
-                onOpenDetail && onOpenDetail(index)
-              }}
-              startIcon={<InfoIcon />}
-            >
-              {t('reportCard.details')}
-            </Button>
-            <IconButton
-              size='small'
-              onClick={e => {
-                e.stopPropagation()
-                const accessId = reportData.access_id?.id || reportData.access_id || reportData.person_id?.access_id?.id
-                const isUnknown = accessId === 7 || accessId === 'unknown' || !accessId
-
-                if (isUnknown) onOpenPersonAdd && onOpenPersonAdd()
-                else onOpenPersonEdit && onOpenPersonEdit()
-              }}
-            >
-              {(() => {
-                const accessId = reportData.access_id?.id || reportData.access_id || reportData.person_id?.access_id?.id
-                const isUnknown = accessId === 7 || accessId === 'unknown' || !accessId
-
-                return isUnknown ? <AddIcon fontSize='small' /> : <EditIcon fontSize='small' />
-              })()}
-            </IconButton>
-          </Box>
         </Box>
-      </Box>
-    </StyledReportCard>
+      </StyledReportCard>
+      {/* Emotion Analysis Modal */}
+      <EmotionAnalysisModal
+        open={openEmotionModal}
+        onClose={() => setOpenEmotionModal(false)}
+        reportData={reportData}
+      />
+    </>
   )
 }
 
