@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 
+import { useRouter } from 'next/navigation'
+
 import { Box, Typography, Button, Modal, Fade, Backdrop, Avatar, Divider, IconButton, Grid } from '@mui/material'
 
 import LockIcon from '@mui/icons-material/Lock'
@@ -8,6 +10,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore'
+import AssessmentIcon from '@mui/icons-material/Assessment'
 import * as htmlToImage from 'html-to-image'
 
 import { useSelector } from 'react-redux'
@@ -41,6 +44,7 @@ const AccessDetailModal = ({
   onDeleteOpen
 }) => {
   const { t } = useTranslation()
+  const router = useRouter()
   const { settings } = useSettings()
   const modalRef = useRef(null)
   const [fullScreenImageUrl, setFullScreenImageUrl] = useState(null)
@@ -183,6 +187,23 @@ const AccessDetailModal = ({
   const personImageUrl = modalData.person_image ? backendImgUrl + modalData.person_image : null
   const lastPersonImageUrl = modalData.last_person_image ? backendImgUrl + modalData.last_person_image : null
 
+  const handleViewPersonReports = () => {
+    // Navigate to reports page with person filter applied
+    const personId = modalData.person_id || modalData.id
+
+    if (personId) {
+      // Set the person filter in session storage to match ReportsFilters behavior
+      const filters = {
+        person_id: [personId]
+      }
+
+      sessionStorage.setItem('reports_filters', JSON.stringify(filters))
+
+      // Navigate to reports page
+      router.push('/report')
+    }
+  }
+
   return (
     <Modal
       open={open}
@@ -229,7 +250,7 @@ const AccessDetailModal = ({
                     border: '1px solid',
                     borderColor: 'divider',
                     width: 'auto',
-                    objectFit: 'contain',
+                    objectFit: 'contain'
                   }}
                 />
               </Box>
@@ -251,7 +272,7 @@ const AccessDetailModal = ({
                     border: '1px solid',
                     borderColor: 'divider',
                     width: 'auto',
-                    objectFit: 'contain',
+                    objectFit: 'contain'
                   }}
                 />
               </Box>
@@ -344,6 +365,20 @@ const AccessDetailModal = ({
               onClick={handleDownloadCardImage}
             >
               {t('reportCard.downloadCardAsImage')}
+            </Button>
+            <Button
+              sx={{
+                '&:hover': {
+                  color: 'primary.main',
+                  borderColor: 'primary.main'
+                }
+              }}
+              variant='outlined'
+              color='primary'
+              startIcon={<AssessmentIcon />}
+              onClick={handleViewPersonReports}
+            >
+              {t('access.viewPersonReports')}
             </Button>
           </Box>
           <Divider sx={{ my: 3 }} />

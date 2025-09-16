@@ -10,17 +10,15 @@ import {
   Typography,
   Button,
   IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   CircularProgress,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
   Chip,
-  Tooltip
+  Tooltip,
+  Grid,
+  Paper
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
@@ -28,6 +26,9 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import SortIcon from '@mui/icons-material/Sort'
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
+
+import { useQueryClient } from '@tanstack/react-query'
 
 import SEO from '@/components/SEO'
 import { useTranslation } from '@/translations/useTranslation'
@@ -49,16 +50,14 @@ const per_page_OPTIONS = [5, 10, 15, 20]
 
 const SORT_FIELDS = [
   { value: 'id', label: 'شناسه' },
-  { value: 'name', label: 'نام شیفت' },
-  { value: 'start_time', label: 'ساعت شروع' },
-  { value: 'end_time', label: 'ساعت پایان' },
+  { value: 'title', label: 'عنوان' },
   { value: 'created_at', label: 'تاریخ ایجاد' },
   { value: 'updated_at', label: 'تاریخ بروزرسانی' }
 ]
 
 const SORT_ORDERS = [
-  { value: 'asc', label: 'Ascending' },
-  { value: 'desc', label: 'Descending' }
+  { value: '', label: 'صعودی' },
+  { value: '-', label: 'نزولی' }
 ]
 
 function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
@@ -73,7 +72,7 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
   const [selectedShift, setSelectedShift] = useState(null)
 
   const [sort_by, setSortBy] = useState('id')
-  const [sort_order, setSortOrder] = useState('asc')
+  const [sort_order, setSortOrder] = useState('')
   const [hoveredId, setHoveredId] = useState(null)
 
   const { page, per_page, handlePageChange, handlePerPageChange, perPageOptions } = usePagination(
@@ -81,29 +80,33 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
     initialper_page
   )
 
+  // Convert sort_by and sort_order to order_by format
+  const order_by = sort_order === '-' ? `-${sort_by}` : sort_by
+
   const {
     shifts = [],
     total,
     isLoading,
     addShift,
     updateShift,
-    deleteShift
+    deleteShift,
+    getShiftDetail
   } = useShifts({
     page,
     per_page,
-    sort_by,
-    sort_order
+    order_by
   })
+
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams)
 
     params.set('page', page.toString())
     params.set('per_page', per_page.toString())
-    params.set('sort_by', sort_by)
-    params.set('sort_order', sort_order)
+    params.set('order_by', order_by)
     router.replace(`?${params.toString()}`, { scroll: false })
-  }, [page, per_page, sort_by, sort_order, router, searchParams])
+  }, [page, per_page, order_by, router, searchParams])
 
   const handleOpenAddModal = () => setOpenAddModal(true)
 
@@ -111,8 +114,20 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
     setOpenAddModal(false)
   }
 
-  const handleOpenEditModal = shift => {
-    setSelectedShift(shift)
+  const handleOpenEditModal = async shift => {
+    // fetch (or reuse cached) full shift detail (includes persons) via react-query
+    try {
+      const full = await queryClient.fetchQuery({
+        queryKey: ['shift', shift.id],
+        queryFn: () => getShiftDetail(shift.id)
+      })
+
+      setSelectedShift(full)
+    } catch (err) {
+      // fallback to minimal shift data
+      setSelectedShift(shift)
+    }
+
     setOpenEditModal(true)
   }
 
@@ -166,15 +181,24 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
     setSortOrder(event.target.value)
   }
 
-  const formatDateForShamsi = dateString => {
-    if (!dateString) return null
+  const getActiveDays = shift => {
+    if (!shift.days_times) return []
 
-    // Convert "20250712 05:28:18" to "2025-07-12T05:28:18"
-    if (dateString.match(/^\d{8}\s\d{2}:\d{2}:\d{2}$/)) {
-      return dateString.replace(/(\d{4})(\d{2})(\d{2})\s(\d{2}:\d{2}:\d{2})/, '$1-$2-$3T$4')
+    return Object.keys(shift.days_times)
+  }
+
+  const translateDay = day => {
+    const dayTranslations = {
+      monday: 'دوشنبه',
+      tuesday: 'سه‌شنبه',
+      wednesday: 'چهارشنبه',
+      thursday: 'پنج‌شنبه',
+      friday: 'جمعه',
+      saturday: 'شنبه',
+      sunday: 'یکشنبه'
     }
 
-    return dateString
+    return dayTranslations[day] || day
   }
 
   const hasAddPermission = useHasPermission('addShift') || true
@@ -227,7 +251,6 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
                     onClick={() => handleOpenDetailModal(shift)}
                     sx={{
                       borderRadius: 2,
-                      height: 220,
                       position: 'relative',
                       overflow: 'hidden',
                       boxShadow: '0 8px 22px rgba(0,0,0,0.08)',
@@ -244,57 +267,20 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
                       }
                     }}
                   >
-                    {/* Watermark icon to avoid emptiness */}
+                    {/* Main card area with watermark icon */}
                     <Box
                       sx={{
-                        position: 'absolute',
-                        inset: 0,
+                        height: 140,
+                        position: 'relative',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         pointerEvents: 'none'
                       }}
                     >
-                      <AccessTimeIcon sx={{ fontSize: 140, color: 'primary.main', opacity: 0.6 }} />
+                      <AccessTimeIcon sx={{ fontSize: 100, color: 'primary.main', opacity: 0.6 }} />
                     </Box>
 
-                    {/* Bottom overlay info bar (like cameras) */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        p: 1.5,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                        background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.5) 100%)',
-                        display: 'flex',
-                        flexDirection: 'row',
-                        justifyContent: 'space-between'
-                      }}
-                    >
-                      <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'row', gap: 1 }}>
-                        <AccessTimeIcon sx={{ fontSize: 20, color: 'primary.main' }} />
-                        <Typography
-                          variant='subtitle2'
-                          sx={{
-                            color: 'text.groupText',
-                            fontWeight: 700,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
-                          }}
-                        >
-                          {shift.name}
-                        </Typography>
-                      </Box>
-                      <Typography variant='caption' sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                        {t('shifts.users')}: {shift.users ? shift.users.length : 0}
-                      </Typography>
-                      <Chip label={`${t('shifts.id')}: ${shift.id}`} size='small' color='primary' variant='outlined' />
-                    </Box>
                     {/* Floating actions */}
                     <Box
                       sx={{
@@ -351,6 +337,92 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
                         </IconButton>
                       )}
                     </Box>
+
+                    {/* Connected info section - no gap, same background */}
+                    <Box sx={{ p: 2, pt: 1 }}>
+                      {/* Shift title - big and centered */}
+                      <Typography
+                        variant='h5'
+                        fontWeight={700}
+                        sx={{
+                          textAlign: 'center',
+                          mb: 2,
+                          fontSize: '1.25rem',
+                          lineHeight: 1.2,
+                          color: 'text.primary'
+                        }}
+                      >
+                        {shift.title}
+                      </Typography>
+
+                      {/* Date range with icon */}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 1.5, justifyContent: 'center' }}>
+                        <CalendarMonthIcon fontSize='small' color='primary' />
+                        <Typography variant='body2' sx={{ fontSize: '0.85rem', textAlign: 'center' }}>
+                          {t('shifts.from')} <ShamsiDateTime dateTime={shift.start_date} format='date' />{' '}
+                          {t('shifts.to')} <ShamsiDateTime dateTime={shift.end_date} format='date' />
+                        </Typography>
+                      </Box>
+
+                      {/* Status and ID section */}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                        <Chip
+                          size='small'
+                          label={shift.is_active ? t('shifts.active') : t('shifts.inactive')}
+                          color={shift.is_active ? 'success' : 'default'}
+                          sx={{ fontWeight: 500 }}
+                        />
+                        <Chip
+                          label={`${t('shifts.id')}: ${shift.id}`}
+                          size='small'
+                          color='primary'
+                          variant='outlined'
+                          sx={{ fontWeight: 500 }}
+                        />
+                      </Box>
+
+                      {/* Weekdays section at the bottom */}
+                      <Box
+                        sx={{
+                          pt: 1.5,
+                          borderTop: '1px solid',
+                          borderColor: 'divider'
+                        }}
+                      >
+                        <Typography
+                          variant='caption'
+                          sx={{
+                            display: 'block',
+                            textAlign: 'center',
+                            mb: 1,
+                            fontWeight: 600,
+                            color: 'text.secondary',
+                            textTransform: 'uppercase',
+                            letterSpacing: 0.5
+                          }}
+                        >
+                          {t('shifts.activeDays') || 'روزهای فعال'}
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, justifyContent: 'center' }}>
+                          {getActiveDays(shift).map(day => (
+                            <Chip
+                              key={day}
+                              label={translateDay(day)}
+                              size='small'
+                              variant='filled'
+                              color='primary'
+                              sx={{
+                                fontSize: '0.7rem',
+                                fontWeight: 500,
+                                '& .MuiChip-label': {
+                                  px: 1
+                                }
+                              }}
+                            />
+                          ))}
+                        </Box>
+                      </Box>
+                    </Box>
                   </Card>
                 ))}
               </Box>
@@ -376,7 +448,7 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
                   >
                     {SORT_FIELDS.map(field => (
                       <MenuItem key={field.value} value={field.value}>
-                        {t(`shifts.sortFields.${field.value}`)}
+                        {t(`shifts.sortFields.${field.value}`) || field.label}
                       </MenuItem>
                     ))}
                   </Select>
@@ -397,7 +469,7 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
                   <Select value={sort_order} label={t('shifts.sortOrder')} onChange={handleSortOrderChange}>
                     {SORT_ORDERS.map(order => (
                       <MenuItem key={order.value} value={order.value}>
-                        {t(`shifts.sortOrders.${order.value}`)}
+                        {t(`shifts.sortOrders.${order.value}`) || order.label}
                       </MenuItem>
                     ))}
                   </Select>

@@ -5,19 +5,42 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, Typogra
 import WarningIcon from '@mui/icons-material/Warning'
 
 import { useTranslation } from '@/translations/useTranslation'
+import ShamsiDateTime from '@/components/ShamsiDateTimer'
 
 const ShiftDeleteModal = ({ open, onClose, onConfirm, shift, isLoading = false }) => {
   const { t } = useTranslation()
 
   if (!shift) return null
 
+  // Get active days
+  const getActiveDays = () => {
+    if (!shift.days_times) return []
+
+    return Object.keys(shift.days_times)
+  }
+
+  // Translate day names
+  const translateDay = day => {
+    const dayTranslations = {
+      saturday: 'شنبه',
+      sunday: 'یکشنبه',
+      monday: 'دوشنبه',
+      tuesday: 'سه‌شنبه',
+      wednesday: 'چهارشنبه',
+      thursday: 'پنج‌شنبه',
+      friday: 'جمعه',
+    }
+
+    return dayTranslations[day] || day
+  }
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth='sm' fullWidth>
       <DialogTitle sx={{ fontWeight: 600, color: 'error.main' }}>{t('shifts.deleteConfirmation')}</DialogTitle>
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Alert severity='warning' icon={<WarningIcon />} sx={{ mb: 2 }}>
-            {t('shifts.confirmDeleteMessage', { name: shift.name })}
+          <Alert severity='error' icon={<WarningIcon />} sx={{ mb: 2 }}>
+            {t('shifts.confirmDeleteMessage', { name: shift.title || 'بدون عنوان' })}
           </Alert>
 
           <Typography variant='body1' sx={{ mb: 2 }}>
@@ -35,7 +58,7 @@ const ShiftDeleteModal = ({ open, onClose, onConfirm, shift, isLoading = false }
                   {t('shifts.shiftName')}:
                 </Typography>
                 <Typography variant='body1' sx={{ fontWeight: 500 }}>
-                  {shift.name}
+                  {shift.title || 'بدون عنوان'}
                 </Typography>
               </Box>
 
@@ -50,35 +73,36 @@ const ShiftDeleteModal = ({ open, onClose, onConfirm, shift, isLoading = false }
                 </Box>
               )}
 
-              {shift.start_time && shift.end_time && (
+              {shift.start_date && shift.end_date && (
                 <Box>
                   <Typography variant='body2' color='text.secondary'>
                     {t('shifts.timeRange')}:
                   </Typography>
                   <Typography variant='body1' sx={{ fontWeight: 500 }}>
-                    {shift.start_time} - {shift.end_time}
+                    {t('shifts.from')} <ShamsiDateTime dateTime={shift.start_date} format='date' />{' '}
+                    {t('shifts.to')} <ShamsiDateTime dateTime={shift.end_date} format='date' />
                   </Typography>
                 </Box>
               )}
 
-              {shift.description && (
+              {getActiveDays().length > 0 && (
                 <Box>
                   <Typography variant='body2' color='text.secondary'>
-                    {t('shifts.description')}:
+                    {t('shifts.daysSchedule')}:
                   </Typography>
                   <Typography variant='body1' sx={{ fontWeight: 500 }}>
-                    {shift.description}
+                    {getActiveDays().map(translateDay).join('، ')}
                   </Typography>
                 </Box>
               )}
 
-              {shift.users && shift.users.length > 0 && (
+              {shift.persons && (
                 <Box>
                   <Typography variant='body2' color='text.secondary'>
                     {t('shifts.users')}:
                   </Typography>
                   <Typography variant='body1' sx={{ fontWeight: 500 }}>
-                    {shift.users.length} {t('shifts.users')}
+                    {shift.persons.length} {t('shifts.users')}
                   </Typography>
                 </Box>
               )}

@@ -59,16 +59,16 @@ const AccessListView = ({ persons, onOpenDetail }) => {
         <Table size='medium' sx={{ minWidth: 760, tableLayout: 'fixed' }}>
           <TableHead>
             <TableRow>
-              <TableCell align='center' sx={{ width: 280 }}>
+              <TableCell align='center' sx={{ minWidth: '320px', width: 320 }}>
                 {t('reportCard.person')}
               </TableCell>
-              <TableCell align='center' sx={{ display: { xs: 'none', sm: 'table-cell' }, width: 80 }}>
+              <TableCell align='center' sx={{ display: { sm: 'table-cell' }, width: 80 }}>
                 {t('reportCard.id')}
               </TableCell>
               <TableCell align='center' sx={{ display: { xs: 'none', md: 'table-cell' }, width: 140 }}>
                 {t('reportCard.nationalCode')}
               </TableCell>
-              <TableCell align='center' sx={{ display: { xs: 'none', sm: 'table-cell' }, width: 100 }}>
+              <TableCell align='center' sx={{ display: { sm: 'table-cell' }, width: 100 }}>
                 {t('reportCard.gender')}
               </TableCell>
               <TableCell align='center' sx={{ display: { xs: 'none', md: 'table-cell' }, width: 120 }}>
@@ -85,15 +85,14 @@ const AccessListView = ({ persons, onOpenDetail }) => {
           <TableBody>
             {persons.map(person => (
               <TableRow key={person.id} hover>
-                <TableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, whiteSpace: 'nowrap' }}>
-                    <Box sx={{ display: 'flex', gap: 1, flexShrink: 0,height: '100px' }}>
+                <TableCell sx={{ paddingLeft: 1, paddingRight: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'flex-start' }}>
+                    <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
                       <Avatar
                         variant='rounded'
                         src={person.person_image ? backendImgUrl + person.person_image : '/images/avatars/1.png'}
                         sx={{
-                          width: 72,
-                          height: 56,
+                          height: 86,
                           borderRadius: 1.5,
                           cursor: person.person_image ? 'pointer' : 'default',
                           flexShrink: 0,
@@ -108,8 +107,7 @@ const AccessListView = ({ persons, onOpenDetail }) => {
                           person.last_person_image ? backendImgUrl + person.last_person_image : '/images/avatars/1.png'
                         }
                         sx={{
-                          width: 72,
-                          height: 56,
+                          height: 86,
                           borderRadius: 1.5,
                           cursor: person.last_person_image ? 'pointer' : 'default',
                           flexShrink: 0,
@@ -121,18 +119,32 @@ const AccessListView = ({ persons, onOpenDetail }) => {
                         }
                       />
                     </Box>
-                    <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      <Box sx={{ fontWeight: 600 }}>{`${person.first_name || ''} ${person.last_name || ''}`}</Box>
+                    <Box sx={{ 
+                      minWidth: 0, 
+                      flex: 1,
+                      overflow: 'hidden'
+                    }}>
+                      <Typography 
+                        variant="body1" 
+                        sx={{ 
+                          fontWeight: 600,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {`${person.first_name || ''} ${person.last_name || ''}`.trim() || t('reportCard.unknown')}
+                      </Typography>
                     </Box>
                   </Box>
                 </TableCell>
-                <TableCell align='center' sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
+                <TableCell align='center' sx={{ display: { sm: 'table-cell' } }}>
                   {person.person_id}
                 </TableCell>
                 <TableCell align='center' sx={{ display: { xs: 'none', md: 'table-cell' } }}>
                   {person.national_code}
                 </TableCell>
-                <TableCell align='center' sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
+                <TableCell align='center' sx={{ display: { sm: 'table-cell' } }}>
                   <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                   {(() => {
                     if (genderTypes.loading) {
