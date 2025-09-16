@@ -341,11 +341,11 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
                     {/* Connected info section - no gap, same background */}
                     <Box sx={{ p: 2, pt: 1 }}>
                       {/* Shift title - big and centered */}
-                      <Typography 
-                        variant='h5' 
-                        fontWeight={700} 
-                        sx={{ 
-                          textAlign: 'center', 
+                      <Typography
+                        variant='h5'
+                        fontWeight={700}
+                        sx={{
+                          textAlign: 'center',
                           mb: 2,
                           fontSize: '1.25rem',
                           lineHeight: 1.2,
@@ -382,19 +382,19 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
                       </Box>
 
                       {/* Weekdays section at the bottom */}
-                      <Box 
-                        sx={{ 
+                      <Box
+                        sx={{
                           pt: 1.5,
                           borderTop: '1px solid',
                           borderColor: 'divider'
                         }}
                       >
-                        <Typography 
-                          variant='caption' 
-                          sx={{ 
-                            display: 'block', 
-                            textAlign: 'center', 
-                            mb: 1, 
+                        <Typography
+                          variant='caption'
+                          sx={{
+                            display: 'block',
+                            textAlign: 'center',
+                            mb: 1,
                             fontWeight: 600,
                             color: 'text.secondary',
                             textTransform: 'uppercase',
@@ -403,7 +403,7 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
                         >
                           {t('shifts.activeDays') || 'روزهای فعال'}
                         </Typography>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, justifyContent: 'center' }}>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, justifyContent: 'center' }}>
                           {getActiveDays(shift).map(day => (
                             <Chip
                               key={day}
@@ -411,7 +411,7 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
                               size='small'
                               variant='filled'
                               color='primary'
-                              sx={{ 
+                              sx={{
                                 fontSize: '0.7rem',
                                 fontWeight: 500,
                                 '& .MuiChip-label': {

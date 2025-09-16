@@ -542,6 +542,8 @@ const fa = {
     noDaysAdded: 'هیچ روزی هنوز اضافه نشده است. لطفا از بالا روزهایی را انتخاب کنید.',
     addTimeRange: 'افزودن بازه زمانی',
     timesForSelectedDays: 'زمان برای روزهای انتخاب شده',
+    customResetPlaceholder: 'مقدار سفارشی',
+    specificDaySchedule: 'زمان‌بندی اختصاصی روزها',
     start: 'شروع',
     end: 'پایان',
     startDate: 'تاریخ شروع',
@@ -556,7 +558,7 @@ const fa = {
       sunday: 'یکشنبه'
     },
     startOffset: 'تأخیر در ورود',
-    startOffsetHelp: 'زمان مجاز برای ورود زودتر از شروع شیفت',
+    startOffsetHelp: 'زمان مجاز برای ورود دیرتر از شروع شیفت',
     endOffset: 'تعجیل در خروج',
     endOffsetHelp: 'زمان مجاز برای خروج زودتر از پایان شیفت',
     break: 'زمان استراحت',

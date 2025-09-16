@@ -33,6 +33,7 @@ import {
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { TimePicker } from '@mui/x-date-pickers/TimePicker'
 import AddIcon from '@mui/icons-material/Add'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
@@ -240,6 +241,13 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
   }
 
   const handleUniformTimeChange = (field, value) => {
+    // Validate time format (HH:MM)
+    const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/
+
+    if (value && !timeRegex.test(value)) {
+      return // Invalid time format, don't update
+    }
+
     setUniformTime(prev => ({
       ...prev,
       [field]: value
@@ -267,6 +275,13 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
   }
 
   const handleSpecificDayTimeChange = (day, index, field, value) => {
+    // Validate time format (HH:MM)
+    const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/
+
+    if (value && !timeRegex.test(value)) {
+      return // Invalid time format, don't update
+    }
+
     const updatedDaysTimes = { ...editShift.days_times }
 
     if (!updatedDaysTimes[day]) {
@@ -465,22 +480,32 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
     onClose()
   }
 
-  // Generate time options for select
-  const generateTimeOptions = () => {
-    const times = []
+  // Time validation helper
+  const isValidTime = timeString => {
+    const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/
 
-    for (let hour = 0; hour < 24; hour++) {
-      for (let minute = 0; minute < 60; minute += 15) {
-        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
-
-        times.push(timeString)
-      }
-    }
-
-    return times
+    return timeRegex.test(timeString)
   }
 
-  const timeOptions = generateTimeOptions()
+  // Convert HH:MM string to Date for TimePicker
+  const timeStringToDate = time => {
+    if (!time || !isValidTime(time)) return null
+    const [hh, mm] = time.split(':').map(Number)
+    const d = new Date()
+
+    d.setHours(hh, mm, 0, 0)
+
+    return d
+  }
+
+  // Convert Date from TimePicker to HH:MM string
+  const dateToTimeString = date => {
+    if (!(date instanceof Date) || isNaN(date)) return ''
+    const hh = String(date.getHours()).padStart(2, '0')
+    const mm = String(date.getMinutes()).padStart(2, '0')
+
+    return `${hh}:${mm}`
+  }
 
   const translateDay = day => {
     const dayTranslations = {
@@ -522,9 +547,9 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
       <form onSubmit={handleSubmit}>
         <DialogContent sx={{ p: 4, bgcolor: 'background.paper' }}>
           <Tabs value={activeTab} onChange={handleTabChange} centered sx={{ mb: 3 }}>
-            <Tab label='اطلاعات اصلی' />
-            <Tab label='زمان‌بندی روزها' />
-            <Tab label='تنظیمات پیشرفته' />
+            <Tab label={t('shifts.basicInfo')} />
+            <Tab label={t('shifts.daysSchedule')} />
+            <Tab label={t('shifts.advancedSettings')} />
           </Tabs>
 
           {/* Basic Information Tab */}
@@ -540,7 +565,7 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr' }, gap: 3, mb: 3 }}>
                 <CustomTextField
                   fullWidth
-                  label='عنوان شیفت'
+                  label={t('shifts.title')}
                   name='title'
                   value={editShift.title}
                   onChange={handleInputChange}
@@ -554,14 +579,14 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 3, mb: 3 }}>
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
                   <DatePicker
-                    label='تاریخ شروع'
+                    label={t('shifts.startDate')}
                     value={editShift.start_date ? new Date(editShift.start_date) : null}
                     onChange={date => handleDateChange('start_date', date)}
                     sx={{ width: '100%' }}
                     disabled={isLoading}
                   />
                   <DatePicker
-                    label='تاریخ پایان'
+                    label={t('shifts.endDate')}
                     value={editShift.end_date ? new Date(editShift.end_date) : null}
                     onChange={date => handleDateChange('end_date', date)}
                     sx={{ width: '100%' }}
@@ -624,7 +649,7 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
               sx={{ p: 3, borderRadius: 3, mb: 2, border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}
             >
               <Typography variant='subtitle1' sx={{ fontWeight: 600, mb: 2, color: 'primary.main' }}>
-                تنظیم زمان برای چند روز
+                {t('shifts.daysSchedule')}
               </Typography>
 
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
@@ -645,39 +670,37 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
               {selectedDays.length > 0 && (
                 <Box sx={{ mb: 3, mt: 2 }}>
                   <Typography variant='body2' sx={{ mb: 1 }}>
-                    زمان برای روزهای انتخاب شده
+                    {t('shifts.timesForSelectedDays')}
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 2 }}>
-                    <FormControl size='small' sx={{ minWidth: 120 }}>
-                      <InputLabel>شروع</InputLabel>
-                      <Select
-                        value={uniformTime.start}
-                        label='شروع'
-                        onChange={e => handleUniformTimeChange('start', e.target.value)}
-                      >
-                        {timeOptions.map(time => (
-                          <MenuItem key={time} value={time}>
-                            {time}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                    <FormControl size='small' sx={{ minWidth: 120 }}>
-                      <InputLabel>پایان</InputLabel>
-                      <Select
-                        value={uniformTime.end}
-                        label='پایان'
-                        onChange={e => handleUniformTimeChange('end', e.target.value)}
-                      >
-                        {timeOptions.map(time => (
-                          <MenuItem key={time} value={time}>
-                            {time}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+                    <LocalizationProvider
+                      dateAdapter={AdapterDateFns}
+                      localeText={{ okButtonLabel: t('common.ok'), cancelButtonLabel: t('common.cancel') }}
+                    >
+                      <TimePicker
+                        ampm={false}
+                        label={t('shifts.start')}
+                        value={timeStringToDate(uniformTime.start)}
+                        onChange={date => handleUniformTimeChange('start', dateToTimeString(date))}
+                        timeSteps={{ minutes: 1 }}
+                        slotProps={{ textField: { size: 'small' }, actionBar: { actions: ['cancel', 'accept'] } }}
+                      />
+                    </LocalizationProvider>
+                    <LocalizationProvider
+                      dateAdapter={AdapterDateFns}
+                      localeText={{ okButtonLabel: t('common.ok'), cancelButtonLabel: t('common.cancel') }}
+                    >
+                      <TimePicker
+                        ampm={false}
+                        label={t('shifts.end')}
+                        value={timeStringToDate(uniformTime.end)}
+                        onChange={date => handleUniformTimeChange('end', dateToTimeString(date))}
+                        timeSteps={{ minutes: 1 }}
+                        slotProps={{ textField: { size: 'small' }, actionBar: { actions: ['cancel', 'accept'] } }}
+                      />
+                    </LocalizationProvider>
                     <Button variant='contained' size='small' onClick={handleAddDayTime} sx={{ whiteSpace: 'nowrap' }}>
-                      اضافه کردن
+                      {t('common.add')}
                     </Button>
                   </Box>
                 </Box>
@@ -686,12 +709,12 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
               <Divider sx={{ my: 2 }} />
 
               <Typography variant='subtitle1' sx={{ fontWeight: 600, mb: 2, color: 'primary.main' }}>
-                زمان‌بندی اختصاصی روزها
+                {t('shifts.specificDaySchedule')}
               </Typography>
 
               {Object.keys(editShift.days_times).length === 0 ? (
                 <Typography variant='body2' color='text.secondary'>
-                  هیچ روزی هنوز اضافه نشده است. لطفا از بالا روزهایی را انتخاب کنید.
+                  {t('shifts.noDaysSelected')}
                 </Typography>
               ) : (
                 Object.keys(editShift.days_times).map(day => (
@@ -702,34 +725,34 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
                     <AccordionDetails>
                       {editShift.days_times[day].map((timeSlot, index) => (
                         <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 2 }}>
-                          <FormControl size='small' sx={{ minWidth: 120 }}>
-                            <InputLabel>شروع</InputLabel>
-                            <Select
-                              value={timeSlot.start}
-                              label='شروع'
-                              onChange={e => handleSpecificDayTimeChange(day, index, 'start', e.target.value)}
-                            >
-                              {timeOptions.map(time => (
-                                <MenuItem key={time} value={time}>
-                                  {time}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                          <FormControl size='small' sx={{ minWidth: 120 }}>
-                            <InputLabel>پایان</InputLabel>
-                            <Select
-                              value={timeSlot.end}
-                              label='پایان'
-                              onChange={e => handleSpecificDayTimeChange(day, index, 'end', e.target.value)}
-                            >
-                              {timeOptions.map(time => (
-                                <MenuItem key={time} value={time}>
-                                  {time}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
+                          <LocalizationProvider
+                            dateAdapter={AdapterDateFns}
+                            localeText={{ okButtonLabel: t('common.ok'), cancelButtonLabel: t('common.cancel') }}
+                          >
+                            <TimePicker
+                              ampm={false}
+                              label={t('shifts.start')}
+                              value={timeStringToDate(timeSlot.start)}
+                              onChange={date =>
+                                handleSpecificDayTimeChange(day, index, 'start', dateToTimeString(date))
+                              }
+                              timeSteps={{ minutes: 1 }}
+                              slotProps={{ textField: { size: 'small' }, actionBar: { actions: ['cancel', 'accept'] } }}
+                            />
+                          </LocalizationProvider>
+                          <LocalizationProvider
+                            dateAdapter={AdapterDateFns}
+                            localeText={{ okButtonLabel: t('common.ok'), cancelButtonLabel: t('common.cancel') }}
+                          >
+                            <TimePicker
+                              ampm={false}
+                              label={t('shifts.end')}
+                              value={timeStringToDate(timeSlot.end)}
+                              onChange={date => handleSpecificDayTimeChange(day, index, 'end', dateToTimeString(date))}
+                              timeSteps={{ minutes: 1 }}
+                              slotProps={{ textField: { size: 'small' }, actionBar: { actions: ['cancel', 'accept'] } }}
+                            />
+                          </LocalizationProvider>
                           <IconButton color='error' size='small' onClick={() => handleDeleteTimeSlotForDay(day, index)}>
                             <DeleteOutlineIcon />
                           </IconButton>
@@ -741,7 +764,7 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
                         onClick={() => handleAddTimeSlotForDay(day)}
                         sx={{ mt: 1 }}
                       >
-                        افزودن بازه زمانی
+                        {t('shifts.addTimeRange')}
                       </Button>
                     </AccordionDetails>
                   </Accordion>
@@ -757,16 +780,16 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
               sx={{ p: 3, borderRadius: 3, mb: 2, border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}
             >
               <Typography variant='subtitle1' sx={{ fontWeight: 600, mb: 2, color: 'primary.main' }}>
-                تنظیمات زمان‌بندی
+                {t('shifts.advancedSettings')}
               </Typography>
 
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 3, mb: 3 }}>
                 <Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
                     <Typography variant='body2' sx={{ mr: 1 }}>
-                      تعجیل در ورود
+                      {t('shifts.startOffset')}
                     </Typography>
-                    <Tooltip title='زمان مجاز برای ورود زودتر از شروع شیفت'>
+                    <Tooltip title={t('shifts.startOffsetHelp')}>
                       <InfoIcon fontSize='small' color='action' />
                     </Tooltip>
                   </Box>
@@ -804,9 +827,9 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
                 <Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
                     <Typography variant='body2' sx={{ mr: 1 }}>
-                      تعجیل در خروج
+                      {t('shifts.endOffset')}
                     </Typography>
-                    <Tooltip title='زمان مجاز برای خروج زودتر از پایان شیفت'>
+                    <Tooltip title={t('shifts.endOffsetHelp')}>
                       <InfoIcon fontSize='small' color='action' />
                     </Tooltip>
                   </Box>
@@ -846,9 +869,9 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
                 <Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
                     <Typography variant='body2' sx={{ mr: 1 }}>
-                      زمان استراحت
+                      {t('shifts.break')}
                     </Typography>
-                    <Tooltip title='مدت زمان هر استراحت'>
+                    <Tooltip title={t('shifts.breakHelp')}>
                       <InfoIcon fontSize='small' color='action' />
                     </Tooltip>
                   </Box>
@@ -882,9 +905,9 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
                 <Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
                     <Typography variant='body2' sx={{ mr: 1 }}>
-                      کل زمان استراحت
+                      {t('shifts.totalBreak')}
                     </Typography>
-                    <Tooltip title='کل زمان استراحت در طول شیفت'>
+                    <Tooltip title={t('shifts.totalBreakHelp')}>
                       <InfoIcon fontSize='small' color='action' />
                     </Tooltip>
                   </Box>
@@ -923,9 +946,9 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
               <Box sx={{ mb: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
                   <Typography variant='body2' sx={{ mr: 1 }}>
-                    بازنشانی شیفت
+                    {t('shifts.shiftReset')}
                   </Typography>
-                  <Tooltip title='زمانی که پس از آن محاسبات شیفت بازنشانی می‌شود'>
+                  <Tooltip title={t('shifts.shiftResetHelp')}>
                     <InfoIcon fontSize='small' color='action' />
                   </Tooltip>
                 </Box>
@@ -945,7 +968,7 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
                       type='number'
                       variant='outlined'
                       size='small'
-                      placeholder='مقدار سفارشی'
+                      placeholder={t('shifts.customResetPlaceholder')}
                       value={customReset}
                       onChange={handleCustomResetChange}
                       sx={{ width: '60%' }}

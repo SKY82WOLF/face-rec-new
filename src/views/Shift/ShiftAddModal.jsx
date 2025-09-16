@@ -33,6 +33,7 @@ import {
 import { AdapterDateFnsJalali } from '@mui/x-date-pickers/AdapterDateFnsJalali'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { TimePicker } from '@mui/x-date-pickers/TimePicker'
 import AddIcon from '@mui/icons-material/Add'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
@@ -152,6 +153,13 @@ const ShiftAdd = ({ open, onClose, onSubmit, isLoading = false }) => {
   }
 
   const handleUniformTimeChange = (field, value) => {
+    // Validate time format (HH:MM)
+    const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/
+
+    if (value && !timeRegex.test(value)) {
+      return // Invalid time format, don't update
+    }
+
     setUniformTime(prev => ({
       ...prev,
       [field]: value
@@ -179,6 +187,13 @@ const ShiftAdd = ({ open, onClose, onSubmit, isLoading = false }) => {
   }
 
   const handleSpecificDayTimeChange = (day, index, field, value) => {
+    // Validate time format (HH:MM)
+    const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/
+
+    if (value && !timeRegex.test(value)) {
+      return // Invalid time format, don't update
+    }
+
     const updatedDaysTimes = { ...newShift.days_times }
 
     if (!updatedDaysTimes[day]) {
@@ -398,22 +413,32 @@ const ShiftAdd = ({ open, onClose, onSubmit, isLoading = false }) => {
     onClose()
   }
 
-  // Generate time options for select
-  const generateTimeOptions = () => {
-    const times = []
+  // Time validation helper
+  const isValidTime = timeString => {
+    const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/
 
-    for (let hour = 0; hour < 24; hour++) {
-      for (let minute = 0; minute < 60; minute += 15) {
-        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
-
-        times.push(timeString)
-      }
-    }
-
-    return times
+    return timeRegex.test(timeString)
   }
 
-  const timeOptions = generateTimeOptions()
+  // Convert HH:MM string to Date for TimePicker
+  const timeStringToDate = time => {
+    if (!time || !isValidTime(time)) return null
+    const [hh, mm] = time.split(':').map(Number)
+    const d = new Date()
+
+    d.setHours(hh, mm, 0, 0)
+
+    return d
+  }
+
+  // Convert Date from TimePicker to HH:MM string
+  const dateToTimeString = date => {
+    if (!(date instanceof Date) || isNaN(date)) return ''
+    const hh = String(date.getHours()).padStart(2, '0')
+    const mm = String(date.getMinutes()).padStart(2, '0')
+
+    return `${hh}:${mm}`
+  }
 
   const translateDay = day => {
     return t(`shifts.dayNames.${day}`) || day
@@ -579,34 +604,32 @@ const ShiftAdd = ({ open, onClose, onSubmit, isLoading = false }) => {
                     {t('shifts.timesForSelectedDays')}
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 2 }}>
-                    <FormControl size='small' sx={{ minWidth: 120 }}>
-                      <InputLabel>{t('shifts.start')}</InputLabel>
-                      <Select
-                        value={uniformTime.start}
+                    <LocalizationProvider
+                      dateAdapter={AdapterDateFnsJalali}
+                      localeText={{ okButtonLabel: t('common.ok'), cancelButtonLabel: t('common.cancel') }}
+                    >
+                      <TimePicker
+                        ampm={false}
                         label={t('shifts.start')}
-                        onChange={e => handleUniformTimeChange('start', e.target.value)}
-                      >
-                        {timeOptions.map(time => (
-                          <MenuItem key={time} value={time}>
-                            {time}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                    <FormControl size='small' sx={{ minWidth: 120 }}>
-                      <InputLabel>{t('shifts.end')}</InputLabel>
-                      <Select
-                        value={uniformTime.end}
+                        value={timeStringToDate(uniformTime.start)}
+                        onChange={date => handleUniformTimeChange('start', dateToTimeString(date))}
+                        timeSteps={{ minutes: 1 }}
+                        slotProps={{ textField: { size: 'small' }, actionBar: { actions: ['cancel', 'accept'] } }}
+                      />
+                    </LocalizationProvider>
+                    <LocalizationProvider
+                      dateAdapter={AdapterDateFnsJalali}
+                      localeText={{ okButtonLabel: t('common.ok'), cancelButtonLabel: t('common.cancel') }}
+                    >
+                      <TimePicker
+                        ampm={false}
                         label={t('shifts.end')}
-                        onChange={e => handleUniformTimeChange('end', e.target.value)}
-                      >
-                        {timeOptions.map(time => (
-                          <MenuItem key={time} value={time}>
-                            {time}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+                        value={timeStringToDate(uniformTime.end)}
+                        onChange={date => handleUniformTimeChange('end', dateToTimeString(date))}
+                        timeSteps={{ minutes: 1 }}
+                        slotProps={{ textField: { size: 'small' }, actionBar: { actions: ['cancel', 'accept'] } }}
+                      />
+                    </LocalizationProvider>
                     <Button variant='contained' size='small' onClick={handleAddDayTime} sx={{ whiteSpace: 'nowrap' }}>
                       {t('common.add')}
                     </Button>
@@ -633,34 +656,34 @@ const ShiftAdd = ({ open, onClose, onSubmit, isLoading = false }) => {
                     <AccordionDetails>
                       {newShift.days_times[day].map((timeSlot, index) => (
                         <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 2 }}>
-                          <FormControl size='small' sx={{ minWidth: 120 }}>
-                            <InputLabel>{t('shifts.start')}</InputLabel>
-                            <Select
-                              value={timeSlot.start}
+                          <LocalizationProvider
+                            dateAdapter={AdapterDateFnsJalali}
+                            localeText={{ okButtonLabel: t('common.ok'), cancelButtonLabel: t('common.cancel') }}
+                          >
+                            <TimePicker
+                              ampm={false}
                               label={t('shifts.start')}
-                              onChange={e => handleSpecificDayTimeChange(day, index, 'start', e.target.value)}
-                            >
-                              {timeOptions.map(time => (
-                                <MenuItem key={time} value={time}>
-                                  {time}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                          <FormControl size='small' sx={{ minWidth: 120 }}>
-                            <InputLabel>{t('shifts.end')}</InputLabel>
-                            <Select
-                              value={timeSlot.end}
+                              value={timeStringToDate(timeSlot.start)}
+                              onChange={date =>
+                                handleSpecificDayTimeChange(day, index, 'start', dateToTimeString(date))
+                              }
+                              timeSteps={{ minutes: 1 }}
+                              slotProps={{ textField: { size: 'small' }, actionBar: { actions: ['cancel', 'accept'] } }}
+                            />
+                          </LocalizationProvider>
+                          <LocalizationProvider
+                            dateAdapter={AdapterDateFnsJalali}
+                            localeText={{ okButtonLabel: t('common.ok'), cancelButtonLabel: t('common.cancel') }}
+                          >
+                            <TimePicker
+                              ampm={false}
                               label={t('shifts.end')}
-                              onChange={e => handleSpecificDayTimeChange(day, index, 'end', e.target.value)}
-                            >
-                              {timeOptions.map(time => (
-                                <MenuItem key={time} value={time}>
-                                  {time}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
+                              value={timeStringToDate(timeSlot.end)}
+                              onChange={date => handleSpecificDayTimeChange(day, index, 'end', dateToTimeString(date))}
+                              timeSteps={{ minutes: 1 }}
+                              slotProps={{ textField: { size: 'small' }, actionBar: { actions: ['cancel', 'accept'] } }}
+                            />
+                          </LocalizationProvider>
                           <IconButton color='error' size='small' onClick={() => handleDeleteTimeSlotForDay(day, index)}>
                             <DeleteOutlineIcon />
                           </IconButton>
