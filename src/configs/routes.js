@@ -87,10 +87,14 @@ export const API_ROUTES = {
     update: '/users/',
     delete: '/users/'
   },
+
+  // Groups
   groups: {
     list: '/groups',
     add: '/groups/add'
   },
+
+  // Cameras
   cameras: {
     list: '/cameras',
     detail: '/cameras/',
@@ -98,6 +102,16 @@ export const API_ROUTES = {
     update: '/cameras/',
     delete: '/cameras/',
     test: '/cameras/test'
+  },
+
+  // Shifts
+  shifts: {
+    list: '/shifts',
+    detail: '/shifts/',
+    add: '/shifts/add',
+    update: '/shifts/',
+    delete: '/shifts/',
+    persons: '/shifts/:id/persons'
   }
 }
 
@@ -154,6 +168,15 @@ export const {
 } = API_ROUTES.cameras
 
 export const { list: typesList, add: typesAdd } = API_ROUTES.types
+
+export const {
+  list: shiftsList,
+  detail: shiftsDetail,
+  add: shiftsAdd,
+  update: shiftsUpdate,
+  delete: shiftsDelete,
+  persons: shiftsPersons
+} = API_ROUTES.shifts
 
 // WebSocket URL helpers for data and live
 export function getDataWebSocketUrl() {

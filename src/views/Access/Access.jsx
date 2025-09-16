@@ -76,12 +76,38 @@ function AccessContent({ initialPage = 1, initialper_page = 10 }) {
     return Object.keys(urlFilters).length ? urlFilters : { access_id: [5, 6] }
   })
 
-  const { data: personsData, isLoading } = useGetPersons({
+  const {
+    data: personsData,
+    isLoading,
+    isSuccess
+  } = useGetPersons({
     page: page,
     per_page,
     filters,
     order_by: orderBy
   })
+
+  // Automatically open detail modal if person_id is in URL and data is loaded
+  useEffect(() => {
+    if (isSuccess && personsData?.data) {
+      const personId = searchParams.get('person_id')
+
+      if (personId) {
+        // Try to find the person in the current page
+
+        const person = personsData.data.find(p => p.id === Number(personId))
+
+        if (person) {
+          openDetailByPersonIndex(Number(personId))
+        } else if (personsData.total > 0) {
+          // If person not found in current page, try to fetch their data directly
+          // This would require an API endpoint to fetch a single person by ID
+          console.log('Person not found on current page, would need to fetch directly')
+        }
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSuccess, personsData, searchParams])
 
   // Reset to first page when sorting changes
   useEffect(() => {

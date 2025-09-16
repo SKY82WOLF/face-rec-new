@@ -105,10 +105,14 @@ const ReportsFilters = ({ onFilter }) => {
           created_at_from: parsed.created_at_from || null,
           created_at_to: parsed.created_at_to || null
         })
+
+        // Automatically trigger the search with loaded filters
+        onFilter && onFilter(parsed)
       } catch (e) {
         // ignore
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const buildFilters = () => {

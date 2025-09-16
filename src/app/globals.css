@@ -187,3 +187,13 @@ input:-webkit-autofill:active {
 .custom-toast .Toastify__progress-bar--error {
   background: var(--mui-palette-error-main, #f44336) !important;
 }
+
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield; /* Firefox */
+}
