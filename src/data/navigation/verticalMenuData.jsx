@@ -25,7 +25,7 @@ const useVerticalMenuData = () => {
   const sidebar = useMemo(() => (Array.isArray(sidebarData) ? sidebarData : []), [sidebarData])
 
   // Always-available sections
-  const staticItems = [{ label: t('sidebar.live'), href: '/live', icon: 'tabler-camera' }]
+  const staticItems = [{ label: t('sidebar.live'), href: '/live', icon: 'tabler-device-tv-old' }]
 
   // Build dynamic items from sidebar + user codenames (only after mount to avoid hydration mismatch)
   const dynamicItems = useMemo(() => {
@@ -55,7 +55,7 @@ const useVerticalMenuData = () => {
 
   // Profile is always present
   const profileItem = { label: t('sidebar.profile'), href: '/profile', icon: 'tabler-user' }
-  
+
   // const shiftsItem = { label: t('sidebar.shifts'), href: '/shifts', icon: 'tabler-clock' }
 
   return [...staticItems, ...dynamicItems, profileItem]

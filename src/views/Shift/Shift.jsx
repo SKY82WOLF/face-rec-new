@@ -56,8 +56,8 @@ const SORT_FIELDS = [
 ]
 
 const SORT_ORDERS = [
-  { value: '', label: 'صعودی' },
-  { value: '-', label: 'نزولی' }
+  { value: 'asc', label: 'صعودی' },
+  { value: 'desc', label: 'نزولی' }
 ]
 
 function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
@@ -72,7 +72,7 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
   const [selectedShift, setSelectedShift] = useState(null)
 
   const [sort_by, setSortBy] = useState('id')
-  const [sort_order, setSortOrder] = useState('')
+  const [sort_order, setSortOrder] = useState('asc')
   const [hoveredId, setHoveredId] = useState(null)
 
   const { page, per_page, handlePageChange, handlePerPageChange, perPageOptions } = usePagination(
@@ -81,7 +81,7 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
   )
 
   // Convert sort_by and sort_order to order_by format
-  const order_by = sort_order === '-' ? `-${sort_by}` : sort_by
+  const order_by = sort_order === 'desc' ? `-${sort_by}` : sort_by
 
   const {
     shifts = [],
@@ -365,7 +365,16 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
                       </Box>
 
                       {/* Status and ID section */}
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          mb: 2,
+                          justifyContent: 'space-between',
+                          flexWrap: 'wrap'
+                        }}
+                      >
                         <Chip
                           size='small'
                           label={shift.is_active ? t('shifts.active') : t('shifts.inactive')}
@@ -469,7 +478,7 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
                   <Select value={sort_order} label={t('shifts.sortOrder')} onChange={handleSortOrderChange}>
                     {SORT_ORDERS.map(order => (
                       <MenuItem key={order.value} value={order.value}>
-                        {t(`shifts.sortOrders.${order.value}`) || order.label}
+                        {order.value === 'asc' ? t(`shifts.sortOrders.asc`) : t(`shifts.sortOrders.desc`)}
                       </MenuItem>
                     ))}
                   </Select>

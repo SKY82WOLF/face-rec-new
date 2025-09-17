@@ -714,7 +714,7 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
 
               {Object.keys(editShift.days_times).length === 0 ? (
                 <Typography variant='body2' color='text.secondary'>
-                  {t('shifts.noDaysSelected')}
+                  {t('shifts.noDaysAdded')}
                 </Typography>
               ) : (
                 Object.keys(editShift.days_times).map(day => (
