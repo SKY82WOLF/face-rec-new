@@ -44,7 +44,8 @@ export const createCamera = async data => {
     const payload = {
       cam_url: data.cam_url,
       name: data.name,
-      area: data.area
+      area: data.area,
+      direction_id: data.direction
     }
 
     const response = await axiosInstance.post(camerasAdd, payload, {
@@ -65,7 +66,8 @@ export const updateCamera = async ({ id, data }) => {
     const payload = {
       cam_url: data.cam_url,
       name: data.name,
-      area: data.area
+      area: data.area,
+      direction_id: data.direction
     }
 
     const response = await axiosInstance.put(`${camerasUpdate}${id}`, payload, {

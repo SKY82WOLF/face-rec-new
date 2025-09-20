@@ -38,6 +38,7 @@ import { commonStyles } from '@/@core/styles/commonStyles'
 import useHasPermission from '@/utils/HasPermission'
 import CamerasFilter from '@/views/Cameras/CamerasFilter'
 import CameraSort from '@/views/Cameras/CameraSort'
+import { useTypesReduxSync } from '@/hooks/useTypes'
 
 const per_page_OPTIONS = [5, 10, 15, 20]
 
@@ -54,6 +55,9 @@ function CamerasContent({ initialPage = 1, initialper_page = 10 }) {
   const hasAddPermission = useHasPermission('addCamera')
   const hasEditPermission = useHasPermission('updateCamera')
   const hasDeletePermission = useHasPermission('deleteCamera')
+
+  // Sync types with Redux
+  useTypesReduxSync()
 
   const { page, per_page, setPage, handlePageChange, handlePerPageChange, perPageOptions } = usePagination(
     initialPage,
@@ -85,6 +89,8 @@ function CamerasContent({ initialPage = 1, initialper_page = 10 }) {
     else params.delete('name')
     if (filters?.id) params.set('id', String(filters.id))
     else params.delete('id')
+    if (filters?.direction_id) params.set('direction_id', String(filters.direction_id))
+    else params.delete('direction_id')
 
     // sync sort
     if (orderBy) params.set('order_by', orderBy)

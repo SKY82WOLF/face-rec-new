@@ -34,7 +34,8 @@ const fa = {
     success: 'موفقیت',
     reset: 'بازنشانی',
     sortBy: 'مرتب‌سازی بر اساس',
-    order: 'ترتیب'
+    order: 'ترتیب',
+    all: 'همه'
   },
 
   // Not Found Page
@@ -384,6 +385,14 @@ const fa = {
     camUrlRequired: 'آدرس دوربین الزامی است',
     camUserRequired: 'نام کاربری دوربین الزامی است',
     camPasswordRequired: 'رمز عبور دوربین الزامی است',
+    directionRequired: 'جهت دوربین الزامی است',
+    direction: 'جهت دوربین',
+    unknownDirection: 'جهت نامشخص',
+    directionOptions: {
+      entry: 'ورودی',
+      exit: 'خروجی',
+      entryExit: 'ورودی خروجی'
+    },
 
     // Test flow & preview
     testCamera: 'تست اتصال',
@@ -401,7 +410,10 @@ const fa = {
       inactive: 'غیرفعال',
       offline: 'آفلاین',
       online: 'آنلاین'
-    }
+    },
+    entryExit: 'ورودی خروجی',
+    entry: 'ورودی',
+    exit: 'خروجی'
   },
 
   //groups
@@ -587,7 +599,7 @@ const fa = {
     noPersonsSelected: 'هیچ شخصی انتخاب نشده است',
     totalPersons: 'کل اشخاص',
     noTimeScheduleForDays: 'هیچ زمان‌بندی برای روزها تعریف نشده است',
-    noTimeSchedule : 'هیچ بازه زمانی تعریف نشده است',
+    noTimeSchedule: 'هیچ بازه زمانی تعریف نشده است',
     viewPersonDetail: 'جزئیات',
 
     // Sort fields
@@ -610,6 +622,175 @@ const fa = {
     }
   },
 
+  // Attendance Reports
+  attendance: {
+    title: 'گزارش‌ حضور و غیاب',
+    attendanceReport: 'گزارش حضور و غیاب',
+    personAttendance: 'حضور و غیاب فرد',
+    attendanceDetails: 'جزئیات حضور و غیاب',
+    attendanceHistory: 'تاریخچه حضور و غیاب',
+    noAttendanceData: 'هیچ داده حضور و غیابی موجود نیست',
+    loading: 'در حال بارگذاری...',
+
+    // Date and time related
+    date: 'تاریخ',
+    dateRange: 'بازه زمانی',
+    startDate: 'تاریخ شروع',
+    endDate: 'تاریخ پایان',
+    today: 'امروز',
+    yesterday: 'دیروز',
+    thisWeek: 'این هفته',
+    thisMonth: 'این ماه',
+    customRange: 'بازه سفارشی',
+    selectDateRange: 'انتخاب بازه زمانی',
+
+    // Time tracking
+    firstIn: 'اولین ورود',
+    lastOut: 'آخرین خروج',
+    entryTime: 'زمان ورود',
+    exitTime: 'زمان خروج',
+    duration: 'مدت حضور',
+    totalWorkTime: 'کل زمان کار',
+    expectedDuration: 'مدت مورد انتظار',
+    workingHours: 'ساعات کاری',
+
+    // Status indicators
+    onTime: 'به موقع',
+    late: 'تأخیر',
+    earlyExit: 'تعجیل در خروج',
+    absent: 'غایب',
+    present: 'حاضر',
+    isLate: 'دارای تأخیر',
+    isEarlyExit: 'خروج زودهنگام',
+    hasOvertime: 'دارای اضافه کار',
+    overtime: 'اضافه کار',
+
+    // Duration and minutes
+    minutes: 'دقیقه',
+    hours: 'ساعت',
+    lateMinutes: 'دقایق تأخیر',
+    earlyExitMinutes: 'دقایق تعجیل در خروج',
+    overtimeMinutes: 'دقایق اضافه کار',
+    durationMinutes: 'مدت به دقیقه',
+    totalWorkMinutes: 'کل دقایق کار',
+
+    // Entry and exit tracking
+    entryCount: 'تعداد ورود',
+    exitCount: 'تعداد خروج',
+    entryReport: 'گزارش ورود',
+    exitReport: 'گزارش خروج',
+    entryCamera: 'دوربین ورود',
+    exitCamera: 'دوربین خروج',
+    firstInCamera: 'دوربین اولین ورود',
+    lastOutCamera: 'دوربین آخرین خروج',
+
+    // Shift information
+    shift: 'شیفت',
+    shiftName: 'نام شیفت',
+    shiftStart: 'شروع شیفت',
+    shiftEnd: 'پایان شیفت',
+    shiftSchedule: 'برنامه شیفت',
+
+    // Person information
+    person: 'شخص',
+    persons: 'اشخاص',
+    personName: 'نام شخص',
+    personId: 'شناسه شخص',
+    selectPerson: 'انتخاب شخص',
+    allPersons: 'همه اشخاص',
+    selectFiltersToSearch: 'لطفاً فیلترها را انتخاب کرده و جستجو کنید',
+
+    // Images and reports
+    image: 'تصویر',
+    personImage: 'تصویر شخص',
+    entryImage: 'تصویر ورود',
+    exitImage: 'تصویر خروج',
+    downloadImage: 'دانلود تصویر',
+    viewImage: 'مشاهده تصویر',
+
+    // Filters and search
+    filter: 'فیلتر',
+    filters: 'فیلترها',
+    search: 'جستجو',
+    reset: 'بازنشانی',
+    apply: 'اعمال',
+    clearFilters: 'پاک کردن فیلترها',
+
+    // Actions
+    view: 'مشاهده',
+    details: 'جزئیات',
+    viewDetails: 'مشاهده جزئیات',
+    export: 'خروجی',
+    print: 'چاپ',
+    download: 'دانلود',
+
+    // Statistics
+    statistics: 'آمار',
+    summary: 'خلاصه',
+    totalDays: 'کل روزها',
+    presentDays: 'روزهای حضور',
+    absentDays: 'روزهای غیاب',
+    lateDays: 'روزهای تأخیر',
+    overtimeDays: 'روزهای اضافه کار',
+    averageDuration: 'میانگین مدت حضور',
+    totalDuration: 'کل مدت حضور',
+    totalLateTime: 'کل زمان تأخیر در ورود',
+    totalAbsentTime: 'کل زمان غیبت',
+    totalExtraTime: 'کل زمان اضافی',
+    totalEarlyExitTime: 'کل تعجیل در خروج',
+
+    // Error messages
+    invalidDateRange: 'بازه زمانی نامعتبر است',
+    startDateAfterEndDate: 'تاریخ شروع نمی‌تواند بعد از تاریخ پایان باشد',
+    noDataInRange: 'در بازه زمانی انتخابی داده‌ای موجود نیست',
+    errorLoadingData: 'خطا در بارگذاری داده‌ها',
+
+    // Table headers
+    tableHeaders: {
+      date: 'تاریخ',
+      person: 'شخص',
+      shift: 'شیفت',
+      duration: 'مدت حضور',
+      entryTime: 'زمان ورود',
+      exitTime: 'زمان خروج',
+      status: 'وضعیت',
+      actions: 'عملیات'
+    },
+
+    // Detail view
+    attendanceDetail: {
+      title: 'جزئیات حضور و غیاب',
+      backToList: 'بازگشت به لیست',
+      personalInfo: 'اطلاعات شخصی',
+      shiftInfo: 'اطلاعات شیفت',
+      timeTracking: 'ردیابی زمان',
+      entryDetails: 'جزئیات ورود',
+      exitDetails: 'جزئیات خروج',
+      statusInfo: 'اطلاعات وضعیت',
+      images: 'تصاویر',
+      cameras: 'دوربین‌ها'
+    },
+
+    // Pagination
+    itemsPerPage: 'تعداد در هر صفحه',
+    page: 'صفحه',
+    of: 'از',
+    total: 'کل',
+    noResults: 'نتیجه‌ای یافت نشد',
+
+    // Common actions
+    back: 'بازگشت',
+    close: 'بستن',
+    save: 'ذخیره',
+    cancel: 'لغو',
+
+    // Time format helpers
+    timeFormat: {
+      am: 'ق.ظ',
+      pm: 'ب.ظ'
+    }
+  },
+
   // Sidebar menu
   sidebar: {
     dashboard: 'داشبورد',
@@ -623,7 +804,8 @@ const fa = {
     live: 'پخش زنده',
     access: 'اشخاص مجاز',
     reports: 'گزارش‌ها', // Added missing translation
-    shifts: 'شیفت ها'
+    shifts: 'شیفت ها',
+    attendance: 'حضور و غیاب'
   },
 
   // Navbar

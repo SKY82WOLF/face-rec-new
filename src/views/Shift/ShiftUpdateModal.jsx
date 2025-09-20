@@ -31,13 +31,14 @@ import {
   Chip
 } from '@mui/material'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { TimePicker } from '@mui/x-date-pickers/TimePicker'
 import AddIcon from '@mui/icons-material/Add'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import InfoIcon from '@mui/icons-material/Info'
+
+import { AdapterDateFnsJalali } from '@mui/x-date-pickers/AdapterDateFnsJalali'
 
 import CustomTextField from '@/@core/components/mui/TextField'
 import { useTranslation } from '@/translations/useTranslation'
@@ -577,7 +578,7 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
               </Box>
 
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 3, mb: 3 }}>
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <LocalizationProvider dateAdapter={AdapterDateFnsJalali}>
                   <DatePicker
                     label={t('shifts.startDate')}
                     value={editShift.start_date ? new Date(editShift.start_date) : null}
@@ -674,7 +675,7 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 2 }}>
                     <LocalizationProvider
-                      dateAdapter={AdapterDateFns}
+                      dateAdapter={AdapterDateFnsJalali}
                       localeText={{ okButtonLabel: t('common.ok'), cancelButtonLabel: t('common.cancel') }}
                     >
                       <TimePicker
@@ -687,7 +688,7 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
                       />
                     </LocalizationProvider>
                     <LocalizationProvider
-                      dateAdapter={AdapterDateFns}
+                      dateAdapter={AdapterDateFnsJalali}
                       localeText={{ okButtonLabel: t('common.ok'), cancelButtonLabel: t('common.cancel') }}
                     >
                       <TimePicker
@@ -726,7 +727,7 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
                       {editShift.days_times[day].map((timeSlot, index) => (
                         <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 2 }}>
                           <LocalizationProvider
-                            dateAdapter={AdapterDateFns}
+                            dateAdapter={AdapterDateFnsJalali}
                             localeText={{ okButtonLabel: t('common.ok'), cancelButtonLabel: t('common.cancel') }}
                           >
                             <TimePicker
@@ -741,7 +742,7 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
                             />
                           </LocalizationProvider>
                           <LocalizationProvider
-                            dateAdapter={AdapterDateFns}
+                            dateAdapter={AdapterDateFnsJalali}
                             localeText={{ okButtonLabel: t('common.ok'), cancelButtonLabel: t('common.cancel') }}
                           >
                             <TimePicker

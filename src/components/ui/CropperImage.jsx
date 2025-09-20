@@ -177,7 +177,7 @@ const CropperImage = ({ imageUrl, image_url, area, onAreaChange, cropperResult }
     }
 
     img.src = src
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [imageUrl, image_url, area])
 
   // Sync external area
@@ -217,7 +217,7 @@ const CropperImage = ({ imageUrl, image_url, area, onAreaChange, cropperResult }
     }
 
     applyArea(area)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [area?.x, area?.y, area?.width, area?.height])
 
   const getCanvasMousePos = e => {
@@ -242,6 +242,9 @@ const CropperImage = ({ imageUrl, image_url, area, onAreaChange, cropperResult }
 
   const getMousePosFromClient = (clientX, clientY) => {
     const canvas = canvasRef.current
+
+    if (!canvas) return { x: 0, y: 0 }
+
     const rect = canvas.getBoundingClientRect()
     const scaleX = canvas.width / rect.width
     const scaleY = canvas.height / rect.height
@@ -257,7 +260,11 @@ const CropperImage = ({ imageUrl, image_url, area, onAreaChange, cropperResult }
     if (!canvas) return
     const pos = getMousePosFromClient(e.clientX, e.clientY)
 
-    handleDragMove(pos.x, pos.y)
+    // Clamp coordinates to canvas bounds for proper dragging
+    const clampedX = Math.max(0, Math.min(pos.x, canvas.width))
+    const clampedY = Math.max(0, Math.min(pos.y, canvas.height))
+
+    handleDragMove(clampedX, clampedY)
   }
 
   const onDocumentMouseUp = () => {
@@ -276,24 +283,32 @@ const CropperImage = ({ imageUrl, image_url, area, onAreaChange, cropperResult }
 
     if (isNear(x, y, tl.x, tl.y)) {
       dragRef.current = { type: 'tl', startX: x, startY: y, orig: { ...internalArea }, offsetX: 0, offsetY: 0 }
+      window.addEventListener('mousemove', onDocumentMouseMove)
+      window.addEventListener('mouseup', onDocumentMouseUp)
 
       return
     }
 
     if (isNear(x, y, tr.x, tr.y)) {
       dragRef.current = { type: 'tr', startX: x, startY: y, orig: { ...internalArea }, offsetX: 0, offsetY: 0 }
+      window.addEventListener('mousemove', onDocumentMouseMove)
+      window.addEventListener('mouseup', onDocumentMouseUp)
 
       return
     }
 
     if (isNear(x, y, bl.x, bl.y)) {
       dragRef.current = { type: 'bl', startX: x, startY: y, orig: { ...internalArea }, offsetX: 0, offsetY: 0 }
+      window.addEventListener('mousemove', onDocumentMouseMove)
+      window.addEventListener('mouseup', onDocumentMouseUp)
 
       return
     }
 
     if (isNear(x, y, br.x, br.y)) {
       dragRef.current = { type: 'br', startX: x, startY: y, orig: { ...internalArea }, offsetX: 0, offsetY: 0 }
+      window.addEventListener('mousemove', onDocumentMouseMove)
+      window.addEventListener('mouseup', onDocumentMouseUp)
 
       return
     }
@@ -385,11 +400,15 @@ const CropperImage = ({ imageUrl, image_url, area, onAreaChange, cropperResult }
 
     if (!drag.type || !drag.orig) return
 
+    const canvas = canvasRef.current
+
+    if (!canvas) return
+
     const dx = x - drag.startX
     const dy = y - drag.startY
     let next = { ...drag.orig }
-    const cw = canvasRef.current.width
-    const ch = canvasRef.current.height
+    const cw = canvas.width
+    const ch = canvas.height
 
     if (drag.type === 'move') {
       next.x = drag.orig.x + dx
@@ -454,9 +473,8 @@ const CropperImage = ({ imageUrl, image_url, area, onAreaChange, cropperResult }
   }
 
   const handleMouseMove = e => {
-    const { x, y } = getCanvasMousePos(e)
-
-    handleDragMove(x, y)
+    // This is now handled by global mouse events for all drag types
+    // Keeping this for potential future use but not calling handleDragMove
   }
 
   const handleMouseUp = () => {
@@ -540,7 +558,12 @@ const CropperImage = ({ imageUrl, image_url, area, onAreaChange, cropperResult }
   useEffect(() => {
     return () => {
       if (emitTimeout.current) window.clearTimeout(emitTimeout.current)
+
+      // Clean up any remaining global event listeners
+      window.removeEventListener('mousemove', onDocumentMouseMove)
+      window.removeEventListener('mouseup', onDocumentMouseUp)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
@@ -549,8 +572,6 @@ const CropperImage = ({ imageUrl, image_url, area, onAreaChange, cropperResult }
         ref={canvasRef}
         style={{ border: '1px solid #000', width: '100%', height: 'auto', cursor: 'default' }}
         onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
         onMouseLeave={() => {}}
       />
     </div>

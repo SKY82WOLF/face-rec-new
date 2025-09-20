@@ -1,14 +1,31 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 
-import { Modal, Fade, Backdrop, Box, Typography, Button, Grid, IconButton, CircularProgress } from '@mui/material'
+import {
+  Modal,
+  Fade,
+  Backdrop,
+  Box,
+  Typography,
+  Button,
+  Grid,
+  IconButton,
+  CircularProgress,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
+} from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import VideocamIcon from '@mui/icons-material/Videocam'
+
+import { useSelector } from 'react-redux'
 
 import { useTranslation } from '@/translations/useTranslation'
 import { testCamera } from '@/api/cameras'
 import CustomTextField from '@/@core/components/mui/TextField'
 import { commonStyles } from '@/@core/styles/commonStyles'
 import CropperImage from '@/components/ui/CropperImage'
+import { selectCameraDirectionTypes } from '@/store/slices/typesSlice'
 
 const modalStyle = {
   ...commonStyles.modalContainer,
@@ -18,10 +35,12 @@ const modalStyle = {
 
 const CameraEditModal = ({ open, onClose, onSubmit, camera, isLoading }) => {
   const { t } = useTranslation()
+  const cameraDirectionTypes = useSelector(selectCameraDirectionTypes)
 
   const [form, setForm] = useState({
     name: '',
-    cam_url: ''
+    cam_url: '',
+    direction: ''
   })
 
   const [errors, setErrors] = useState({})
@@ -38,7 +57,8 @@ const CameraEditModal = ({ open, onClose, onSubmit, camera, isLoading }) => {
     if (camera) {
       setForm({
         name: camera.name || '',
-        cam_url: camera.cam_url || ''
+        cam_url: camera.cam_url || '',
+        direction: camera.direction_id || ''
       })
       setTestResult(null)
       setTestError('')
@@ -89,6 +109,10 @@ const CameraEditModal = ({ open, onClose, onSubmit, camera, isLoading }) => {
 
     if (!form.cam_url.trim()) {
       newErrors.cam_url = t('cameras.camUrlRequired')
+    }
+
+    if (!form.direction) {
+      newErrors.direction = t('cameras.directionRequired')
     }
 
     setErrors(newErrors)
@@ -164,7 +188,10 @@ const CameraEditModal = ({ open, onClose, onSubmit, camera, isLoading }) => {
       setTesting(false)
     }
 
-    onSubmit({ id: camera.id, data: { cam_url: form.cam_url, name: form.name, area: selectedArea } })
+    onSubmit({
+      id: camera.id,
+      data: { cam_url: form.cam_url, name: form.name, area: selectedArea, direction: form.direction }
+    })
   }
 
   const handleClose = () => {
@@ -205,7 +232,14 @@ const CameraEditModal = ({ open, onClose, onSubmit, camera, isLoading }) => {
       }}
     >
       <Fade in={open}>
-        <Box sx={modalStyle}>
+        <Box
+          sx={{
+            ...modalStyle,
+            maxHeight: '90vh',
+            overflowY: testResult ? 'auto' : 'visible',
+            height: testResult ? 'auto' : 'auto'
+          }}
+        >
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <VideocamIcon sx={{ fontSize: 32, color: 'primary.main' }} />
@@ -244,18 +278,42 @@ const CameraEditModal = ({ open, onClose, onSubmit, camera, isLoading }) => {
               </Grid>
 
               {urlTestedOk && (
-                <Grid item xs={12}>
-                  <CustomTextField
-                    fullWidth
-                    label={t('cameras.name')}
-                    name='name'
-                    value={form.name}
-                    onChange={handleChange}
-                    error={!!errors.name}
-                    helperText={errors.name}
-                    required
-                  />
-                </Grid>
+                <>
+                  <Grid item xs={12}>
+                    <CustomTextField
+                      fullWidth
+                      label={t('cameras.name')}
+                      name='name'
+                      value={form.name}
+                      onChange={handleChange}
+                      error={!!errors.name}
+                      helperText={errors.name}
+                      required
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <FormControl fullWidth error={!!errors.direction}>
+                      <InputLabel>{t('cameras.direction')}</InputLabel>
+                      <Select
+                        value={form.direction}
+                        onChange={handleChange}
+                        name='direction'
+                        label={t('cameras.direction')}
+                      >
+                        {cameraDirectionTypes.data.map(direction => (
+                          <MenuItem key={direction.id} value={direction.id}>
+                            {direction.translate || direction.title}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      {errors.direction && (
+                        <Typography variant='caption' color='error' sx={{ mt: 0.5, ml: 1.5 }}>
+                          {errors.direction}
+                        </Typography>
+                      )}
+                    </FormControl>
+                  </Grid>
+                </>
               )}
               {testing && !urlTestedOk && !isUrlDirty && (
                 <Grid item xs={12}>

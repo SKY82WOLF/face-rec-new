@@ -11,19 +11,28 @@ import {
   Stack,
   Typography,
   TextField,
-  Button
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import SearchIcon from '@mui/icons-material/Search'
 
+import { useSelector } from 'react-redux'
+
 import { useTranslation } from '@/translations/useTranslation'
+import { selectCameraDirectionTypes } from '@/store/slices/typesSlice'
 
 const CamerasFilter = ({ onChange, initialFilters = {} }) => {
   const { t } = useTranslation()
+  const cameraDirectionTypes = useSelector(selectCameraDirectionTypes)
 
   const [searchInputs, setSearchInputs] = useState({
     name: initialFilters.name || '',
-    id: initialFilters.id || ''
+    id: initialFilters.id || '',
+    direction: initialFilters.direction || ''
   })
 
   const debounceRef = useRef(null)
@@ -34,6 +43,8 @@ const CamerasFilter = ({ onChange, initialFilters = {} }) => {
 
     if (searchInputs.name && searchInputs.name.toString().trim() !== '') filters.name = searchInputs.name
     if (searchInputs.id && searchInputs.id.toString().trim() !== '') filters.id = searchInputs.id
+    if (searchInputs.direction && searchInputs.direction.toString().trim() !== '')
+      filters.direction_id = searchInputs.direction
 
     return filters
   }
@@ -110,8 +121,7 @@ const CamerasFilter = ({ onChange, initialFilters = {} }) => {
           <AccordionDetails
             sx={{ backgroundColor: 'transparent', boxShadow: 'none', display: 'flex', gap: 1, flexWrap: 'wrap', py: 1 }}
           >
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', width:'100%' }}>
-
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', width: '100%' }}>
               <TextField
                 size='small'
                 value={searchInputs.name}
@@ -126,11 +136,28 @@ const CamerasFilter = ({ onChange, initialFilters = {} }) => {
                 placeholder={t('reportCard.id') || 'ID'}
                 sx={{ flex: 1, minWidth: { xs: '100%', sm: 140 } }}
               />
+              <FormControl size='small' sx={{ flex: 1, minWidth: { xs: '100%', sm: 160 } }}>
+                <InputLabel>{t('cameras.direction') || 'Direction'}</InputLabel>
+                <Select
+                  value={searchInputs.direction}
+                  onChange={e => setSearchInputs(s => ({ ...s, direction: e.target.value }))}
+                  label={t('cameras.direction') || 'Direction'}
+                >
+                  <MenuItem value=''>
+                    <em>{t('common.all') || 'All'}</em>
+                  </MenuItem>
+                  {cameraDirectionTypes.data.map(direction => (
+                    <MenuItem key={direction.id} value={direction.id}>
+                      {direction.translate || direction.title}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', width: '100%', justifyContent: 'flex-end' }}>
                 <Button
                   variant='outlined'
                   onClick={() => {
-                    setSearchInputs({ name: '', id: '' })
+                    setSearchInputs({ name: '', id: '', direction: '' })
                     send(true)
                   }}
                   sx={{ width: { xs: '100%', sm: 'auto' } }}
