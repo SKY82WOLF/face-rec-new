@@ -88,7 +88,7 @@ const ShiftAdd = ({ open, onClose, onSubmit, isLoading = false }) => {
   // Get all persons for selection
   const { data: personsData, isLoading: isLoadingPersons } = useGetPersons({
     page: 1,
-    per_page: 1000 // Get all persons
+    per_page: 5000 // Get all persons
   })
 
   // For the uniform time across multiple days
@@ -360,7 +360,7 @@ const ShiftAdd = ({ open, onClose, onSubmit, isLoading = false }) => {
     setSelectedPersons(newValue)
     setNewShift(prev => ({
       ...prev,
-      persons: newValue.map(person => person.id)
+      persons: newValue.map(person => person.person_id || person.id)
     }))
   }
 
@@ -527,9 +527,45 @@ const ShiftAdd = ({ open, onClose, onSubmit, isLoading = false }) => {
               </Box>
 
               <Box sx={{ mb: 3 }}>
-                <Typography variant='body2' sx={{ mb: 1, fontWeight: 500 }}>
-                  {t('shifts.persons')}
-                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                  <Typography variant='body2' sx={{ fontWeight: 500 }}>
+                    {t('shifts.persons')}
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                      size='small'
+                      variant='outlined'
+                      onClick={() => {
+                        const allPersons = personsData?.data || []
+
+                        setSelectedPersons(allPersons)
+                        setNewShift(prev => ({
+                          ...prev,
+                          persons: allPersons.map(person => person.person_id || person.id)
+                        }))
+                      }}
+                      disabled={isLoadingPersons || (personsData?.data || []).length === 0}
+                      sx={{ minWidth: 'auto', px: 2, fontSize: '0.75rem' }}
+                    >
+                      {t('groups.treeView.selectAll')}
+                    </Button>
+                    <Button
+                      size='small'
+                      variant='outlined'
+                      onClick={() => {
+                        setSelectedPersons([])
+                        setNewShift(prev => ({
+                          ...prev,
+                          persons: []
+                        }))
+                      }}
+                      disabled={isLoadingPersons || selectedPersons.length === 0}
+                      sx={{ minWidth: 'auto', px: 2, fontSize: '0.75rem' }}
+                    >
+                      {t('groups.treeView.deselectAll')}
+                    </Button>
+                  </Box>
+                </Box>
                 <Autocomplete
                   multiple
                   options={personsData?.data || []}
@@ -547,11 +583,13 @@ const ShiftAdd = ({ open, onClose, onSubmit, isLoading = false }) => {
                         variant='outlined'
                         label={`${option.first_name} ${option.last_name}`}
                         {...getTagProps({ index })}
-                        key={option.id}
+                        key={option.person_id || option.id}
                       />
                     ))
                   }
-                  isOptionEqualToValue={(option, value) => option.id === value.id}
+                  isOptionEqualToValue={(option, value) =>
+                    (option.person_id || option.id) === (value.person_id || value.id)
+                  }
                   noOptionsText={t('shifts.noPersonsFound')}
                   loadingText={t('common.loading')}
                 />

@@ -23,8 +23,12 @@ const useAttendence = ({ personId, start_date, end_date, enabled = true } = {}) 
 
       const response = await getPersonAttendance({ personId, start_date, end_date })
 
+      // Handle case where attendance is an object with message instead of array
+      const attendance = response.results?.attendance
+      const attendanceArray = Array.isArray(attendance) ? attendance : []
+
       return {
-        attendance: response.results?.attendance || [],
+        attendance: attendanceArray,
         count: response.results?.count || 0,
         personId: response.results?.person_id || personId,
         personName: response.results?.person_name || null,
@@ -114,16 +118,20 @@ const useAttendanceDetail = ({ personId, date, enabled = true } = {}) => {
       nextDay.setDate(nextDay.getDate() + 1)
       const endDate = nextDay.toISOString().split('T')[0]
 
-      const response = await getPersonAttendance({ 
-        personId, 
-        start_date: date, 
-        end_date: endDate 
+      const response = await getPersonAttendance({
+        personId,
+        start_date: date,
+        end_date: endDate
       })
 
       // Find the specific day's data
-      const dayData = response.results?.attendance?.find(
-        day => day.date?.startsWith(date)
-      )
+      const attendance = response.results?.attendance
+
+      if (!Array.isArray(attendance)) {
+        return null
+      }
+
+      const dayData = attendance.find(day => day.date?.startsWith(date))
 
       return dayData || null
     },

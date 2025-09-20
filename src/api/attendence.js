@@ -15,14 +15,14 @@ export const getPersonAttendance = async ({ personId, start_date, end_date }) =>
     if (!personId) {
       throw new Error('Person ID is required')
     }
-    
+
     if (!start_date || !end_date) {
       throw new Error('Start date and end date are required')
     }
 
     // Replace the :personId placeholder with actual personId
     const url = attendanceList.replace(':personId', personId)
-    
+
     const response = await axiosInstance.get(url, {
       params: {
         start_date,
@@ -39,7 +39,7 @@ export const getPersonAttendance = async ({ personId, start_date, end_date }) =>
 
 /**
  * Get attendance summary statistics for a person
- * @param {Object} options - Request options  
+ * @param {Object} options - Request options
  * @param {number} options.personId - Person ID
  * @param {string} options.start_date - Start date (YYYY-MM-DD format)
  * @param {string} options.end_date - End date (YYYY-MM-DD format)
@@ -48,8 +48,9 @@ export const getPersonAttendance = async ({ personId, start_date, end_date }) =>
 export const getAttendanceSummary = async ({ personId, start_date, end_date }) => {
   try {
     const response = await getPersonAttendance({ personId, start_date, end_date })
-    
-    if (!response?.results?.attendance) {
+
+    // Check if attendance exists and is an array
+    if (!response?.results?.attendance || !Array.isArray(response.results.attendance)) {
       return {
         totalDays: 0,
         presentDays: 0,
@@ -58,7 +59,12 @@ export const getAttendanceSummary = async ({ personId, start_date, end_date }) =
         earlyExitDays: 0,
         overtimeDays: 0,
         averageDuration: '00:00',
-        totalWorkTime: '00:00'
+        totalWorkTime: '00:00',
+        totalDuration: '00:00',
+        totalLateTime: '00:00',
+        totalAbsentTime: '00:00',
+        totalExtraTime: '00:00',
+        attendance: []
       }
     }
 
@@ -120,12 +126,12 @@ export const getAttendanceSummary = async ({ personId, start_date, end_date }) =
  * @param {number} minutes - Duration in minutes
  * @returns {string} - Formatted duration (HH:MM)
  */
-export const formatDuration = (minutes) => {
+export const formatDuration = minutes => {
   if (!minutes || minutes < 0) return '00:00'
-  
+
   const hours = Math.floor(minutes / 60)
   const remainingMinutes = Math.floor(minutes % 60)
-  
+
   return `${String(hours).padStart(2, '0')}:${String(remainingMinutes).padStart(2, '0')}`
 }
 
@@ -134,9 +140,9 @@ export const formatDuration = (minutes) => {
  * @param {string} timeString - Time in HH:MM format
  * @returns {number} - Minutes since midnight
  */
-export const parseTimeToMinutes = (timeString) => {
+export const parseTimeToMinutes = timeString => {
   if (!timeString) return 0
-  
+
   const [hours, minutes] = timeString.split(':').map(Number)
 
   return hours * 60 + minutes
@@ -150,15 +156,15 @@ export const parseTimeToMinutes = (timeString) => {
  */
 export const calculateTimeDifference = (startTime, endTime) => {
   if (!startTime || !endTime) return 0
-  
+
   try {
     // If it's a full datetime, extract just the time part
     const startTimeOnly = startTime.includes(' ') ? startTime.split(' ')[1] : startTime
     const endTimeOnly = endTime.includes(' ') ? endTime.split(' ')[1] : endTime
-    
+
     const startMinutes = parseTimeToMinutes(startTimeOnly)
     const endMinutes = parseTimeToMinutes(endTimeOnly)
-    
+
     return endMinutes - startMinutes
   } catch (error) {
     console.error('Error calculating time difference:', error)

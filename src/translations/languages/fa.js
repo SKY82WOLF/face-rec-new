@@ -35,7 +35,9 @@ const fa = {
     reset: 'بازنشانی',
     sortBy: 'مرتب‌سازی بر اساس',
     order: 'ترتیب',
-    all: 'همه'
+    all: 'همه',
+    loadMore: 'بارگذاری بیشتر',
+    remaining: 'باقی مانده'
   },
 
   // Not Found Page

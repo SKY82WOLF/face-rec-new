@@ -163,7 +163,7 @@ const AttendanceList = ({ attendance, count, isLoading, isError, error }) => {
           )}
         </Typography>
 
-        {attendance.length === 0 ? (
+        {!attendance || attendance.length === 0 ? (
           <Box sx={commonStyles.emptyContainer}>
             <Typography variant='body1' color='text.secondary'>
               {t('attendance.noAttendanceData')}
@@ -184,7 +184,7 @@ const AttendanceList = ({ attendance, count, isLoading, isError, error }) => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {attendance.map((record, index) => {
+                {(attendance || []).map((record, index) => {
                   const dateInfo = formatDateWithDay(record.date)
 
                   const entryImage = record.entry_report?.image
