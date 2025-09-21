@@ -1,5 +1,5 @@
 // API functions for attendance management
-import { attendanceList } from '@/configs/routes'
+import { attendanceList, personShiftsList } from '@/configs/routes'
 import axiosInstance from './axios'
 
 /**
@@ -8,9 +8,21 @@ import axiosInstance from './axios'
  * @param {number} options.personId - Person ID
  * @param {string} options.start_date - Start date (YYYY-MM-DD format)
  * @param {string} options.end_date - End date (YYYY-MM-DD format)
+ * @param {string} options.shift_ids - Shift IDs
+ * @param {Array} options.entry_cam_ids - Entry camera IDs
+ * @param {Array} options.exit_cam_ids - Exit camera IDs
+ * @param {Array} options.entry_exit_cam_ids - Entry-exit camera IDs
  * @returns {Promise<Object>} - Response with attendance data
  */
-export const getPersonAttendance = async ({ personId, start_date, end_date }) => {
+export const getPersonAttendance = async ({
+  personId,
+  start_date,
+  end_date,
+  shift_ids,
+  entry_cam_ids = [],
+  exit_cam_ids = [],
+  entry_exit_cam_ids = []
+}) => {
   try {
     if (!personId) {
       throw new Error('Person ID is required')
@@ -23,16 +35,34 @@ export const getPersonAttendance = async ({ personId, start_date, end_date }) =>
     // Replace the :personId placeholder with actual personId
     const url = attendanceList.replace(':personId', personId)
 
-    const response = await axiosInstance.get(url, {
-      params: {
-        start_date,
-        end_date
-      }
-    })
+    const params = {
+      start_date,
+      end_date
+    }
+
+    // Add optional parameters if provided
+    if (shift_ids) {
+      params.shift_ids = shift_ids
+    }
+
+    if (entry_cam_ids && entry_cam_ids.length > 0) {
+      params.entry_cam_ids = entry_cam_ids.join(',')
+    }
+
+    if (exit_cam_ids && exit_cam_ids.length > 0) {
+      params.exit_cam_ids = exit_cam_ids.join(',')
+    }
+
+    if (entry_exit_cam_ids && entry_exit_cam_ids.length > 0) {
+      params.entry_exit_cam_ids = entry_exit_cam_ids.join(',')
+    }
+
+    const response = await axiosInstance.get(url, { params })
 
     return response
   } catch (error) {
     console.error('Error fetching attendance data:', error)
+
     throw error.response || error
   }
 }
@@ -43,11 +73,23 @@ export const getPersonAttendance = async ({ personId, start_date, end_date }) =>
  * @param {number} options.personId - Person ID
  * @param {string} options.start_date - Start date (YYYY-MM-DD format)
  * @param {string} options.end_date - End date (YYYY-MM-DD format)
+ * @param {number} options.shift_ids - Shift IDs (optional)
+ * @param {Array} options.entry_cam_ids - Entry camera IDs (optional)
+ * @param {Array} options.exit_cam_ids - Exit camera IDs (optional)
+ * @param {Array} options.entry_exit_cam_ids - Entry-exit camera IDs (optional)
  * @returns {Promise<Object>} - Response with attendance summary
  */
-export const getAttendanceSummary = async ({ personId, start_date, end_date }) => {
+export const getAttendanceSummary = async ({ personId, start_date, end_date, shift_ids, entry_cam_ids, exit_cam_ids, entry_exit_cam_ids }) => {
   try {
-    const response = await getPersonAttendance({ personId, start_date, end_date })
+    const response = await getPersonAttendance({
+      personId,
+      start_date,
+      end_date,
+      shift_ids,
+      entry_cam_ids,
+      exit_cam_ids,
+      entry_exit_cam_ids
+    })
 
     // Check if attendance exists and is an array
     if (!response?.results?.attendance || !Array.isArray(response.results.attendance)) {
@@ -146,6 +188,28 @@ export const parseTimeToMinutes = timeString => {
   const [hours, minutes] = timeString.split(':').map(Number)
 
   return hours * 60 + minutes
+}
+
+/**
+ * Get person's shifts
+ * @param {Object} options - Request options
+ * @param {number} options.personId - Person ID
+ * @returns {Promise<Object>} - Response with person shifts
+ */
+export const getPersonShifts = async ({ personId }) => {
+  try {
+    if (!personId) {
+      throw new Error('Person ID is required')
+    }
+
+    const response = await axiosInstance.get(personShiftsList.replace(':personId', personId))
+
+    return response
+  } catch (error) {
+    console.error('Error fetching person shifts:', error)
+
+    throw error.response || error
+  }
 }
 
 /**

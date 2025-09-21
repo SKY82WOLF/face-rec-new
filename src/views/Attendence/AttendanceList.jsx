@@ -45,10 +45,10 @@ const AttendanceList = ({ attendance, count, isLoading, isError, error }) => {
 
   const handleViewDetails = attendanceRecord => {
     // Extract person ID from the first selected person or use from record
-    const personId = attendanceRecord.person_id || attendanceRecord.personId
+    const personId = attendanceRecord.person?.person_id || attendanceRecord.personId
 
     // Navigate to detail page with attendance data
-    router.push(`/dashboard/attendence/detail?personId=${personId}&date=${attendanceRecord.date.split(' ')[0]}`)
+    router.push(`/attendence/detail?personId=${personId}&date=${attendanceRecord.date.split(' ')[0]}`)
   }
 
   const getStatusColor = record => {

@@ -786,6 +786,13 @@ const fa = {
     save: 'ذخیره',
     cancel: 'لغو',
 
+    // Person reports
+    personReports: 'گزارش‌های شخص',
+
+    // Image actions
+    viewImage: 'مشاهده تصویر',
+    downloadImage: 'دانلود تصویر',
+
     // Time format helpers
     timeFormat: {
       am: 'ق.ظ',

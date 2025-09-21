@@ -2,11 +2,32 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { getPersonAttendance, getAttendanceSummary } from '@/api/attendence'
+import { getPersonAttendance, getAttendanceSummary, getPersonShifts } from '@/api/attendence'
 
-const useAttendence = ({ personId, start_date, end_date, enabled = true } = {}) => {
+const useAttendence = ({
+  personId,
+  start_date,
+  end_date,
+  shift_ids,
+  entry_cam_ids,
+  exit_cam_ids,
+  entry_exit_cam_ids,
+  enabled = true
+} = {}) => {
   const queryClient = useQueryClient()
-  const queryKey = ['attendance', personId, start_date, end_date]
+
+  // Use a distinct query key for summary so it doesn't collide with the main
+  // attendance data query (they use a different shape/result).
+  const queryKey = [
+    'attendance-summary',
+    personId,
+    start_date,
+    end_date,
+    shift_ids,
+    entry_cam_ids,
+    exit_cam_ids,
+    entry_exit_cam_ids
+  ]
 
   const {
     data = { attendance: [], count: 0, personId: null, personName: null, startDate: null, endDate: null },
@@ -18,22 +39,29 @@ const useAttendence = ({ personId, start_date, end_date, enabled = true } = {}) 
     queryKey,
     queryFn: async () => {
       if (!personId || !start_date || !end_date) {
-        throw new Error('Person ID, start date, and end date are required')
+        return null
       }
 
-      const response = await getPersonAttendance({ personId, start_date, end_date })
+      const response = await getPersonAttendance({
+        personId,
+        start_date,
+        end_date,
+        shift_ids,
+        entry_cam_ids,
+        exit_cam_ids,
+        entry_exit_cam_ids
+      })
 
-      // Handle case where attendance is an object with message instead of array
-      const attendance = response.results?.attendance
-      const attendanceArray = Array.isArray(attendance) ? attendance : []
+      // Normalize attendance into an array to avoid passing objects to the UI
+      const attendanceArray = Array.isArray(response.results?.attendance) ? response.results.attendance : []
 
       return {
         attendance: attendanceArray,
-        count: response.results?.count || 0,
+        count: attendanceArray.length,
         personId: response.results?.person_id || personId,
         personName: response.results?.person_name || null,
-        startDate: response.results?.start_date || start_date,
-        endDate: response.results?.end_date || end_date
+        startDate: start_date,
+        endDate: end_date
       }
     },
     enabled: enabled && !!personId && !!start_date && !!end_date,
@@ -56,7 +84,29 @@ const useAttendence = ({ personId, start_date, end_date, enabled = true } = {}) 
 }
 
 // Hook for getting attendance summary statistics
-const useAttendanceSummary = ({ personId, start_date, end_date, enabled = true } = {}) => {
+const useAttendanceSummary = ({
+  personId,
+  start_date,
+  end_date,
+  shift_ids,
+  entry_cam_ids,
+  exit_cam_ids,
+  entry_exit_cam_ids,
+  enabled = true
+} = {}) => {
+  const queryClient = useQueryClient()
+
+  const queryKey = [
+    'attendance-data',
+    personId,
+    start_date,
+    end_date,
+    shift_ids,
+    entry_cam_ids,
+    exit_cam_ids,
+    entry_exit_cam_ids
+  ]
+
   const {
     data: summary,
     isLoading,
@@ -64,13 +114,114 @@ const useAttendanceSummary = ({ personId, start_date, end_date, enabled = true }
     error,
     refetch
   } = useQuery({
-    queryKey: ['attendance-summary', personId, start_date, end_date],
+    queryKey,
     queryFn: async () => {
       if (!personId || !start_date || !end_date) {
         throw new Error('Person ID, start date, and end date are required')
       }
 
-      return await getAttendanceSummary({ personId, start_date, end_date })
+      // Helper to format minutes to HH:MM
+      const formatMinutesToHHMM = minutes => {
+        if (!minutes || minutes < 0) return '00:00'
+
+        const hours = Math.floor(minutes / 60)
+        const remaining = Math.floor(minutes % 60)
+
+        return `${String(hours).padStart(2, '0')}:${String(remaining).padStart(2, '0')}`
+      }
+
+      // Attendance query key (same as the list hook) - try to read cached list data first
+      const attendanceQueryKey = [
+        'attendance-data',
+        personId,
+        start_date,
+        end_date,
+        shift_ids,
+        entry_cam_ids,
+        exit_cam_ids,
+        entry_exit_cam_ids
+      ]
+
+      const cached = queryClient.getQueryData(attendanceQueryKey)
+
+      let attendance = null
+
+      if (cached && Array.isArray(cached.attendance)) {
+        // Use cached attendance data to compute the summary (avoids duplicate network calls)
+        attendance = cached.attendance
+      } else {
+        // Fall back to fetching from API if list data isn't cached
+        const response = await getPersonAttendance({
+          personId,
+          start_date,
+          end_date,
+          shift_ids,
+          entry_cam_ids,
+          exit_cam_ids,
+          entry_exit_cam_ids
+        })
+
+        attendance = response.results?.attendance || []
+      }
+
+      // If no attendance data, return empty summary
+      if (!attendance || !Array.isArray(attendance) || attendance.length === 0) {
+        return {
+          totalDays: 0,
+          presentDays: 0,
+          absentDays: 0,
+          lateDays: 0,
+          earlyExitDays: 0,
+          overtimeDays: 0,
+          averageDuration: '00:00',
+          totalWorkTime: '00:00',
+          totalDuration: '00:00',
+          totalLateTime: '00:00',
+          totalAbsentTime: '00:00',
+          totalExtraTime: '00:00',
+          attendance: []
+        }
+      }
+
+      const totalDays = attendance.length
+      const presentDays = totalDays
+      const lateDays = attendance.filter(day => day.is_late).length
+      const earlyExitDays = attendance.filter(day => day.is_early_exit).length
+      const overtimeDays = attendance.filter(day => day.overtime_minutes > 0).length
+
+      const totalDurationMinutes = attendance.reduce((sum, day) => sum + (day.duration_minutes || 0), 0)
+      const totalDuration = formatMinutesToHHMM(totalDurationMinutes)
+
+      const totalLateMinutes = attendance.reduce((sum, day) => sum + (day.late_minutes || 0), 0)
+      const totalLateTime = formatMinutesToHHMM(totalLateMinutes)
+
+      const totalAbsentMinutes = attendance.reduce((sum, day) => {
+        const lateTime = day.late_minutes || 0
+        const earlyExitTime = day.early_exit_minutes || 0
+
+        return sum + lateTime + earlyExitTime
+      }, 0)
+
+      const totalAbsentTime = formatMinutesToHHMM(totalAbsentMinutes)
+
+      const totalExtraMinutes = attendance.reduce((sum, day) => sum + (day.overtime_minutes || 0), 0)
+      const totalExtraTime = formatMinutesToHHMM(totalExtraMinutes)
+
+      return {
+        totalDays,
+        presentDays,
+        absentDays: 0,
+        lateDays,
+        earlyExitDays,
+        overtimeDays,
+        averageDuration: totalDuration,
+        totalWorkTime: totalDuration,
+        totalDuration,
+        totalLateTime,
+        totalAbsentTime,
+        totalExtraTime,
+        attendance
+      }
     },
     enabled: enabled && !!personId && !!start_date && !!end_date,
     staleTime: 10000,
@@ -97,7 +248,17 @@ const useAttendanceSummary = ({ personId, start_date, end_date, enabled = true }
 }
 
 // Hook for a single day's attendance detail
-const useAttendanceDetail = ({ personId, date, enabled = true } = {}) => {
+const useAttendanceDetail = ({
+  personId,
+  date,
+  start_date,
+  end_date,
+  shift_ids,
+  entry_cam_ids,
+  exit_cam_ids,
+  entry_exit_cam_ids,
+  enabled = true
+} = {}) => {
   const {
     data: attendanceDetail,
     isLoading,
@@ -105,37 +266,70 @@ const useAttendanceDetail = ({ personId, date, enabled = true } = {}) => {
     error,
     refetch
   } = useQuery({
-    queryKey: ['attendance-detail', personId, date],
+    queryKey: [
+      'attendance-detail',
+      personId,
+      date,
+      start_date,
+      end_date,
+      shift_ids,
+      entry_cam_ids,
+      exit_cam_ids,
+      entry_exit_cam_ids
+    ],
     queryFn: async () => {
-      if (!personId || !date) {
-        throw new Error('Person ID and date are required')
+      if (!personId) {
+        throw new Error('Person ID is required')
       }
 
-      // For a single day, start_date and end_date should be the same
-      // But since the API requires at least 2 days, we'll get a 2-day range and filter
-      const nextDay = new Date(date)
+      // Determine start/end for the API call. Prefer explicit start_date/end_date if provided
+      let sd = start_date || null
+      let ed = end_date || null
 
-      nextDay.setDate(nextDay.getDate() + 1)
-      const endDate = nextDay.toISOString().split('T')[0]
+      if (!sd && date) {
+        sd = date
+      }
+
+      if (!ed) {
+        if (date) {
+          const nextDay = new Date(date)
+
+          nextDay.setDate(nextDay.getDate() + 1)
+          ed = nextDay.toISOString().split('T')[0]
+        }
+      }
+
+      if (!sd || !ed) {
+        throw new Error('Start date and end date are required')
+      }
 
       const response = await getPersonAttendance({
         personId,
-        start_date: date,
-        end_date: endDate
+        start_date: sd,
+        end_date: ed,
+        shift_ids,
+        entry_cam_ids,
+        exit_cam_ids,
+        entry_exit_cam_ids
       })
 
-      // Find the specific day's data
       const attendance = response.results?.attendance
 
       if (!Array.isArray(attendance)) {
+        // If API returns an object (e.g., message), return null instead of throwing
         return null
       }
 
-      const dayData = attendance.find(day => day.date?.startsWith(date))
+      // If date is provided, find the matching day; otherwise return the first day's detail
+      if (date) {
+        const dayData = attendance.find(day => day.date?.startsWith(date))
 
-      return dayData || null
+        return dayData || null
+      }
+
+      return attendance[0] || null
     },
-    enabled: enabled && !!personId && !!date,
+    enabled: enabled && !!personId && (!!date || (!!start_date && !!end_date)),
     staleTime: 5000,
     gcTime: 120000
   })
@@ -149,5 +343,36 @@ const useAttendanceDetail = ({ personId, date, enabled = true } = {}) => {
   }
 }
 
-export { useAttendanceSummary, useAttendanceDetail }
+// Hook for getting person shifts
+const usePersonShifts = ({ personId, enabled = true } = {}) => {
+  const {
+    data: shifts,
+    isLoading,
+    isError,
+    error,
+    refetch
+  } = useQuery({
+    queryKey: ['personShifts', personId],
+    queryFn: async () => {
+      if (!personId) return []
+
+      const response = await getPersonShifts({ personId })
+
+      return response.results || []
+    },
+    enabled: enabled && !!personId,
+    staleTime: 5000,
+    gcTime: 120000
+  })
+
+  return {
+    shifts: shifts || [],
+    isLoading,
+    isError,
+    error,
+    refetchShifts: refetch
+  }
+}
+
+export { useAttendanceSummary, useAttendanceDetail, usePersonShifts }
 export default useAttendence

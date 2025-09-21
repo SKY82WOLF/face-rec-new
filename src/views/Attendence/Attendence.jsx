@@ -19,7 +19,12 @@ const Attendence = () => {
   const [filters, setFilters] = useState({
     person_id: [],
     start_date: null,
-    end_date: null
+    end_date: null,
+    shift_ids: null,
+    camera_direction: '',
+    entry_cam_ids: [],
+    exit_cam_ids: [],
+    entry_exit_cam_ids: []
   })
 
   const [hasSearched, setHasSearched] = useState(false)
@@ -32,6 +37,10 @@ const Attendence = () => {
     personId: filters.person_id[0], // Use selected person
     start_date: filters.start_date ? filters.start_date.split('T')[0] : null,
     end_date: filters.end_date ? filters.end_date.split('T')[0] : null,
+    shift_ids: filters.shift_ids,
+    entry_cam_ids: filters.entry_cam_ids,
+    exit_cam_ids: filters.exit_cam_ids,
+    entry_exit_cam_ids: filters.entry_exit_cam_ids,
     enabled: shouldFetch
   })
 
@@ -40,6 +49,10 @@ const Attendence = () => {
     personId: filters.person_id[0], // Use selected person
     start_date: filters.start_date ? filters.start_date.split('T')[0] : null,
     end_date: filters.end_date ? filters.end_date.split('T')[0] : null,
+    shift_ids: filters.shift_ids,
+    entry_cam_ids: filters.entry_cam_ids,
+    exit_cam_ids: filters.exit_cam_ids,
+    entry_exit_cam_ids: filters.entry_exit_cam_ids,
     enabled: shouldFetch
   })
 

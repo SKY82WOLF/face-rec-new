@@ -116,7 +116,8 @@ export const API_ROUTES = {
 
   // Attendance
   attendance: {
-    list: '/persons/:personId/attendence'
+    list: '/persons/:personId/attendence',
+    personShifts: '/persons/:personId/shifts'
   }
 }
 
@@ -183,7 +184,7 @@ export const {
   persons: shiftsPersons
 } = API_ROUTES.shifts
 
-export const { list: attendanceList } = API_ROUTES.attendance
+export const { list: attendanceList, personShifts: personShiftsList } = API_ROUTES.attendance
 
 // WebSocket URL helpers for data and live
 export function getDataWebSocketUrl() {
