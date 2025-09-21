@@ -50,13 +50,13 @@ import { commonStyles } from '@/@core/styles/commonStyles'
 import { useAttendanceDetail } from '@/hooks/useAttendence'
 import { getBackendImgUrl2 } from '@/configs/routes'
 import LoadingState from '@/components/ui/LoadingState'
-import AttendanceStatistics from './AttendanceStatistics'
+import AttendanceDetailStatistics from './AttendanceDetailStatics'
 import usePersonReports from '@/hooks/usePersonReports'
-import ReportsListView from '@/views/Reports/ReportsListView'
-import ReportsGridCard from '@/views/Reports/ReportsGridCard'
-import AccessReportCard from '@/views/Access/AccessReportCard'
-import AttendancePersonCard from '@/components/AttendancePersonCard'
+import AttendanceReportListview from './AttendanceReportListview'
+import AttendanceReportGridCard from './AttendanceReportGridCard'
+import AttendancePersonCard from '@/views/Attendence/AttendancePersonCard'
 import ShamsiDateTime from '@/components/ShamsiDateTimer'
+import PageHeader from '@/components/ui/PageHeader'
 
 const AttendanceDetail = () => {
   const { t } = useTranslation()
@@ -107,21 +107,6 @@ const AttendanceDetail = () => {
   const startDateTime = date ? `${date} 00:00:00` : null
   const endDateTime = date ? `${date} 23:59:59` : null
 
-  // Debug logging
-  useEffect(() => {
-    if (attendanceDetail) {
-      console.log('Attendance Detail Person ID sources:', {
-        personFromUrl: personId,
-        personFromAttendance: attendanceDetail?.person?.id,
-        personIdFromAttendance: attendanceDetail?.person_id,
-        actualPersonId,
-        date,
-        startDateTime,
-        endDateTime
-      })
-    }
-  }, [attendanceDetail, personId, actualPersonId, date, startDateTime, endDateTime])
-
   // Fetch person reports for the selected date
   const {
     reports,
@@ -135,6 +120,25 @@ const AttendanceDetail = () => {
     created_at_to: endDateTime,
     order_by: 'created_at'
   })
+
+  // Report detail modal state used by list/grid children
+  const [openReportDetail, setOpenReportDetail] = useState(false)
+  const [reportDetailIndex, setReportDetailIndex] = useState(null)
+
+  const handleOpenReportDetail = idx => {
+    setReportDetailIndex(idx)
+    setOpenReportDetail(true)
+  }
+
+  const handleNavigateReportDetail = direction => {
+    setReportDetailIndex(prev => {
+      const next = (prev ?? 0) + direction
+
+      if (!enhancedReports || next < 0 || next >= (enhancedReports || []).length) return prev
+
+      return next
+    })
+  }
 
   const handleBackToList = () => {
     router.push('/attendence')
@@ -177,11 +181,28 @@ const AttendanceDetail = () => {
     return `${formattedDate} - ${formattedTime}`
   }
 
+  // Format minutes into "Xh Ym" when >= 60, otherwise "Zm"
+  const formatMinutes = minutesRaw => {
+    const minutes = Math.round(Number(minutesRaw) || 0)
+
+    if (minutes >= 60) {
+      const hrs = Math.floor(minutes / 60)
+      const mins = minutes % 60
+
+      if (mins === 0) return `${hrs} ${t('attendance.hours')}`
+
+      return `${hrs} ${t('attendance.hours')} ${mins} ${t('attendance.minutes')}`
+    }
+
+    return `${minutes} ${t('attendance.minutes')}`
+  }
+
   const getStatusColor = record => {
     if (!record) return 'default'
     if (record.is_late && record.is_early_exit) return 'error'
     if (record.is_late) return 'warning'
     if (record.is_early_exit) return 'info'
+    if (record.overtime_minutes > 0) return 'success'
 
     return 'success'
   }
@@ -191,6 +212,7 @@ const AttendanceDetail = () => {
     if (record.is_late && record.is_early_exit) return t('attendance.late') + ' - ' + t('attendance.earlyExit')
     if (record.is_late) return t('attendance.late')
     if (record.is_early_exit) return t('attendance.earlyExit')
+    if (record.overtime_minutes > 0) return t('attendance.overtime')
 
     return t('attendance.onTime')
   }
@@ -239,6 +261,7 @@ const AttendanceDetail = () => {
       totalDays: 1,
       presentDays: 1,
       absentDays: 0,
+      expectedDuration: attendanceDetail.expected_duration || '00:00',
       lateDays: attendanceDetail.is_late ? 1 : 0,
       earlyExitDays: attendanceDetail.is_early_exit ? 1 : 0,
       overtimeDays: attendanceDetail.overtime_minutes > 0 ? 1 : 0,
@@ -324,128 +347,15 @@ const AttendanceDetail = () => {
     </Card>
   )
 
-  const InfoRow = ({ label, value, color }) => (
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1 }}>
-      <Typography variant='body2' color='text.secondary'>
-        {label}:
+  const InfoRow = ({ label, value, color, sx }) => (
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1, ...(sx || {}) }}>
+      <Typography variant='body2' color='text.secondary' component='div'>
+        {typeof label === 'string' || typeof label === 'number' ? `${label}:` : label}
       </Typography>
-      <Typography variant='body2' fontWeight='medium' color={color || 'text.primary'}>
+      <Typography variant='body2' fontWeight='medium' color={color || 'text.primary'} component='div'>
         {value}
       </Typography>
     </Box>
-  )
-
-  const ImageCard = ({ title, imageUrl, personImageUrl, reportData, type }) => (
-    <Card sx={{ height: '100%' }}>
-      <CardContent>
-        <Typography variant='h6' sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <CameraIcon />
-          {title}
-        </Typography>
-        <Divider sx={{ mb: 2 }} />
-
-        {imageUrl ? (
-          <Box>
-            <Box
-              sx={{
-                position: 'relative',
-                width: '100%',
-                height: 200,
-                mb: 2,
-                borderRadius: 1,
-                overflow: 'hidden',
-                cursor: 'pointer'
-              }}
-              onClick={() => handleImageView(imageUrl)}
-            >
-              <img
-                src={`${getBackendImgUrl2()}${imageUrl}`}
-                alt={title}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover'
-                }}
-              />
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: 8,
-                  right: 8,
-                  display: 'flex',
-                  gap: 1
-                }}
-              >
-                <Tooltip title={t('attendance.viewImage')}>
-                  <IconButton
-                    size='small'
-                    sx={{ bgcolor: 'rgba(0,0,0,0.7)', color: 'white' }}
-                    onClick={e => {
-                      e.stopPropagation()
-                      handleImageView(imageUrl)
-                    }}
-                  >
-                    <VisibilityIcon fontSize='small' />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title={t('attendance.downloadImage')}>
-                  <IconButton
-                    size='small'
-                    sx={{ bgcolor: 'rgba(0,0,0,0.7)', color: 'white' }}
-                    onClick={e => {
-                      e.stopPropagation()
-                      handleImageDownload(imageUrl, `${type}-image-${date}.jpg`)
-                    }}
-                  >
-                    <DownloadIcon fontSize='small' />
-                  </IconButton>
-                </Tooltip>
-              </Box>
-            </Box>
-
-            {reportData && (
-              <Box>
-                <InfoRow label={t('attendance.date')} value={formatDateTime(reportData.created_at)} />
-                <InfoRow label={t('attendance.entryCamera')} value={reportData.camera_id} />
-                {personImageUrl && (
-                  <Box sx={{ mt: 2 }}>
-                    <Typography variant='caption' color='text.secondary' sx={{ mb: 1, display: 'block' }}>
-                      {t('attendance.personImage')}:
-                    </Typography>
-                    <Box
-                      sx={{
-                        width: 60,
-                        height: 60,
-                        borderRadius: 1,
-                        overflow: 'hidden',
-                        cursor: 'pointer'
-                      }}
-                      onClick={() => handleImageView(personImageUrl)}
-                    >
-                      <img
-                        src={`${getBackendImgUrl2()}${personImageUrl}`}
-                        alt='Person'
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover'
-                        }}
-                      />
-                    </Box>
-                  </Box>
-                )}
-              </Box>
-            )}
-          </Box>
-        ) : (
-          <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Typography variant='body2' color='text.secondary'>
-              {t('attendance.noImageProvided')}
-            </Typography>
-          </Box>
-        )}
-      </CardContent>
-    </Card>
   )
 
   if (isLoading) {
@@ -471,22 +381,18 @@ const AttendanceDetail = () => {
 
   const record = attendanceDetail
 
+  const trueDuration =
+    record.duration_minutes - record.late_minutes - record.early_exit_minutes + record.overtime_minutes || 0
+
   return (
     <Box sx={commonStyles.pageContainer}>
       {/* Header */}
-      <Box sx={commonStyles.pageHeader}>
-        <Typography variant='h4' sx={commonStyles.pageTitle}>
-          {t('attendance.attendanceDetail.title')}
-        </Typography>
-        <Button startIcon={<ArrowBackIcon />} onClick={handleBackToList} variant='outlined'>
-          {t('attendance.attendanceDetail.backToList')}
-        </Button>
-      </Box>
+      <PageHeader title={t('attendance.attendanceDetail.title')} actionButton={t('attendance.attendanceDetail.backToList')} actionButtonProps={{ onClick: handleBackToList , variant: 'outlined', endIcon: <ArrowBackIcon /> }} underlineWidth={200} />
 
       {/* Statistics Section */}
       {summaryData && (
         <Box sx={{ mb: 4 }}>
-          <AttendanceStatistics summary={summaryData} isLoading={isLoading} />
+          <AttendanceDetailStatistics summary={summaryData} isLoading={isLoading} />
         </Box>
       )}
 
@@ -496,10 +402,15 @@ const AttendanceDetail = () => {
         <Grid item xs={12} md={6} flexGrow={1} width={'48%'}>
           <InfoCard title={t('attendance.attendanceDetail.timeTracking')} icon={<TimeIcon />}>
             <InfoRow label={t('attendance.firstIn')} value={formatTime(record.first_in)} />
+            <Divider sx={{ mb: 2 }} />
             <InfoRow label={t('attendance.lastOut')} value={formatTime(record.last_out)} />
+            <Divider sx={{ mb: 2 }} />
             <InfoRow label={t('attendance.duration')} value={record.duration || '--'} />
-            <InfoRow label={t('attendance.totalWorkTime')} value={record.total_work_time || '--'} />
+            <Divider sx={{ mb: 2 }} />
+            <InfoRow label={t('attendance.expectedDuration')} value={record.expected_duration || '--'} />
+            <Divider sx={{ mb: 2 }} />
             <InfoRow label={t('attendance.entryCount')} value={record.entry_count || 0} />
+            <Divider sx={{ mb: 2 }} />
             <InfoRow label={t('attendance.exitCount')} value={record.exit_count || 0} />
           </InfoCard>
         </Grid>
@@ -510,35 +421,51 @@ const AttendanceDetail = () => {
             <Box sx={{ mb: 2 }}>
               <Chip label={getStatusText(record)} color={getStatusColor(record)} size='medium' variant='outlined' />
             </Box>
-
             {record.is_late && (
-              <InfoRow
-                label={t('attendance.lateMinutes')}
-                value={`${Math.round(record.late_minutes)} ${t('attendance.minutes')}`}
-                color='warning.main'
-              />
+              <>
+                <InfoRow
+                  label={t('attendance.lateMinutes')}
+                  value={formatMinutes(record.late_minutes)}
+                  color='warning.main'
+                />
+                <Divider sx={{ mb: 2 }} />
+              </>
             )}
-
             {record.is_early_exit && (
-              <InfoRow
-                label={t('attendance.earlyExitMinutes')}
-                value={`${Math.round(record.early_exit_minutes)} ${t('attendance.minutes')}`}
-                color='info.main'
-              />
+              <>
+                <InfoRow
+                  label={t('attendance.earlyExitMinutes')}
+                  value={formatMinutes(record.early_exit_minutes)}
+                  color='info.main'
+                />
+                <Divider sx={{ mb: 2 }} />
+              </>
             )}
-
             {record.overtime_minutes > 0 && (
-              <InfoRow
-                label={t('attendance.overtimeMinutes')}
-                value={`${Math.round(record.overtime_minutes)} ${t('attendance.minutes')}`}
-                color='success.main'
-              />
+              <>
+                <InfoRow
+                  label={t('attendance.overtimeMinutes')}
+                  value={formatMinutes(record.overtime_minutes)}
+                  color='success.main'
+                />
+                <Divider sx={{ mb: 2 }} />
+              </>
             )}
-
+            <InfoRow label={t('attendance.duration')} value={formatMinutes(record.duration_minutes || 0)} />
+            <Divider sx={{ mb: 2 }} />
             <InfoRow
-              label={t('attendance.durationMinutes')}
-              value={`${Math.round(record.duration_minutes || 0)} ${t('attendance.minutes')}`}
-            />
+              label={
+                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography variant='body2' color='text.secondary'>
+                    {t('attendance.trueDuration')}
+                  </Typography>
+                  <Tooltip title={t('attendance.trueDurationHelp')}>
+                    <InfoIcon fontSize='small' color='action' />
+                  </Tooltip>
+                </Box>
+              }
+              value={formatMinutes(trueDuration) || '--'}
+            />{' '}
           </InfoCard>
         </Grid>
       </Grid>
@@ -566,8 +493,17 @@ const AttendanceDetail = () => {
             <AttendancePersonCard
               personData={personData}
               onViewDetails={person => {
-                // Handle view details action
-                console.log('View person details:', person)
+                // Navigate to access page and open person detail modal (same behaviour as ShiftDetail)
+                if (person && (person.id || person.person_id)) {
+                  const personId = person.id || person.person_id
+
+                  try {
+                    router.push(`/access?person_id=${personId}`)
+                  } catch (err) {
+                    // fallback: log
+                    console.error('Failed to open person detail:', err)
+                  }
+                }
               }}
               onViewImage={imageUrl => {
                 if (imageUrl) {
@@ -614,6 +550,10 @@ const AttendanceDetail = () => {
                 elevation={0}
                 onMouseEnter={() => setHoveredShiftId(shiftData.id)}
                 onMouseLeave={() => setHoveredShiftId(null)}
+                onClick={() => {
+                  // Navigate to shifts page and open the shift detail modal via query param
+                  router.push(`/shifts?shift_id=${shiftData.id}`)
+                }}
                 sx={{
                   borderRadius: 2,
                   position: 'relative',
@@ -763,35 +703,6 @@ const AttendanceDetail = () => {
         )}
       </Grid>
 
-      {/* Entry and Exit Images */}
-      {/* <Grid container spacing={3} sx={{ mb: 4 }}> */}
-      {/* Entry Image */}
-      {/* {record.entry_report && (
-          <Grid item xs={12} md={6}>
-            <ImageCard
-              title={t('attendance.attendanceDetail.entryDetails')}
-              imageUrl={record.entry_report.image}
-              personImageUrl={record.entry_report.person_image}
-              reportData={record.entry_report}
-              type='entry'
-            />
-          </Grid>
-        )} */}
-
-      {/* Exit Image */}
-      {/* {record.exit_report && (
-          <Grid item xs={12} md={6}>
-            <ImageCard
-              title={t('attendance.attendanceDetail.exitDetails')}
-              imageUrl={record.exit_report.image}
-              personImageUrl={record.exit_report.person_image}
-              reportData={record.exit_report}
-              type='exit'
-            />
-          </Grid>
-        )} */}
-      {/* </Grid> */}
-
       {/* Person Reports Section */}
       {enhancedReports && enhancedReports.length > 0 && (
         <Box sx={{ mb: 4, mt: 4 }}>
@@ -816,7 +727,7 @@ const AttendanceDetail = () => {
           </Box>
 
           {viewMode === 'list' ? (
-            <ReportsListView
+            <AttendanceReportListview
               reports={enhancedReports.map((report, index) => ({
                 ...report,
 
@@ -846,14 +757,14 @@ const AttendanceDetail = () => {
                       position: 'relative',
                       ...(report.isEntryReport && {
                         '&::before': {
-                          content: '"Entry"',
+                          content: '"ورود"',
                           position: 'absolute',
                           top: 8,
                           left: 8,
                           backgroundColor: '#4caf50',
                           color: 'white',
                           padding: '4px 8px',
-                          borderRadius: '4px',
+                          borderRadius: '9px',
                           fontSize: '12px',
                           fontWeight: 'bold',
                           zIndex: 1
@@ -861,14 +772,14 @@ const AttendanceDetail = () => {
                       }),
                       ...(report.isExitReport && {
                         '&::before': {
-                          content: '"Exit"',
+                          content: '"خروج"',
                           position: 'absolute',
                           top: 8,
                           left: 8,
                           backgroundColor: '#f44336',
                           color: 'white',
                           padding: '4px 8px',
-                          borderRadius: '4px',
+                          borderRadius: '9px',
                           fontSize: '12px',
                           fontWeight: 'bold',
                           zIndex: 1
@@ -876,9 +787,10 @@ const AttendanceDetail = () => {
                       })
                     }}
                   >
-                    <ReportsGridCard
+                    <AttendanceReportGridCard
                       reportData={report}
                       allReports={enhancedReports}
+                      index={index}
                       onOpenDetail={() => {}}
                       onEdit={() => {}}
                       onOpenPersonAdd={() => {}}

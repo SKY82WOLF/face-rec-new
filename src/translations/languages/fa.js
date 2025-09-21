@@ -740,6 +740,8 @@ const fa = {
     totalAbsentTime: 'کل زمان غیبت',
     totalExtraTime: 'کل زمان اضافی',
     totalEarlyExitTime: 'کل تعجیل در خروج',
+    trueDuration: 'مدت حقیقی حضور',
+    trueDurationHelp: 'مدت حقیقی حضور با احتساب کسری ها و اضافه کاری ها',
 
     // Error messages
     invalidDateRange: 'بازه زمانی نامعتبر است',

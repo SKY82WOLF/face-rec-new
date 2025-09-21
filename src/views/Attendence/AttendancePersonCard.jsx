@@ -10,6 +10,8 @@ import Info from '@mui/icons-material/Info'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import DownloadIcon from '@mui/icons-material/Download'
 
+import FullScreenImageModal from '@/components/FullScreenImageModal'
+
 import { useTranslation } from '@/translations/useTranslation'
 import { getBackendImgUrl2 } from '@/configs/routes'
 import { commonStyles } from '@/@core/styles/commonStyles'
@@ -39,6 +41,8 @@ const AttendancePersonCard = ({ personData, onViewDetails, onViewImage, onDownlo
   const { t } = useTranslation()
   const { settings } = useSettings()
   const [hovered, setHovered] = useState(false)
+  const [fullScreenImageUrl, setFullScreenImageUrl] = useState(null)
+  const backendImgUrl = getBackendImgUrl2()
 
   if (!personData) return null
 
@@ -59,19 +63,10 @@ const AttendancePersonCard = ({ personData, onViewDetails, onViewImage, onDownlo
   const isAllowed = personData.access_id?.id === 5 || personData.access_id === 5
 
   const handleImageClick = () => {
-    if (onViewImage && (personData.person_image || personData.last_person_image)) {
-      onViewImage(personData.person_image || personData.last_person_image)
-    }
-  }
+    const img = personData.person_image || personData.last_person_image
 
-  const handleDownloadClick = e => {
-    e.stopPropagation()
-
-    if (onDownloadImage && (personData.person_image || personData.last_person_image)) {
-      onDownloadImage(
-        personData.person_image || personData.last_person_image,
-        `${personData.first_name}-${personData.last_name}`
-      )
+    if (img) {
+      setFullScreenImageUrl(backendImgUrl + img)
     }
   }
 
@@ -153,6 +148,12 @@ const AttendancePersonCard = ({ personData, onViewDetails, onViewImage, onDownlo
           </Avatar>
         )}
       </Box>
+
+      <FullScreenImageModal
+        open={!!fullScreenImageUrl}
+        imageUrl={fullScreenImageUrl}
+        onClose={() => setFullScreenImageUrl(null)}
+      />
 
       {/* Divider between image and details */}
       <Divider sx={{ borderColor: 'divider' }} />
