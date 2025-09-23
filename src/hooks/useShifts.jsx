@@ -4,7 +4,15 @@ import { useEffect, useMemo } from 'react'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
-import { getShifts, getShiftDetail, getShiftPersons, createShift, updateShift, deleteShift } from '@/api/shifts'
+import {
+  getShifts,
+  getShiftDetail,
+  getShiftPersons,
+  createShift,
+  updateShift,
+  deleteShift,
+  assignPersonsToShift
+} from '@/api/shifts'
 
 const useShifts = ({ page = 1, per_page = 10, order_by = 'id' } = {}) => {
   const queryClient = useQueryClient()
@@ -79,22 +87,70 @@ const useShifts = ({ page = 1, per_page = 10, order_by = 'id' } = {}) => {
   // Mutations for CRUD operations
   const createMutation = useMutation({
     mutationFn: createShift,
-    onSuccess: () => {
+    onSuccess: response => {
       queryClient.invalidateQueries({ queryKey: ['shifts'] })
+
+      const newShiftId = response?.results?.id || response?.id
+
+      if (newShiftId) {
+        // Invalidate specific shift queries
+        queryClient.invalidateQueries({ queryKey: ['shift', newShiftId] })
+        queryClient.invalidateQueries({ queryKey: ['shiftForEdit', newShiftId] })
+        queryClient.invalidateQueries({ queryKey: ['shiftForView', newShiftId] })
+
+        // Clear and invalidate shift persons to get fresh data
+        queryClient.invalidateQueries({ queryKey: ['shiftPersonsInfinite', newShiftId] })
+        queryClient.refetchQueries({ queryKey: ['shiftPersonsInfinite', newShiftId] })
+      }
     }
   })
 
   const updateMutation = useMutation({
     mutationFn: updateShift,
-    onSuccess: () => {
+    onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['shifts'] })
+
+      if (id) {
+        // Invalidate specific shift queries
+        queryClient.invalidateQueries({ queryKey: ['shift', id] })
+        queryClient.invalidateQueries({ queryKey: ['shiftForEdit', id] })
+        queryClient.invalidateQueries({ queryKey: ['shiftForView', id] })
+
+        // Clear and invalidate shift persons to get fresh data
+        queryClient.invalidateQueries({ queryKey: ['shiftPersonsInfinite', id] })
+        queryClient.refetchQueries({ queryKey: ['shiftPersonsInfinite', id] })
+      }
     }
   })
 
   const deleteMutation = useMutation({
     mutationFn: deleteShift,
-    onSuccess: () => {
+    onSuccess: (_, deletedId) => {
       queryClient.invalidateQueries({ queryKey: ['shifts'] })
+
+      // Only invalidate specific shift queries
+      if (deletedId) {
+        queryClient.invalidateQueries({ queryKey: ['shift', deletedId] })
+        queryClient.invalidateQueries({ queryKey: ['shiftForEdit', deletedId] })
+        queryClient.invalidateQueries({ queryKey: ['shiftForView', deletedId] })
+
+        // Remove the specific shift persons query from cache
+        queryClient.removeQueries({ queryKey: ['shiftPersonsInfinite', deletedId] })
+      }
+    }
+  })
+
+  const assignPersonsMutation = useMutation({
+    mutationFn: ({ shiftId, personIds }) => assignPersonsToShift(shiftId, personIds),
+    onSuccess: (_, { shiftId }) => {
+      // Clear and invalidate shift persons to get fresh data
+      queryClient.invalidateQueries({ queryKey: ['shiftPersonsInfinite', shiftId] })
+      queryClient.refetchQueries({ queryKey: ['shiftPersonsInfinite', shiftId] })
+
+      // Also invalidate shift detail queries that include persons
+      queryClient.invalidateQueries({ queryKey: ['shift', shiftId] })
+      queryClient.invalidateQueries({ queryKey: ['shiftForEdit', shiftId] })
+      queryClient.invalidateQueries({ queryKey: ['shiftForView', shiftId] })
     }
   })
 
@@ -102,7 +158,7 @@ const useShifts = ({ page = 1, per_page = 10, order_by = 'id' } = {}) => {
   const getShiftDetailData = async id => {
     try {
       const shiftData = await getShiftDetail(id)
-      const personsData = await getShiftPersons(id)
+      const personsData = await getShiftPersons(id, { page: 1, per_page: 5000 })
 
       return {
         ...(shiftData.results || shiftData),
@@ -122,12 +178,13 @@ const useShifts = ({ page = 1, per_page = 10, order_by = 'id' } = {}) => {
     addShift: createMutation.mutateAsync,
     updateShift: updateMutation.mutateAsync,
     deleteShift: deleteMutation.mutateAsync,
+    assignPersonsToShift: assignPersonsMutation.mutateAsync,
     getShiftDetail: getShiftDetailData,
     refetchShifts: refetch
   }
 }
 
-// Hook for getting a single shift's details
+// Hook for getting a single shift's details (for detail modal - with all persons)
 const useShiftDetail = shiftId => {
   const {
     data: shift,
@@ -144,7 +201,7 @@ const useShiftDetail = shiftId => {
         const shiftData = await getShiftDetail(shiftId)
 
         // Fetch persons assigned to this shift
-        const personsData = await getShiftPersons(shiftId)
+        const personsData = await getShiftPersons(shiftId, { page: 1, per_page: 5000 })
 
         // Combine the data
         return {
@@ -169,5 +226,85 @@ const useShiftDetail = shiftId => {
   }
 }
 
-export { useShiftDetail }
+// Hook for getting shift details for edit modal (with all persons for sync)
+const useShiftDetailForEdit = shiftId => {
+  const {
+    data: shift,
+    isLoading,
+    isError,
+    refetch
+  } = useQuery({
+    queryKey: ['shiftForEdit', shiftId],
+    queryFn: async () => {
+      if (!shiftId) return null
+
+      try {
+        // Fetch shift details
+        const shiftData = await getShiftDetail(shiftId)
+
+        // Fetch persons assigned to this shift with per_page=5000 for sync
+        const personsData = await getShiftPersons(shiftId, { page: 1, per_page: 5000 })
+
+        // Combine the data
+        return {
+          ...(shiftData.results || shiftData),
+          persons: personsData?.results || []
+        }
+      } catch (error) {
+        console.error(`Error in useShiftDetailForEdit for ID ${shiftId}:`, error)
+        throw error
+      }
+    },
+    enabled: !!shiftId,
+    staleTime: 5000,
+    gcTime: 120000
+  })
+
+  return {
+    shift,
+    isLoading,
+    isError,
+    refetchShift: refetch
+  }
+}
+
+// Hook for getting shift details for detail modal (with infinite scroll for persons)
+const useShiftDetailForView = shiftId => {
+  const {
+    data: shift,
+    isLoading,
+    isError,
+    refetch
+  } = useQuery({
+    queryKey: ['shiftForView', shiftId],
+    queryFn: async () => {
+      if (!shiftId) return null
+
+      try {
+        // Fetch shift details only (no persons)
+        const shiftData = await getShiftDetail(shiftId)
+
+        return {
+          ...(shiftData.results || shiftData),
+          persons: [] // Empty array, will be loaded separately with infinite scroll
+        }
+      } catch (error) {
+        console.error(`Error in useShiftDetailForView for ID ${shiftId}:`, error)
+        throw error
+      }
+    },
+    enabled: !!shiftId,
+    staleTime: 5000,
+    gcTime: 120000
+  })
+
+  return {
+    shift,
+    isLoading,
+    isError,
+    refetchShift: refetch
+  }
+}
+
+export { useShiftDetail, useShiftDetailForEdit, useShiftDetailForView }
 export default useShifts

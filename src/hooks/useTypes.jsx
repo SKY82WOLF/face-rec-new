@@ -6,7 +6,14 @@ import { useDispatch } from 'react-redux'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { setGenderTypes, setAccessTypes, setGenderTypesLoading, setAccessTypesLoading } from '@/store/slices/typesSlice'
+import {
+  setGenderTypes,
+  setAccessTypes,
+  setCameraDirectionTypes,
+  setGenderTypesLoading,
+  setAccessTypesLoading,
+  setCameraDirectionTypesLoading
+} from '@/store/slices/typesSlice'
 import { getTypes, getTypesByCategory, updateType, deleteType } from '@/api/types'
 
 const keys = 'types'
@@ -55,6 +62,10 @@ export const useGetAccessTypes = (options = {}) => {
   return useGetTypesByCategory('access', options)
 }
 
+export const useGetCameraDirectionTypes = (options = {}) => {
+  return useGetTypesByCategory('camera direction', options)
+}
+
 export const useUpdateType = (options = {}) => {
   const queryClient = useQueryClient()
 
@@ -91,6 +102,7 @@ export const useTypesReduxSync = () => {
   const dispatch = useDispatch()
   const genderTypesQuery = useGetGenderTypes()
   const accessTypesQuery = useGetAccessTypes()
+  const cameraDirectionTypesQuery = useGetCameraDirectionTypes()
 
   // Gender types
   useEffect(() => {
@@ -109,4 +121,13 @@ export const useTypesReduxSync = () => {
       dispatch(setAccessTypes(accessTypesQuery.data))
     }
   }, [accessTypesQuery.isLoading, accessTypesQuery.data, dispatch])
+
+  // Camera direction types
+  useEffect(() => {
+    if (cameraDirectionTypesQuery.isLoading) {
+      dispatch(setCameraDirectionTypesLoading())
+    } else if (cameraDirectionTypesQuery.data) {
+      dispatch(setCameraDirectionTypes(cameraDirectionTypesQuery.data))
+    }
+  }, [cameraDirectionTypesQuery.isLoading, cameraDirectionTypesQuery.data, dispatch])
 }

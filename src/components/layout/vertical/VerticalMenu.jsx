@@ -23,6 +23,7 @@ import { useTranslation } from '@/translations/useTranslation'
 
 // Navigation Data
 import useVerticalMenuData from '@/data/navigation/verticalMenuData'
+import PatternedMenuItem from '@/@menu/components/vertical-menu/PatternedMenuItem'
 
 const RenderExpandIcon = ({ open, transitionDuration }) => (
   <StyledVerticalNavExpandIcon open={open} transitionDuration={transitionDuration}>
@@ -67,9 +68,9 @@ const VerticalMenu = ({ scrollMenu }) => {
         menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
       >
         {menuData.filter(Boolean).map(item => (
-          <MenuItem key={item.href} href={item.href} icon={<i className={item.icon} />}>
+          <PatternedMenuItem key={item.href} href={item.href} icon={<i className={item.icon} />} pattern={item.icon}>
             {item.label}
-          </MenuItem>
+          </PatternedMenuItem>
         ))}
       </Menu>
       {/* <Menu

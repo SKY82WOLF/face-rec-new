@@ -1,17 +1,14 @@
 'use client'
 
 // React Imports
-import { useRef, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 
 // MUI Imports
 import Tooltip from '@mui/material/Tooltip'
-import IconButton from '@mui/material/IconButton'
-import Popper from '@mui/material/Popper'
-import Fade from '@mui/material/Fade'
-import Paper from '@mui/material/Paper'
-import ClickAwayListener from '@mui/material/ClickAwayListener'
-import MenuList from '@mui/material/MenuList'
-import MenuItem from '@mui/material/MenuItem'
+
+// Third-party toggle
+// import { DayAndNightToggle } from 'react-day-and-night-toggle'
+import { DayAndNightToggle } from '@/components/ui/DayNightToggle'
 
 // Hook Imports
 import { useSettings } from '@core/hooks/useSettings'
@@ -19,13 +16,7 @@ import { useSettings } from '@core/hooks/useSettings'
 import { useTranslation } from '@/translations/useTranslation'
 
 const ModeDropdown = () => {
-  // States
-  const [open, setOpen] = useState(false)
-  const [tooltipOpen, setTooltipOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
-
-  // Refs
-  const anchorRef = useRef(null)
 
   // Hooks
   const { settings, updateSettings } = useSettings()
@@ -36,114 +27,57 @@ const ModeDropdown = () => {
     setMounted(true)
   }, [])
 
-  const handleClose = () => {
-    setOpen(false)
-    setTooltipOpen(false)
-  }
-
-  const handleToggle = () => {
-    setOpen(prevOpen => !prevOpen)
-  }
-
-  const handleModeSwitch = mode => {
-    handleClose()
-
-    if (settings.mode !== mode) {
-      updateSettings({ mode: mode })
-    }
-  }
-
-  // Use consistent values for SSR
-  const defaultIcon = 'tabler-device-laptop'
-  const defaultText = t('settings.theme.system')
-
-  // Only use dynamic values after component has mounted on client
-  const getModeIcon = () => {
-    if (!mounted) return defaultIcon
-
-    if (settings.mode === 'system') {
-      return 'tabler-device-laptop'
-    } else if (settings.mode === 'dark') {
-      return 'tabler-moon-stars'
-    } else {
-      return 'tabler-sun'
-    }
-  }
-
+  // Return translated label for current mode; when in `system` show the current
+  // resolved preference (dark or light) so the tooltip matches the toggle state.
   const getModeText = () => {
-    if (!mounted) return defaultText
+    if (!mounted) {
+      return t('settings.theme.system')
+    }
 
     if (settings.mode === 'system') {
-      return t('settings.theme.system')
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+
+      if (prefersDark) {
+        return t('settings.theme.dark')
+      }
+
+      return t('settings.theme.light')
     } else if (settings.mode === 'dark') {
       return t('settings.theme.dark')
-    } else {
-      return t('settings.theme.light')
     }
+
+    return t('settings.theme.light')
+  }
+
+  // Determine the boolean checked state for the DayAndNightToggle.
+  const getChecked = () => {
+    if (!mounted) {
+      return false
+    }
+
+    if (settings.mode === 'system') {
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+    }
+
+    return settings.mode === 'dark'
+  }
+
+  // When the toggle is changed, map the boolean back to 'dark' or 'light'. If
+  // the user toggles we consider it an explicit choice (not 'system').
+  const handleChange = () => {
+    const currentlyDark = getChecked()
+
+    const newDark = !currentlyDark
+
+    updateSettings({ mode: newDark ? 'dark' : 'light' })
   }
 
   return (
-    <>
-      <Tooltip
-        title={getModeText()}
-        onOpen={() => setTooltipOpen(true)}
-        onClose={() => setTooltipOpen(false)}
-        open={open ? false : tooltipOpen ? true : false}
-        slotProps={{ popper: { className: 'capitalize' } }}
-      >
-        <IconButton ref={anchorRef} onClick={handleToggle} className='text-textPrimary'>
-          <i className={getModeIcon()} />
-        </IconButton>
-      </Tooltip>
-      {mounted && (
-        <Popper
-          open={open}
-          transition
-          disablePortal
-          placement='bottom-start'
-          anchorEl={anchorRef.current}
-          className='min-is-[160px] !mbs-3 z-[1]'
-        >
-          {({ TransitionProps, placement }) => (
-            <Fade
-              {...TransitionProps}
-              style={{ transformOrigin: placement === 'bottom-start' ? 'left top' : 'right top' }}
-            >
-              <Paper className={settings.skin === 'bordered' ? 'border shadow-none' : 'shadow-lg'}>
-                <ClickAwayListener onClickAway={handleClose}>
-                  <MenuList onKeyDown={handleClose}>
-                    <MenuItem
-                      className='gap-3'
-                      onClick={() => handleModeSwitch('light')}
-                      selected={settings.mode === 'light'}
-                    >
-                      <i className='tabler-sun' />
-                      {t('settings.theme.light')}
-                    </MenuItem>
-                    <MenuItem
-                      className='gap-3'
-                      onClick={() => handleModeSwitch('dark')}
-                      selected={settings.mode === 'dark'}
-                    >
-                      <i className='tabler-moon-stars' />
-                      {t('settings.theme.dark')}
-                    </MenuItem>
-                    <MenuItem
-                      className='gap-3'
-                      onClick={() => handleModeSwitch('system')}
-                      selected={settings.mode === 'system'}
-                    >
-                      <i className='tabler-device-laptop' />
-                      {t('settings.theme.system')}
-                    </MenuItem>
-                  </MenuList>
-                </ClickAwayListener>
-              </Paper>
-            </Fade>
-          )}
-        </Popper>
-      )}
-    </>
+    <Tooltip title={getModeText()} slotProps={{ popper: { className: 'capitalize' } }}>
+      <span>
+        <DayAndNightToggle onChange={handleChange} checked={getChecked()} size={20} />
+      </span>
+    </Tooltip>
   )
 }
 

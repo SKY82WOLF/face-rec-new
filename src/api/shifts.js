@@ -54,12 +54,21 @@ export const getShiftDetail = async id => {
 /**
  * Get persons assigned to a shift
  * @param {number} shiftId - Shift ID
+ * @param {Object} options - Pagination options
+ * @param {number} options.page - Page number
+ * @param {number} options.per_page - Items per page
  * @returns {Promise<Object>} - Response with persons data
  */
-export const getShiftPersons = async shiftId => {
+export const getShiftPersons = async (shiftId, { page = 1, per_page = 10 } = {}) => {
   try {
     const url = shiftsPersons.replace(':id', shiftId)
-    const response = await axiosInstance.get(url)
+
+    const response = await axiosInstance.get(url, {
+      params: {
+        page,
+        per_page
+      }
+    })
 
     return response
   } catch (error) {

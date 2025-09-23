@@ -24,7 +24,8 @@ import {
   TableRow,
   TableCell,
   TableContainer,
-  IconButton
+  IconButton,
+  CircularProgress
 } from '@mui/material'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import CameraAltIcon from '@mui/icons-material/CameraAlt'
@@ -34,7 +35,8 @@ import PersonIcon from '@mui/icons-material/Person'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 
 import { useTranslation } from '@/translations/useTranslation'
-import { useShiftDetail } from '@/hooks/useShifts'
+import { useShiftDetailForView } from '@/hooks/useShifts'
+import useShiftPersonsInfiniteScroll from '@/hooks/useShiftPersonsInfiniteScroll'
 import LoadingState from '@/components/ui/LoadingState'
 import ShamsiDateTime from '@/components/ShamsiDateTimer'
 import { backendImgUrl } from '@/configs/routes'
@@ -43,9 +45,16 @@ import FullScreenImageModal from '@/components/FullScreenImageModal'
 const ShiftDetail = ({ open, onClose, shiftId }) => {
   const { t } = useTranslation()
   const router = useRouter()
-  const { shift, isLoading: isLoadingDetail, isError } = useShiftDetail(shiftId)
+  const { shift, isLoading: isLoadingDetail, isError } = useShiftDetailForView(shiftId)
   const [expandedDay, setExpandedDay] = React.useState(null)
   const [fullScreenImageUrl, setFullScreenImageUrl] = React.useState(null)
+  const personsContainerRef = React.useRef(null)
+
+  const {
+    persons,
+    isFetchingNextPage,
+    isLoading: isLoadingPersons
+  } = useShiftPersonsInfiniteScroll(shiftId, personsContainerRef)
 
   const handleAccordionChange = day => (event, isExpanded) => {
     setExpandedDay(isExpanded ? day : null)
@@ -99,7 +108,7 @@ const ShiftDetail = ({ open, onClose, shiftId }) => {
     return result.trim()
   }
 
-  const handleViewPersonDetail = (personId) => {
+  const handleViewPersonDetail = personId => {
     // Navigate to persons page with person_id query parameter
     router.push(`/access?person_id=${personId}`)
   }
@@ -277,100 +286,117 @@ const ShiftDetail = ({ open, onClose, shiftId }) => {
               )}
             </Paper>
 
-            {/* Persons - Styled like ReportsListView */}
+            {/* Persons - Infinite Scroll */}
             <Paper elevation={0} sx={{ p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-              <Typography
-                variant='subtitle1'
-                sx={{ mb: 2, fontWeight: 600, color: 'primary.main', textAlign: 'center' }}
-              >
+              <Typography variant='subtitle1' sx={{ fontWeight: 600, color: 'primary.main', mb: 2 }}>
                 {t('shifts.persons')}
               </Typography>
-              {shift.persons && shift.persons.length > 0 ? (
-                <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
-                  <Table size='small'>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell sx={{ paddingLeft: '25px' }}>{t('reportCard.image')}</TableCell>
-                        <TableCell align='center'>{t('reportCard.fullName') || t('shifts.name')}</TableCell>
-                        <TableCell align='center'>{t('shifts.id')}</TableCell>
-                        <TableCell align='center'>{t('reportCard.access')}</TableCell>
-                        <TableCell align='center'>{t('shifts.viewPersonDetail')}</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {shift.persons.map(p => {
-                        const accessTitle = p.access_id?.translate || p.access_id?.title
-                        const isAllowed = p.access_id?.id === 5 || p.access_id === 5
 
-                        return (
-                          <TableRow key={p.id} hover>
-                            <TableCell align='center'>
-                              <Avatar
-                                variant='rounded'
-                                src={
-                                  backendImgUrl + p.person_image ||
-                                  backendImgUrl + p.last_person_image ||
-                                  '/images/avatars/1.png'
-                                }
-                                sx={{ width: 56, height: 56, borderRadius: 1.5, cursor: 'pointer' }}
-                                onClick={() =>
-                                  setFullScreenImageUrl(
+              {isLoadingPersons ? (
+                <LoadingState message={t('common.loading')} />
+              ) : persons.length > 0 ? (
+                <Box
+                  ref={personsContainerRef}
+                  sx={{
+                    maxHeight: 400,
+                    overflowY: 'auto',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 1
+                  }}
+                >
+                  <TableContainer component={Paper} elevation={0}>
+                    <Table size='small'>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell sx={{ paddingLeft: '25px' }}>{t('reportCard.image')}</TableCell>
+                          <TableCell align='center'>{t('reportCard.fullName') || t('shifts.name')}</TableCell>
+                          <TableCell align='center'>{t('shifts.id')}</TableCell>
+                          <TableCell align='center'>{t('reportCard.access')}</TableCell>
+                          <TableCell align='center'>{t('shifts.viewPersonDetail')}</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {persons.map(p => {
+                          const accessTitle = p.access_id?.translate || p.access_id?.title
+                          const isAllowed = p.access_id?.id === 5 || p.access_id === 5
+
+                          return (
+                            <TableRow key={p.person_id || p.id} hover>
+                              <TableCell align='center'>
+                                <Avatar
+                                  variant='rounded'
+                                  src={
                                     backendImgUrl + p.person_image ||
-                                      backendImgUrl + p.last_person_image ||
-                                      '/images/avatars/1.png'
-                                  )
-                                }
-                              />
-                            </TableCell>
-                            <TableCell align='center'>
-                              <Typography variant='subtitle2' sx={{ fontWeight: 600, color: 'text.primary' }}>
-                                {p.first_name} {p.last_name}
-                              </Typography>
-                              <Typography variant='caption' color='text.secondary'>
-                                {t('reportCard.nationalCode')}: {p.national_code || t('reportCard.unknown')}
-                              </Typography>
-                            </TableCell>
-                            <TableCell align='center'>{p.id}</TableCell>
-                            <TableCell align='center'>
-                              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1 }}>
-                                <Typography
-                                  variant='body2'
-                                  color={isAllowed ? 'success.main' : 'error.main'}
-                                  sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-                                >
-                                  {accessTitle || t('reportCard.unknown')}
+                                    backendImgUrl + p.last_person_image ||
+                                    '/images/avatars/1.png'
+                                  }
+                                  sx={{ width: 56, height: 56, borderRadius: 1.5, cursor: 'pointer' }}
+                                  onClick={() =>
+                                    setFullScreenImageUrl(
+                                      backendImgUrl + p.person_image ||
+                                        backendImgUrl + p.last_person_image ||
+                                        '/images/avatars/1.png'
+                                    )
+                                  }
+                                />
+                              </TableCell>
+                              <TableCell align='center'>
+                                <Typography variant='subtitle2' sx={{ fontWeight: 600, color: 'text.primary' }}>
+                                  {p.first_name} {p.last_name}
                                 </Typography>
-                                {isAllowed ? (
-                                  <LockOpenIcon sx={{ fontSize: 16, color: 'success.main' }} />
-                                ) : (
-                                  <LockIcon sx={{ fontSize: 16, color: 'error.main' }} />
-                                )}
-                              </Box>
-                            </TableCell>
-                            <TableCell align='center'>
-                              <Tooltip title={t('shifts.viewPersonDetail')}>
-                                <IconButton
-                                  size='small'
-                                  onClick={() => handleViewPersonDetail(p.id)}
-                                  sx={{ 
-                                    color: 'primary.main',
-                                    '&:hover': {
-                                      backgroundColor: 'primary.light',
-                                      color: 'primary.contrastText'
-                                    }
-                                  }}
-                                  aria-label={t('shifts.viewPersonDetail')}
-                                >
-                                  <VisibilityIcon fontSize='small' />
-                                </IconButton>
-                              </Tooltip>
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                                <Typography variant='caption' color='text.secondary'>
+                                  {t('reportCard.nationalCode')}: {p.national_code || t('reportCard.unknown')}
+                                </Typography>
+                              </TableCell>
+                              <TableCell align='center'>{p.person_id || p.id}</TableCell>
+                              <TableCell align='center'>
+                                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1 }}>
+                                  <Typography
+                                    variant='body2'
+                                    color={isAllowed ? 'success.main' : 'error.main'}
+                                    sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+                                  >
+                                    {accessTitle || t('reportCard.unknown')}
+                                  </Typography>
+                                  {isAllowed ? (
+                                    <LockOpenIcon sx={{ fontSize: 16, color: 'success.main' }} />
+                                  ) : (
+                                    <LockIcon sx={{ fontSize: 16, color: 'error.main' }} />
+                                  )}
+                                </Box>
+                              </TableCell>
+                              <TableCell align='center'>
+                                <Tooltip title={t('shifts.viewPersonDetail')}>
+                                  <IconButton
+                                    size='small'
+                                    onClick={() => handleViewPersonDetail(p.person_id || p.id)}
+                                    sx={{
+                                      color: 'primary.main',
+                                      '&:hover': {
+                                        backgroundColor: 'primary.light',
+                                        color: 'primary.contrastText'
+                                      }
+                                    }}
+                                    aria-label={t('shifts.viewPersonDetail')}
+                                  >
+                                    <VisibilityIcon fontSize='small' />
+                                  </IconButton>
+                                </Tooltip>
+                              </TableCell>
+                            </TableRow>
+                          )
+                        })}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+
+                  {isFetchingNextPage && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                      <CircularProgress size={24} />
+                    </Box>
+                  )}
+                </Box>
               ) : (
                 <Typography variant='body2' color='text.secondary'>
                   {t('shifts.noUsersAssigned')}

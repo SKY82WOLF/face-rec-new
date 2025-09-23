@@ -31,7 +31,6 @@ import {
   Chip
 } from '@mui/material'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { TimePicker } from '@mui/x-date-pickers/TimePicker'
 import AddIcon from '@mui/icons-material/Add'
@@ -39,9 +38,12 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import InfoIcon from '@mui/icons-material/Info'
 
+import { AdapterDateFnsJalali } from '@mui/x-date-pickers/AdapterDateFnsJalali'
+
 import CustomTextField from '@/@core/components/mui/TextField'
 import { useTranslation } from '@/translations/useTranslation'
 import { useGetPersons } from '@/hooks/usePersons'
+import { useShiftDetailForEdit } from '@/hooks/useShifts'
 
 const weekDays = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday']
 
@@ -57,6 +59,7 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
   const [selectedDays, setSelectedDays] = React.useState([])
   const [shiftResetOption, setShiftResetOption] = React.useState(86400)
   const [selectedPersons, setSelectedPersons] = React.useState([])
+  const [userManuallyDeselected, setUserManuallyDeselected] = React.useState(false)
 
   const timeUnitOptions = [
     { value: 60, label: t('shifts.timeUnits.minutes') },
@@ -88,7 +91,7 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
   // Get all persons for selection
   const { data: personsData, isLoading: isLoadingPersons } = useGetPersons({
     page: 1,
-    per_page: 1000 // Get all persons
+    per_page: 5000 // Get all persons
   })
 
   // For the uniform time across multiple days
@@ -100,6 +103,8 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
   // Initialize form with shift data when it becomes available
   React.useEffect(() => {
     if (shift) {
+      setUserManuallyDeselected(false) // Reset the flag when a new shift is loaded
+
       // Initialize with shift data
       setEditShift({
         title: shift.title || '',
@@ -148,14 +153,14 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
           .map(p => {
             const pid = typeof p === 'number' ? p : (p.person_id ?? p.id)
 
-            return personsData.data.find(person => person.id === pid)
+            return personsData.data.find(person => (person.person_id || person.id) === pid)
           })
           .filter(Boolean)
 
         if (selectedPersonObjects.length) {
           setSelectedPersons(selectedPersonObjects)
 
-          setEditShift(prev => ({ ...prev, persons: selectedPersonObjects.map(p => p.id) }))
+          setEditShift(prev => ({ ...prev, persons: selectedPersonObjects.map(p => p.person_id || p.id) }))
         }
       }
     }
@@ -163,21 +168,21 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
 
   // Separate effect to handle persons selection when persons data loads
   React.useEffect(() => {
-    if (shift?.persons && personsData?.data && selectedPersons.length === 0) {
+    if (shift?.persons && personsData?.data && selectedPersons.length === 0 && !userManuallyDeselected) {
       const selectedPersonObjects = shift.persons
         .map(p => {
           const pid = typeof p === 'number' ? p : (p.person_id ?? p.id)
 
-          return personsData.data.find(person => person.id === pid)
+          return personsData.data.find(person => (person.person_id || person.id) === pid)
         })
         .filter(Boolean)
 
       if (selectedPersonObjects.length) {
         setSelectedPersons(selectedPersonObjects)
-        setEditShift(prev => ({ ...prev, persons: selectedPersonObjects.map(p => p.id) }))
+        setEditShift(prev => ({ ...prev, persons: selectedPersonObjects.map(p => p.person_id || p.id) }))
       }
     }
-  }, [personsData, shift?.persons, selectedPersons.length])
+  }, [personsData, shift?.persons, selectedPersons.length, userManuallyDeselected])
 
   // Helper function to determine the most appropriate unit for a time value
   const getAppropriateUnit = timeValue => {
@@ -446,10 +451,11 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
   }
 
   const handlePersonChange = (event, newValue) => {
+    setUserManuallyDeselected(true) // Mark as manually changed
     setSelectedPersons(newValue)
     setEditShift(prev => ({
       ...prev,
-      persons: newValue.map(person => person.id)
+      persons: newValue.map(person => person.person_id || person.id)
     }))
   }
 
@@ -577,7 +583,7 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
               </Box>
 
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 3, mb: 3 }}>
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <LocalizationProvider dateAdapter={AdapterDateFnsJalali}>
                   <DatePicker
                     label={t('shifts.startDate')}
                     value={editShift.start_date ? new Date(editShift.start_date) : null}
@@ -596,9 +602,47 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
               </Box>
 
               <Box sx={{ mb: 3 }}>
-                <Typography variant='body2' sx={{ mb: 1, fontWeight: 500 }}>
-                  {t('shifts.persons')}
-                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                  <Typography variant='body2' sx={{ fontWeight: 500 }}>
+                    {t('shifts.persons')}
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                      size='small'
+                      variant='outlined'
+                      onClick={() => {
+                        const allPersons = personsData?.data || []
+
+                        setUserManuallyDeselected(false)
+                        setSelectedPersons(allPersons)
+                        setEditShift(prev => ({
+                          ...prev,
+                          persons: allPersons.map(person => person.person_id || person.id)
+                        }))
+                      }}
+                      disabled={isLoadingPersons || (personsData?.data || []).length === 0}
+                      sx={{ minWidth: 'auto', px: 2, fontSize: '0.75rem' }}
+                    >
+                      {t('groups.treeView.selectAll')}
+                    </Button>
+                    <Button
+                      size='small'
+                      variant='outlined'
+                      onClick={() => {
+                        setUserManuallyDeselected(true)
+                        setSelectedPersons([])
+                        setEditShift(prev => ({
+                          ...prev,
+                          persons: []
+                        }))
+                      }}
+                      disabled={isLoadingPersons || selectedPersons.length === 0}
+                      sx={{ minWidth: 'auto', px: 2, fontSize: '0.75rem' }}
+                    >
+                      {t('groups.treeView.deselectAll')}
+                    </Button>
+                  </Box>
+                </Box>
                 <Autocomplete
                   multiple
                   options={personsData?.data || []}
@@ -616,11 +660,13 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
                         variant='outlined'
                         label={`${option.first_name} ${option.last_name}`}
                         {...getTagProps({ index })}
-                        key={option.id}
+                        key={option.person_id || option.id}
                       />
                     ))
                   }
-                  isOptionEqualToValue={(option, value) => option.id === value.id}
+                  isOptionEqualToValue={(option, value) =>
+                    (option.person_id || option.id) === (value.person_id || value.id)
+                  }
                   noOptionsText={t('shifts.noPersonsFound')}
                   loadingText={t('common.loading')}
                 />
@@ -674,7 +720,7 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 2 }}>
                     <LocalizationProvider
-                      dateAdapter={AdapterDateFns}
+                      dateAdapter={AdapterDateFnsJalali}
                       localeText={{ okButtonLabel: t('common.ok'), cancelButtonLabel: t('common.cancel') }}
                     >
                       <TimePicker
@@ -687,7 +733,7 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
                       />
                     </LocalizationProvider>
                     <LocalizationProvider
-                      dateAdapter={AdapterDateFns}
+                      dateAdapter={AdapterDateFnsJalali}
                       localeText={{ okButtonLabel: t('common.ok'), cancelButtonLabel: t('common.cancel') }}
                     >
                       <TimePicker
@@ -714,7 +760,7 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
 
               {Object.keys(editShift.days_times).length === 0 ? (
                 <Typography variant='body2' color='text.secondary'>
-                  {t('shifts.noDaysSelected')}
+                  {t('shifts.noDaysAdded')}
                 </Typography>
               ) : (
                 Object.keys(editShift.days_times).map(day => (
@@ -726,7 +772,7 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
                       {editShift.days_times[day].map((timeSlot, index) => (
                         <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 2 }}>
                           <LocalizationProvider
-                            dateAdapter={AdapterDateFns}
+                            dateAdapter={AdapterDateFnsJalali}
                             localeText={{ okButtonLabel: t('common.ok'), cancelButtonLabel: t('common.cancel') }}
                           >
                             <TimePicker
@@ -741,7 +787,7 @@ const ShiftUpdate = ({ open, onClose, onSubmit, shift, isLoading = false }) => {
                             />
                           </LocalizationProvider>
                           <LocalizationProvider
-                            dateAdapter={AdapterDateFns}
+                            dateAdapter={AdapterDateFnsJalali}
                             localeText={{ okButtonLabel: t('common.ok'), cancelButtonLabel: t('common.cancel') }}
                           >
                             <TimePicker

@@ -20,9 +20,14 @@ import {
 import CloseIcon from '@mui/icons-material/Close'
 import VideocamIcon from '@mui/icons-material/Videocam'
 
+import { useSelector } from 'react-redux'
+
 import { useTranslation } from '@/translations/useTranslation'
 import { commonStyles } from '@/@core/styles/commonStyles'
 import { testCamera } from '@/api/cameras'
+import { selectCameraDirectionTypes } from '@/store/slices/typesSlice'
+import CropperImage from '@/components/ui/CropperImage'
+import ShamsiDateTime from '@/components/ShamsiDateTimer'
 
 const modalStyle = {
   ...commonStyles.modalContainer,
@@ -32,6 +37,7 @@ const modalStyle = {
 
 const CameraDetailModal = ({ open, onClose, camera }) => {
   const { t } = useTranslation()
+  const cameraDirectionTypes = useSelector(selectCameraDirectionTypes)
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState(null)
   const [testError, setTestError] = useState('')
@@ -51,6 +57,12 @@ const CameraDetailModal = ({ open, onClose, camera }) => {
     const color = isActive ? 'success' : 'error'
 
     return <Chip size='small' label={label} color={color} variant='outlined' />
+  }
+
+  const getDirectionName = directionId => {
+    const direction = cameraDirectionTypes.data.find(d => d.id === directionId)
+
+    return direction ? direction.translate || direction.title : t('cameras.unknownDirection')
   }
 
   return (
@@ -106,19 +118,19 @@ const CameraDetailModal = ({ open, onClose, camera }) => {
                   <TableCell>{getActiveChip(!!camera.is_active)}</TableCell>
                 </TableRow>
                 <TableRow>
+                  <TableCell sx={{ fontWeight: 600 }}>{t('cameras.direction')}</TableCell>
+                  <TableCell>{getDirectionName(camera.direction_id)}</TableCell>
+                </TableRow>
+                <TableRow>
                   <TableCell sx={{ fontWeight: 600 }}>{t('cameras.createdAt')}</TableCell>
                   <TableCell>
-                    <Typography variant='body2' color='text.secondary'>
-                      {camera.created_at}
-                    </Typography>
+                    <ShamsiDateTime dateTime={camera.created_at} />
                   </TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 600 }}>{t('cameras.updatedAt')}</TableCell>
                   <TableCell>
-                    <Typography variant='body2' color='text.secondary'>
-                      {camera.updated_at}
-                    </Typography>
+                    <ShamsiDateTime dateTime={camera.updated_at} />
                   </TableCell>
                 </TableRow>
               </TableBody>
@@ -165,11 +177,20 @@ const CameraDetailModal = ({ open, onClose, camera }) => {
           {testResult && (
             <Box sx={{ mt: 2 }}>
               <Box
-                component='img'
-                src={`data:image/jpeg;base64,${testResult.frame}`}
-                alt={t('cameras.previewImageAlt')}
-                sx={{ width: '100%', borderRadius: 2, border: theme => `1px solid ${theme.palette.divider}` }}
-              />
+                sx={{
+                  border: theme => `1px solid ${theme.palette.divider}`,
+                  borderRadius: 2,
+                  overflow: 'hidden'
+                }}
+              >
+                <div style={{ pointerEvents: 'none', userSelect: 'none' }}>
+                  <CropperImage
+                    imageUrl={`data:image/jpeg;base64,${testResult.frame}`}
+                    area={camera?.area}
+                    onAreaChange={() => {}} // No-op function to make it read-only
+                  />
+                </div>
+              </Box>
               <Box sx={{ mt: 1.5 }}>
                 <Typography variant='body2'>
                   {t('cameras.codec')}: {testResult.codec}

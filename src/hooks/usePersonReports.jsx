@@ -169,7 +169,22 @@ const usePersonReports = ({
         }
       })
     }
-  }, [page, per_page, data.count, queryClient, gender_id, camera_id, person_id, access_id, first_name, last_name, national_code, created_at_from, created_at_to, order_by])
+  }, [
+    page,
+    per_page,
+    data.count,
+    queryClient,
+    gender_id,
+    camera_id,
+    person_id,
+    access_id,
+    first_name,
+    last_name,
+    national_code,
+    created_at_from,
+    created_at_to,
+    order_by
+  ])
 
   const updateMutation = useMutation({
     mutationFn: updatePersonReport,

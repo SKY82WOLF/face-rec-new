@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, useRef, Suspense } from 'react'
 
 import { useRouter, useSearchParams } from 'next/navigation'
 
@@ -56,8 +56,8 @@ const SORT_FIELDS = [
 ]
 
 const SORT_ORDERS = [
-  { value: '', label: 'صعودی' },
-  { value: '-', label: 'نزولی' }
+  { value: 'asc', label: 'صعودی' },
+  { value: 'desc', label: 'نزولی' }
 ]
 
 function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
@@ -72,7 +72,7 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
   const [selectedShift, setSelectedShift] = useState(null)
 
   const [sort_by, setSortBy] = useState('id')
-  const [sort_order, setSortOrder] = useState('')
+  const [sort_order, setSortOrder] = useState('asc')
   const [hoveredId, setHoveredId] = useState(null)
 
   const { page, per_page, handlePageChange, handlePerPageChange, perPageOptions } = usePagination(
@@ -81,7 +81,7 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
   )
 
   // Convert sort_by and sort_order to order_by format
-  const order_by = sort_order === '-' ? `-${sort_by}` : sort_by
+  const order_by = sort_order === 'desc' ? `-${sort_by}` : sort_by
 
   const {
     shifts = [],
@@ -99,6 +99,9 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
 
   const queryClient = useQueryClient()
 
+  // Ref used to prevent the auto-open effect from immediately re-opening the modal after close
+  const skipAutoOpenRef = useRef(false)
+
   useEffect(() => {
     const params = new URLSearchParams(searchParams)
 
@@ -107,6 +110,55 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
     params.set('order_by', order_by)
     router.replace(`?${params.toString()}`, { scroll: false })
   }, [page, per_page, order_by, router, searchParams])
+
+  // If navigated with ?shift_id=123 open that shift's detail modal
+  useEffect(() => {
+    const shiftIdParam = searchParams.get('shift_id')
+
+    if (!shiftIdParam) return
+
+    const id = Number(shiftIdParam)
+
+    if (!id) return
+
+    // If a skip flag was set in sessionStorage (cross-navigation), consume it and do not open
+    try {
+      if (typeof window !== 'undefined') {
+        const s = sessionStorage.getItem('skip_shift_auto_open')
+
+        if (s === '1') {
+          sessionStorage.removeItem('skip_shift_auto_open')
+
+          return
+        }
+      }
+    } catch (err) {
+      // ignore
+    }
+
+    // If we just closed the modal in this instance, skip auto-open once
+    if (skipAutoOpenRef.current) {
+      skipAutoOpenRef.current = false
+
+      return
+    }
+
+    // fetch full shift detail and open modal
+    (async () => {
+      try {
+        const full = await queryClient.fetchQuery({
+          queryKey: ['shift', id],
+          queryFn: () => getShiftDetail(id)
+        })
+
+        setSelectedShift(full)
+      } catch (err) {
+        setSelectedShift({ id })
+      }
+
+      setOpenDetailModal(true)
+    })()
+  }, [searchParams, queryClient, getShiftDetail])
 
   const handleOpenAddModal = () => setOpenAddModal(true)
 
@@ -155,7 +207,29 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
   }
 
   const handleCloseDetailModal = () => {
+    // Prevent the auto-open effect from immediately reopening the modal
+    skipAutoOpenRef.current = true
+
     setOpenDetailModal(false)
+
+    // Remove shift_id from URL if present so the modal does not reopen on URL change
+    try {
+      // also set a session flag so that a navigation-driven re-render in another tab/window won't reopen
+      if (typeof window !== 'undefined') sessionStorage.setItem('skip_shift_auto_open', '1')
+
+      const params = new URLSearchParams(searchParams)
+
+      if (params.has('shift_id')) {
+        params.delete('shift_id')
+
+        const newQs = params.toString()
+
+        if (newQs) router.replace(`?${newQs}`, { scroll: false })
+        else router.replace('/shifts', { scroll: false })
+      }
+    } catch (err) {
+      // ignore
+    }
 
     // Don't reset selectedShift immediately to prevent flickering
   }
@@ -365,7 +439,16 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
                       </Box>
 
                       {/* Status and ID section */}
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          mb: 2,
+                          justifyContent: 'space-between',
+                          flexWrap: 'wrap'
+                        }}
+                      >
                         <Chip
                           size='small'
                           label={shift.is_active ? t('shifts.active') : t('shifts.inactive')}
@@ -469,7 +552,7 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
                   <Select value={sort_order} label={t('shifts.sortOrder')} onChange={handleSortOrderChange}>
                     {SORT_ORDERS.map(order => (
                       <MenuItem key={order.value} value={order.value}>
-                        {t(`shifts.sortOrders.${order.value}`) || order.label}
+                        {order.value === 'asc' ? t(`shifts.sortOrders.asc`) : t(`shifts.sortOrders.desc`)}
                       </MenuItem>
                     ))}
                   </Select>
