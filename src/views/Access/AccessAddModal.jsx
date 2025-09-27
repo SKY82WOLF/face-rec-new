@@ -23,6 +23,7 @@ import { selectGenderTypes, selectAccessTypes } from '@/store/slices/typesSlice'
 import { useTranslation } from '@/translations/useTranslation'
 import CustomTextField from '@/@core/components/mui/TextField'
 import { commonStyles } from '@/@core/styles/commonStyles'
+import AnimatedModal from '@/components/AnimatedModal'
 
 const AccessAddModal = ({ open, onClose }) => {
   const { t } = useTranslation()
@@ -101,7 +102,7 @@ const AccessAddModal = ({ open, onClose }) => {
   }
 
   return (
-    <Modal open={open} onClose={handleClose} aria-labelledby='add-person-modal'>
+    <AnimatedModal open={open} onClose={handleClose} aria-labelledby='add-person-modal'>
       <Box sx={commonStyles.modalContainer}>
         <Typography variant='h6' component='h2' gutterBottom>
           {t('access.addPersonModal.title')}
@@ -199,11 +200,13 @@ const AccessAddModal = ({ open, onClose }) => {
               label={t('access.addPersonModal.access')}
               required
             >
-              {accessTypes?.data?.filter(type => type.id !== 7).map(type => (
-                <MenuItem key={type.id} value={type.id}>
-                  {type.translate?.trim() || type.title?.trim()}
-                </MenuItem>
-              ))}
+              {accessTypes?.data
+                ?.filter(type => type.id !== 7)
+                .map(type => (
+                  <MenuItem key={type.id} value={type.id}>
+                    {type.translate?.trim() || type.title?.trim()}
+                  </MenuItem>
+                ))}
             </Select>
           </FormControl>
           <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
@@ -214,7 +217,7 @@ const AccessAddModal = ({ open, onClose }) => {
           </Box>
         </form>
       </Box>
-    </Modal>
+    </AnimatedModal>
   )
 }
 

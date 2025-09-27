@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 
 import {
-  Modal,
   Fade,
   Backdrop,
   Box,
@@ -26,6 +25,7 @@ import CustomTextField from '@/@core/components/mui/TextField'
 import { commonStyles } from '@/@core/styles/commonStyles'
 import CropperImage from '@/components/ui/CropperImage'
 import { selectCameraDirectionTypes } from '@/store/slices/typesSlice'
+import AnimatedModal from '@/components/AnimatedModal'
 
 const modalStyle = {
   ...commonStyles.modalContainer,
@@ -222,7 +222,7 @@ const CameraEditModal = ({ open, onClose, onSubmit, camera, isLoading }) => {
   if (!camera) return null
 
   return (
-    <Modal
+    <AnimatedModal
       open={open}
       onClose={handleClose}
       closeAfterTransition
@@ -401,7 +401,7 @@ const CameraEditModal = ({ open, onClose, onSubmit, camera, isLoading }) => {
           </form>
         </Box>
       </Fade>
-    </Modal>
+    </AnimatedModal>
   )
 }
 

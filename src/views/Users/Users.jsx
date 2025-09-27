@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, Suspense, useRef } from 'react'
 
 import { useRouter, useSearchParams } from 'next/navigation'
 
@@ -36,7 +36,7 @@ import PaginationControls from '@/components/ui/PaginationControls'
 import usePagination from '@/hooks/usePagination'
 import { commonStyles } from '@/@core/styles/commonStyles'
 import useHasPermission from '@/utils/HasPermission'
-
+import MotionContainer, { HoverWrapper } from '@/components/GSAP/MotionWrappers'
 
 const per_page_OPTIONS = [5, 10, 15, 20]
 
@@ -60,6 +60,11 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
   )
 
   const { users = [], total, isLoading, addUser, deleteUser } = useUsers({ page, per_page })
+
+  // refs arrays for GSAP motion wrappers
+  const cardRefs = useRef([])
+  const imageRefs = useRef([])
+  const detailsRefs = useRef([])
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams)
@@ -154,143 +159,165 @@ function UsersContent({ initialPage = 1, initialper_page = 10 }) {
                   overflow: 'visible'
                 }}
               >
-                {users.map(user => (
-                  <Card
-                    key={user.id}
-                    elevation={0}
-                    onMouseEnter={() => setHoveredId(user.id)}
-                    onMouseLeave={() => setHoveredId(null)}
-                    onClick={() => setSelectedUser(user)}
-                    sx={{
-                      borderRadius: 2,
-                      width: '100%',
-                      aspectRatio: '16 / 9',
-                      position: 'relative',
-                      overflow: 'hidden',
-                      boxShadow: '5 8px 32px rgba(0,0,0,0.08)',
-                      transform: 'translateY(0)',
-                      border: '1px solid',
-                      borderColor: hoveredId === user.id ? 'primary.main' : 'transparent',
-                      transition: 'box-shadow .25s ease, transform .25s ease',
-                      '&:hover': {
-                        transform: 'translateY(-8px)',
-                        boxShadow: '0 24px 54px rgba(0,0,0,0.2)',
-                        zIndex: 2,
-                        cursor: 'pointer'
-                      }
-                    }}
-                  >
-                    {user.avatar ? (
-                      <Box
-                        component='img'
-                        src={user.avatar}
-                        alt={getFullName(user)}
-                        sx={{
-                          display: 'block',
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                        }}
-                      />
-                    ) : (
-                      <Box
-                        sx={{
-                          width: '100%',
-                          height: '100%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
+                {users.map((user, idx) => {
+                  // Create simple ref-like objects if not present
+                  cardRefs.current[idx] = cardRefs.current[idx] || { current: null }
+                  imageRefs.current[idx] = imageRefs.current[idx] || { current: null }
+                  detailsRefs.current[idx] = detailsRefs.current[idx] || { current: null }
+
+                  return (
+                    <MotionContainer key={user.id} ref={cardRefs.current[idx]} index={idx} sx={{ width: '100%' }}>
+                      <HoverWrapper
+                        cardRef={cardRefs.current[idx]}
+                        imageRef={imageRefs.current[idx]}
+                        detailsRef={detailsRefs.current[idx]}
                       >
-                        <PersonIcon sx={{ fontSize: 72, color: 'primary.main', opacity: 0.6 }} />
-                      </Box>
-                    )}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        p: 1.5,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                        background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 100%)',
-                        borderBottomLeftRadius: 'inherit',
-                        borderBottomRightRadius: 'inherit',
-                        display: 'flex',
-                        flexDirection: 'row',
-                        justifyContent: 'space-between'
-                      }}
-                    >
-                      <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'row', gap: 1 }}>
-                        <PersonIcon sx={{ fontSize: 20, color: 'primary.main' }} />
-                        <Typography
-                          variant='subtitle2'
+                        <Card
+                          elevation={0}
+                          onMouseEnter={() => setHoveredId(user.id)}
+                          onMouseLeave={() => setHoveredId(null)}
+                          onClick={() => setSelectedUser(user)}
                           sx={{
-                            fontSize: 16,
-                            fontWeight: 600,
-                            flexGrow: 1,
-                            color: 'primary.main',
+                            borderRadius: 2,
+                            width: '100%',
+                            aspectRatio: '16 / 9',
+                            position: 'relative',
                             overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
+                            boxShadow: '5 8px 32px rgba(0,0,0,0.08)',
+                            transform: 'translateY(0)',
+                            border: '1px solid',
+                            borderColor: hoveredId === user.id ? 'primary.main' : 'transparent',
+                            transition: 'box-shadow .25s ease, transform .25s ease',
+                            '&:hover': {
+                              transform: 'translateY(-8px)',
+                              boxShadow: '0 24px 54px rgba(0,0,0,0.2)',
+                              zIndex: 2,
+                              cursor: 'pointer'
+                            }
                           }}
                         >
-                          {getFullName(user)}
-                        </Typography>
-                      </Box>
-                      <Chip
-                        size='small'
-                        label={t(`users.statusOptions.${user.is_active ? 'active' : 'inactive'}`)}
-                        color={user.is_active ? 'success' : 'error'}
-                        variant='outlined'
-                      />
-                    </Box>
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        top: 10,
-                        right: 10,
-                        display: 'flex',
-                        gap: 0.5,
-                        bgcolor: 'rgba(17,17,17,0.35)',
-                        backdropFilter: 'blur(6px)',
-                        borderRadius: 999,
-                        p: 0.5,
-                        opacity: hoveredId === user.id ? 1 : 0,
-                        transform: hoveredId === user.id ? 'translateY(0)' : 'translateY(-6px)',
-                        transition: 'opacity .2s ease, transform .2s ease',
-                        pointerEvents: hoveredId === user.id ? 'auto' : 'none'
-                      }}
-                    >
-                      <IconButton
-                        size='small'
-                        sx={{ color: 'common.white' }}
-                        aria-label={t('users.viewUser')}
-                        onClick={e => {
-                          e.stopPropagation()
-                          setSelectedUser(user)
-                        }}
-                      >
-                        <VisibilityIcon fontSize='small' />
-                      </IconButton>
-                      {hasDeletePermission && (
-                        <IconButton
-                          size='small'
-                          sx={{ color: 'error.light' }}
-                          aria-label={t('users.deleteUser')}
-                          onClick={e => {
-                            e.stopPropagation()
-                            handleDeleteClick(user)
-                          }}
-                        >
-                          <DeleteIcon fontSize='small' />
-                        </IconButton>
-                      )}
-                    </Box>
-                  </Card>
-                ))}
+                          {user.avatar ? (
+                            <Box
+                              ref={el => (imageRefs.current[idx].current = el)}
+                              data-gsap-image
+                              component='img'
+                              src={user.avatar}
+                              alt={getFullName(user)}
+                              sx={{
+                                display: 'block',
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover'
+                              }}
+                            />
+                          ) : (
+                            <Box
+                              ref={el => (imageRefs.current[idx].current = el)}
+                              data-gsap-image
+                              sx={{
+                                width: '100%',
+                                height: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                            >
+                              <PersonIcon sx={{ fontSize: 72, color: 'primary.main', opacity: 0.6 }} />
+                            </Box>
+                          )}
+
+                          <Box
+                            ref={el => (detailsRefs.current[idx].current = el)}
+                            data-gsap-details
+                            sx={{
+                              position: 'absolute',
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              p: 1.5,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                              background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 100%)',
+                              borderBottomLeftRadius: 'inherit',
+                              borderBottomRightRadius: 'inherit',
+                              display: 'flex',
+                              flexDirection: 'row',
+                              justifyContent: 'space-between'
+                            }}
+                          >
+                            <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'row', gap: 1 }}>
+                              <PersonIcon sx={{ fontSize: 20, color: 'primary.main' }} />
+                              <Typography
+                                variant='subtitle2'
+                                sx={{
+                                  fontSize: 16,
+                                  fontWeight: 600,
+                                  flexGrow: 1,
+                                  color: 'primary.main',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap'
+                                }}
+                              >
+                                {getFullName(user)}
+                              </Typography>
+                            </Box>
+                            <Chip
+                              size='small'
+                              label={t(`users.statusOptions.${user.is_active ? 'active' : 'inactive'}`)}
+                              color={user.is_active ? 'success' : 'error'}
+                              variant='outlined'
+                            />
+                          </Box>
+
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              top: 10,
+                              right: 10,
+                              display: 'flex',
+                              gap: 0.5,
+                              bgcolor: 'rgba(17,17,17,0.35)',
+                              backdropFilter: 'blur(6px)',
+                              borderRadius: 999,
+                              p: 0.5,
+                              opacity: hoveredId === user.id ? 1 : 0,
+                              transform: hoveredId === user.id ? 'translateY(0)' : 'translateY(-6px)',
+                              transition: 'opacity .2s ease, transform .2s ease',
+                              pointerEvents: hoveredId === user.id ? 'auto' : 'none'
+                            }}
+                          >
+                            <IconButton
+                              size='small'
+                              sx={{ color: 'common.white' }}
+                              aria-label={t('users.viewUser')}
+                              onClick={e => {
+                                e.stopPropagation()
+                                setSelectedUser(user)
+                              }}
+                            >
+                              <VisibilityIcon fontSize='small' />
+                            </IconButton>
+                            {hasDeletePermission && (
+                              <IconButton
+                                size='small'
+                                sx={{ color: 'error.light' }}
+                                aria-label={t('users.deleteUser')}
+                                onClick={e => {
+                                  e.stopPropagation()
+                                  handleDeleteClick(user)
+                                }}
+                              >
+                                <DeleteIcon fontSize='small' />
+                              </IconButton>
+                            )}
+                          </Box>
+                        </Card>
+                      </HoverWrapper>
+                    </MotionContainer>
+                  )
+                })}
               </Box>
             </>
           )}

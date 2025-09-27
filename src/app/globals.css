@@ -55,6 +55,13 @@ html {
     'locl' 1,
     'ss01' 1,
     'ss02' 1;
+  /* Force Persian numerals in Firefox */
+  -moz-font-feature-settings:
+    'locl' 1,
+    'ss01' 1,
+    'ss02' 1;
+  /* Additional Firefox-specific properties for Persian numerals */
+  -moz-font-language-override: 'FA';
 }
 
 a {
@@ -72,6 +79,12 @@ button {
     'locl' 1,
     'ss01' 1,
     'ss02' 1;
+  /* Firefox-specific font features */
+  -moz-font-feature-settings:
+    'locl' 1,
+    'ss01' 1,
+    'ss02' 1;
+  -moz-font-language-override: 'FA';
 }
 
 /* Ensure MUI inputs and pickers inherit the font and Persian digits */
@@ -85,6 +98,12 @@ button {
     'locl' 1,
     'ss01' 1,
     'ss02' 1;
+  /* Firefox-specific font features */
+  -moz-font-feature-settings:
+    'locl' 1,
+    'ss01' 1,
+    'ss02' 1;
+  -moz-font-language-override: 'FA';
 }
 
 /* When language is Persian or layout is RTL, ensure Persian digits */
@@ -94,6 +113,12 @@ button {
     'locl' 1,
     'ss01' 1,
     'ss02' 1;
+  /* Firefox-specific font features */
+  -moz-font-feature-settings:
+    'locl' 1,
+    'ss01' 1,
+    'ss02' 1;
+  -moz-font-language-override: 'FA';
 }
 
 ul:not([class]) {
@@ -247,4 +272,34 @@ input[type='number']::-webkit-inner-spin-button {
 
 input[type='number'] {
   -moz-appearance: textfield; /* Firefox */
+}
+
+/* Firefox-specific Persian numeral fixes */
+@-moz-document url-prefix() {
+  /* Force Persian numerals in Firefox */
+  * {
+    -moz-font-language-override: 'FA' !important;
+  }
+
+  /* Specific fixes for number inputs in Firefox */
+  input[type='number'],
+  input[type='text'][inputmode='numeric'],
+  input[type='tel'] {
+    -moz-font-feature-settings:
+      'locl' 1,
+      'ss01' 1,
+      'ss02' 1 !important;
+    -moz-font-language-override: 'FA' !important;
+  }
+
+  /* Ensure all text content uses Persian numerals */
+  body,
+  html,
+  div,
+  span,
+  p,
+  td,
+  th {
+    -moz-font-language-override: 'FA';
+  }
 }

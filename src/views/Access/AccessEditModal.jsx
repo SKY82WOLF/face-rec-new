@@ -4,7 +4,6 @@ import {
   Box,
   Typography,
   Button,
-  Modal,
   Fade,
   Backdrop,
   TextField,
@@ -27,6 +26,7 @@ import { selectGenderTypes, selectAccessTypes } from '@/store/slices/typesSlice'
 import { useSettings } from '@core/hooks/useSettings'
 import { commonStyles } from '@/@core/styles/commonStyles'
 import { getBackendImgUrl2 } from '@/configs/routes'
+import AnimatedModal from '@/components/AnimatedModal'
 
 const editModalStyle = mode => ({
   ...commonStyles.modalContainer,
@@ -166,7 +166,7 @@ const AccessEditModal = ({ open, onClose, formData, setFormData, isAllowed, setI
   }
 
   return (
-    <Modal
+    <AnimatedModal
       open={open}
       onClose={onClose}
       closeAfterTransition
@@ -263,7 +263,7 @@ const AccessEditModal = ({ open, onClose, formData, setFormData, isAllowed, setI
           </Box>
         </Box>
       </Fade>
-    </Modal>
+    </AnimatedModal>
   )
 }
 

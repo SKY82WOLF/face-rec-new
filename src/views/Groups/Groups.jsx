@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, Suspense, useRef } from 'react'
 
 import { useRouter, useSearchParams } from 'next/navigation'
 
@@ -44,6 +44,7 @@ import PaginationControls from '@/components/ui/PaginationControls'
 import usePagination from '@/hooks/usePagination'
 import { commonStyles } from '@/@core/styles/commonStyles'
 import useHasPermission from '@/utils/HasPermission'
+import MotionContainer, { HoverWrapper } from '@/components/GSAP/MotionWrappers'
 
 const per_page_OPTIONS = [5, 10, 15, 20]
 
@@ -175,6 +176,11 @@ function GroupsContent({ initialPage = 1, initialper_page = 10 }) {
   const hasUpdatePermission = useHasPermission('updateGroup')
   const hasDeletePermission = useHasPermission('deleteGroup')
 
+  // refs arrays for GSAP motion wrappers
+  const cardRefs = useRef([])
+  const imageRefs = useRef([])
+  const detailsRefs = useRef([])
+
   return (
     <Box sx={commonStyles.pageContainer}>
       <SEO
@@ -187,7 +193,10 @@ function GroupsContent({ initialPage = 1, initialper_page = 10 }) {
         actionButton={hasAddPermission ? t('groups.addGroup') : null}
         actionButtonProps={{ onClick: handleOpenAddModal, startIcon: <AddIcon />, disabled: !hasAddPermission }}
       />
-      <Card elevation={0} sx={{ ...commonStyles.transparentCard, backgroundColor: '#00000000', overflow: 'visible',boxShadow:'none' }}>
+      <Card
+        elevation={0}
+        sx={{ ...commonStyles.transparentCard, backgroundColor: '#00000000', overflow: 'visible', boxShadow: 'none' }}
+      >
         <Box sx={{ display: 'contents', p: { xs: 2, sm: 4 } }}>
           {isLoading ? (
             <LoadingState message={t('groups.loading')} />
@@ -205,145 +214,169 @@ function GroupsContent({ initialPage = 1, initialper_page = 10 }) {
                   },
                   gap: 5,
                   alignItems: 'stretch',
-                      overflow: 'visible',
-                  backgroundColor:'#00000000'
+                  overflow: 'visible',
+                  backgroundColor: '#00000000'
                 }}
               >
-                {groups.map(group => (
-                  <Card
-                    key={group.id}
-                    elevation={0}
-                    onMouseEnter={() => setHoveredId(group.id)}
-                    onMouseLeave={() => setHoveredId(null)}
-                    onClick={() => handleOpenDetailModal(group)}
-                    sx={{
-                      borderRadius: 2,
-                      height: 220,
-                      position: 'relative',
-                      overflow: 'hidden',
-                      boxShadow: '0 8px 22px rgba(0,0,0,0.08)',
-                      transform: 'translateY(0)',
-                      transition: 'box-shadow .25s ease, transform .25s ease',
-                      backgroundColor: 'background.paper',
-                      border: '1px solid',
-                      borderColor: hoveredId === group.id ? 'primary.main' : 'transparent',
-                      '&:hover': {
-                        transform: 'translateY(-8px)',
-                        boxShadow: '0 24px 44px rgba(0,0,0,0.2)',
-                        zIndex: 2,
-                        cursor: 'pointer'
-                      }
-                    }}
-                  >
-                    {/* Watermark icon to avoid emptiness */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        inset: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        pointerEvents: 'none'
-                      }}
-                    >
-                      <GroupIcon sx={{ fontSize: 140, color: 'primary.main', opacity: 0.6 }} />
-                    </Box>
+                {groups.map((group, idx) => {
+                  // ensure refs exist
+                  cardRefs.current[idx] = cardRefs.current[idx] || { current: null }
+                  imageRefs.current[idx] = imageRefs.current[idx] || { current: null }
+                  detailsRefs.current[idx] = detailsRefs.current[idx] || { current: null }
 
-                    {/* Bottom overlay info bar (like cameras) */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        p: 1.5,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                        background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.5) 100%)',
-                        display: 'flex',
-                        flexDirection: 'row',
-                        justifyContent: 'space-between'
-                      }}
-                    >
-                      <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'row', gap: 1 }}>
-                        <GroupIcon sx={{ fontSize: 20, color: 'primary.main' }} />
-                        <Typography
-                          variant='subtitle2'
+                  return (
+                    <MotionContainer key={group.id} ref={cardRefs.current[idx]} index={idx} sx={{ width: '100%' }}>
+                      <HoverWrapper
+                        cardRef={cardRefs.current[idx]}
+                        imageRef={imageRefs.current[idx]}
+                        detailsRef={detailsRefs.current[idx]}
+                      >
+                        <Card
+                          elevation={0}
+                          onMouseEnter={() => setHoveredId(group.id)}
+                          onMouseLeave={() => setHoveredId(null)}
+                          onClick={() => handleOpenDetailModal(group)}
                           sx={{
-                            color: 'text.groupText',
-                            fontWeight: 700,
+                            borderRadius: 2,
+                            height: 220,
+                            position: 'relative',
                             overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
+                            boxShadow: '0 8px 22px rgba(0,0,0,0.08)',
+                            transform: 'translateY(0)',
+                            transition: 'box-shadow .25s ease, transform .25s ease',
+                            backgroundColor: 'background.paper',
+                            border: '1px solid',
+                            borderColor: hoveredId === group.id ? 'primary.main' : 'transparent',
+                            '&:hover': {
+                              transform: 'translateY(-8px)',
+                              boxShadow: '0 24px 44px rgba(0,0,0,0.2)',
+                              zIndex: 2,
+                              cursor: 'pointer'
+                            }
                           }}
                         >
-                          {group.name}
-                        </Typography>
-                      </Box>
-                      <Typography variant='caption' sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                        {t('groups.users')}: {group.users ? group.users.length : 0}
-                      </Typography>
-                      <Chip label={`${t('groups.id')}: ${group.id}`} size='small' color='primary' variant='outlined' />
-                    </Box>
-                    {/* Floating actions */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        top: 10,
-                        right: 10,
-                        display: 'flex',
-                        gap: 0.5,
-                        bgcolor: 'rgba(17,17,17,0.35)',
-                        backdropFilter: 'blur(6px)',
-                        borderRadius: 999,
-                        p: 0.5,
-                        opacity: hoveredId === group.id ? 1 : 0,
-                        transform: hoveredId === group.id ? 'translateY(0)' : 'translateY(-6px)',
-                        transition: 'opacity .2s ease, transform .2s ease',
-                        pointerEvents: hoveredId === group.id ? 'auto' : 'none'
-                      }}
-                    >
-                      <IconButton
-                        size='small'
-                        onClick={e => {
-                          e.stopPropagation()
-                          handleOpenDetailModal(group)
-                        }}
-                        sx={{ color: 'common.white' }}
-                        aria-label={t('common.view')}
-                      >
-                        <VisibilityIcon fontSize='small' />
-                      </IconButton>
-                      {hasUpdatePermission && (
-                      <IconButton
-                        size='small'
-                        onClick={e => {
-                          e.stopPropagation()
-                          handleOpenEditModal(group)
-                        }}
-                        sx={{ color: 'common.white' }}
-                        aria-label={t('groups.edit')}
-                      >
-                        <EditIcon fontSize='small' />
-                      </IconButton>
-                      )}
-                      {hasDeletePermission && (
-                      <IconButton
-                        size='small'
-                        onClick={e => {
-                          e.stopPropagation()
-                          handleOpenDeleteModal(group)
-                        }}
-                        sx={{ color: 'error.light' }}
-                        aria-label={t('groups.delete')}
-                      >
-                        <DeleteIcon fontSize='small' />
-                      </IconButton>
-                      )}
-                    </Box>
-                  </Card>
-                ))}
+                          {/* Watermark icon to avoid emptiness */}
+                          <Box
+                            ref={el => (imageRefs.current[idx].current = el)}
+                            data-gsap-image
+                            sx={{
+                              position: 'absolute',
+                              inset: 0,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              pointerEvents: 'none'
+                            }}
+                          >
+                            <GroupIcon sx={{ fontSize: 140, color: 'primary.main', opacity: 0.6 }} />
+                          </Box>
+
+                          {/* Bottom overlay info bar (like cameras) */}
+                          <Box
+                            ref={el => (detailsRefs.current[idx].current = el)}
+                            data-gsap-details
+                            sx={{
+                              position: 'absolute',
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              p: 1.5,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                              background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.5) 100%)',
+                              display: 'flex',
+                              flexDirection: 'row',
+                              justifyContent: 'space-between'
+                            }}
+                          >
+                            <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'row', gap: 1 }}>
+                              <GroupIcon sx={{ fontSize: 20, color: 'primary.main' }} />
+                              <Typography
+                                variant='subtitle2'
+                                sx={{
+                                  color: 'text.groupText',
+                                  fontWeight: 700,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap'
+                                }}
+                              >
+                                {group.name}
+                              </Typography>
+                            </Box>
+                            <Typography variant='caption' sx={{ color: 'rgba(255,255,255,0.8)' }}>
+                              {t('groups.users')}: {group.users ? group.users.length : 0}
+                            </Typography>
+                            <Chip
+                              label={`${t('groups.id')}: ${group.id}`}
+                              size='small'
+                              color='primary'
+                              variant='outlined'
+                            />
+                          </Box>
+
+                          {/* Floating actions */}
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              top: 10,
+                              right: 10,
+                              display: 'flex',
+                              gap: 0.5,
+                              bgcolor: 'rgba(17,17,17,0.35)',
+                              backdropFilter: 'blur(6px)',
+                              borderRadius: 999,
+                              p: 0.5,
+                              opacity: hoveredId === group.id ? 1 : 0,
+                              transform: hoveredId === group.id ? 'translateY(0)' : 'translateY(-6px)',
+                              transition: 'opacity .2s ease, transform .2s ease',
+                              pointerEvents: hoveredId === group.id ? 'auto' : 'none'
+                            }}
+                          >
+                            <IconButton
+                              size='small'
+                              onClick={e => {
+                                e.stopPropagation()
+                                handleOpenDetailModal(group)
+                              }}
+                              sx={{ color: 'common.white' }}
+                              aria-label={t('common.view')}
+                            >
+                              <VisibilityIcon fontSize='small' />
+                            </IconButton>
+                            {hasUpdatePermission && (
+                              <IconButton
+                                size='small'
+                                onClick={e => {
+                                  e.stopPropagation()
+                                  handleOpenEditModal(group)
+                                }}
+                                sx={{ color: 'common.white' }}
+                                aria-label={t('groups.edit')}
+                              >
+                                <EditIcon fontSize='small' />
+                              </IconButton>
+                            )}
+                            {hasDeletePermission && (
+                              <IconButton
+                                size='small'
+                                onClick={e => {
+                                  e.stopPropagation()
+                                  handleOpenDeleteModal(group)
+                                }}
+                                sx={{ color: 'error.light' }}
+                                aria-label={t('groups.delete')}
+                              >
+                                <DeleteIcon fontSize='small' />
+                              </IconButton>
+                            )}
+                          </Box>
+                        </Card>
+                      </HoverWrapper>
+                    </MotionContainer>
+                  )
+                })}
               </Box>
 
               {/* Pagination and Controls */}

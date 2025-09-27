@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 
 import {
-  Modal,
   Fade,
   Backdrop,
   Box,
@@ -28,6 +27,7 @@ import { testCamera } from '@/api/cameras'
 import { selectCameraDirectionTypes } from '@/store/slices/typesSlice'
 import CropperImage from '@/components/ui/CropperImage'
 import ShamsiDateTime from '@/components/ShamsiDateTimer'
+import AnimatedModal from '@/components/AnimatedModal'
 
 const modalStyle = {
   ...commonStyles.modalContainer,
@@ -66,7 +66,7 @@ const CameraDetailModal = ({ open, onClose, camera }) => {
   }
 
   return (
-    <Modal
+    <AnimatedModal
       open={open}
       onClose={onClose}
       closeAfterTransition
@@ -229,7 +229,7 @@ const CameraDetailModal = ({ open, onClose, camera }) => {
           </Box>
         </Box>
       </Fade>
-    </Modal>
+    </AnimatedModal>
   )
 }
 

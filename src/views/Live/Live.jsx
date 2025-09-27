@@ -4,8 +4,10 @@ import { useEffect, useState } from 'react'
 
 import { useDispatch, useSelector } from 'react-redux'
 
-import { Typography, Box, Card } from '@mui/material'
+import { Typography, Box, Card, Button } from '@mui/material'
 import TextField from '@mui/material/TextField'
+import SelectAllIcon from '@mui/icons-material/SelectAll'
+import ClearIcon from '@mui/icons-material/Clear'
 
 import {
   DndContext,
@@ -37,7 +39,7 @@ import DraggableAutocomplete from '@/components/ui/DraggableAutocomplete'
 import useCameras from '@/hooks/useCameras'
 
 // Sortable item wrapper for each LiveSection tile
-const SortableLiveSection = ({ id, camera, reports }) => {
+const SortableLiveSection = ({ id, camera, reports, index = 0 }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
 
   const transformStyle = transform
@@ -61,7 +63,7 @@ const SortableLiveSection = ({ id, camera, reports }) => {
         cursor: isDragging ? 'grabbing' : 'grab'
       }}
     >
-      <LiveSection camera={camera} reports={reports} />
+      <LiveSection camera={camera} reports={reports} index={index} />
     </Box>
   )
 }
@@ -139,6 +141,18 @@ const LiveContent = () => {
     })
   }
 
+  // Select all cameras
+  const handleSelectAll = () => {
+    const allCameraIds = cameras.map(camera => String(camera.id))
+
+    setSelectedCameraIds(allCameraIds)
+  }
+
+  // Deselect all cameras
+  const handleDeselectAll = () => {
+    setSelectedCameraIds([])
+  }
+
   return (
     <Box display={'flex'} flexDirection={'column'}>
       <SEO
@@ -151,6 +165,27 @@ const LiveContent = () => {
       <Card sx={{ backgroundColor: 'transparent', boxShadow: 'none' }}>
         <Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', mt: 2, mb: 2 }}>
+            {/* Action Buttons */}
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1.5, justifyContent: 'flex-end' }}>
+              <Button
+                size='small'
+                startIcon={<SelectAllIcon />}
+                onClick={handleSelectAll}
+                variant='outlined'
+                disabled={cameras.length === 0}
+              >
+                {t('groups.treeView.selectAll')}
+              </Button>
+              <Button
+                size='small'
+                startIcon={<ClearIcon />}
+                onClick={handleDeselectAll}
+                variant='outlined'
+                disabled={selectedCameraIds.length === 0}
+              >
+                {t('groups.treeView.deselectAll')}
+              </Button>
+            </Box>
             {/* Camera Selector (multi-select with drag and drop) */}
             <DraggableAutocomplete
               size='medium'
@@ -270,12 +305,13 @@ const LiveContent = () => {
                         minHeight: 0
                       }}
                     >
-                      {selectedCameras.map(cam => (
+                      {selectedCameras.map((cam, idx) => (
                         <SortableLiveSection
                           key={`live_section_${cam.id}`}
                           id={String(cam.id)}
                           camera={cam}
                           reports={reports}
+                          index={idx}
                         />
                       ))}
                     </Box>

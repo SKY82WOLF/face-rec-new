@@ -25,6 +25,7 @@ import ShamsiDateTime from '@/components/ShamsiDateTimer'
 import { commonStyles } from '@/@core/styles/commonStyles'
 import useHasPermission from '@/utils/HasPermission'
 import { backendImgUrl } from '@/configs/routes'
+import AnimatedModal from '@/components/AnimatedModal'
 
 const modalStyle = mode => ({
   ...commonStyles.modalContainer,
@@ -205,7 +206,7 @@ const AccessDetailModal = ({
   }
 
   return (
-    <Modal
+    <AnimatedModal
       open={open}
       onClose={onClose}
       closeAfterTransition
@@ -410,7 +411,7 @@ const AccessDetailModal = ({
           </Box>
         </Box>
       </Fade>
-    </Modal>
+    </AnimatedModal>
   )
 }
 

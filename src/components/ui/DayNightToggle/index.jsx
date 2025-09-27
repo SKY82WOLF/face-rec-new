@@ -57,7 +57,8 @@ export const DayAndNightToggle = memo(
 
     return (
       <SwitchContainer className={className} size={roundedSize} {...labelProps}>
-        <Switch shadows={shadows} size={roundedSize} checked={checked} onClick={handleClick}>
+        {/* use transient prop name so styled-components doesn't pass boolean to DOM */}
+        <Switch $shadows={shadows} size={roundedSize} checked={checked} onClick={handleClick}>
           <ContentWrapper>
             <Circle />
             <Stars>

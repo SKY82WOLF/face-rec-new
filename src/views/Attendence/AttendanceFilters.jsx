@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 import {
   Box,
@@ -30,6 +30,7 @@ import { useTranslation } from '@/translations/useTranslation'
 import { useGetPersons } from '@/hooks/usePersons'
 import { usePersonShifts } from '@/hooks/useAttendence'
 import useCameras from '@/hooks/useCameras'
+import { useGSAP } from '@/hooks/useGSAP'
 
 const FILTERS_KEY = 'attendance_filters'
 
@@ -77,6 +78,22 @@ const MenuProps = {
 
 const AttendanceFilters = ({ onFilter }) => {
   const { t } = useTranslation()
+  const containerRef = useRef(null)
+
+  // Mount animation using existing GSAP hook; avoids FOUC via initial styles
+  useGSAP(
+    containerRef,
+    gsap => {
+      const el = containerRef.current
+
+      if (!el) return
+
+      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
+
+      tl.fromTo(el, { opacity: 0, y: 18, scale: 0.995 }, { opacity: 1, y: 0, scale: 1, duration: 1.5 })
+    },
+    []
+  )
 
   // Persons for person_id select (only access 5,6)
   const { data: personsData } = useGetPersons({ page: 1, per_page: 1000, filters: { access_id: [5, 6] } })
@@ -276,7 +293,7 @@ const AttendanceFilters = ({ onFilter }) => {
   }
 
   return (
-    <Card sx={{ mb: 3 }}>
+    <Card ref={containerRef} sx={{ mb: 3, opacity: 0, transform: 'translateY(18px) scale(0.995)' }}>
       <CardContent sx={{ p: 2, pb: '8px!important' }}>
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
@@ -389,22 +406,22 @@ const AttendanceFilters = ({ onFilter }) => {
                       onChange={handleCameraChange}
                       input={<OutlinedInput label={t('cameras.directionOptions.entryExit') || 'دوربین'} />}
                       MenuProps={MenuProps}
-                      renderValue={(selected) => (
+                      renderValue={selected => (
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                          {selected.map((value) => {
+                          {selected.map(value => {
                             const camera = entryExitCameras.find(c => c.id.toString() === value.toString())
 
                             return (
                               <Chip
                                 key={value}
                                 label={camera?.name || value}
-                                size="small"
+                                size='small'
                                 onDelete={() => {
                                   const newIds = cameraIds.filter(id => id !== value)
 
                                   setCameraIds(newIds)
                                 }}
-                                onMouseDown={(event) => {
+                                onMouseDown={event => {
                                   event.stopPropagation()
                                 }}
                               />
@@ -432,22 +449,22 @@ const AttendanceFilters = ({ onFilter }) => {
                         onChange={handleEntryCameraChange}
                         input={<OutlinedInput label={t('cameras.directionOptions.entry') || 'دوربین ورودی'} />}
                         MenuProps={MenuProps}
-                        renderValue={(selected) => (
+                        renderValue={selected => (
                           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                            {selected.map((value) => {
+                            {selected.map(value => {
                               const camera = entryCameras.find(c => c.id.toString() === value.toString())
 
                               return (
                                 <Chip
                                   key={value}
                                   label={camera?.name || value}
-                                  size="small"
+                                  size='small'
                                   onDelete={() => {
                                     const newIds = entryCameraIds.filter(id => id !== value)
 
                                     setEntryCameraIds(newIds)
                                   }}
-                                  onMouseDown={(event) => {
+                                  onMouseDown={event => {
                                     event.stopPropagation()
                                   }}
                                 />
@@ -487,7 +504,7 @@ const AttendanceFilters = ({ onFilter }) => {
 
                                     setExitCameraIds(newIds)
                                   }}
-                                  onMouseDown={(event) => {
+                                  onMouseDown={event => {
                                     event.stopPropagation()
                                   }}
                                 />

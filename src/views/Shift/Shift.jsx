@@ -45,6 +45,7 @@ import PaginationControls from '@/components/ui/PaginationControls'
 import usePagination from '@/hooks/usePagination'
 import { commonStyles } from '@/@core/styles/commonStyles'
 import useHasPermission from '@/utils/HasPermission'
+import MotionContainer, { HoverWrapper } from '@/components/GSAP/MotionWrappers'
 
 const per_page_OPTIONS = [5, 10, 15, 20]
 
@@ -96,6 +97,11 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
     per_page,
     order_by
   })
+
+  // refs arrays for GSAP motion wrappers
+  const cardRefs = useRef([])
+  const imageRefs = useRef([])
+  const detailsRefs = useRef([])
 
   const queryClient = useQueryClient()
 
@@ -316,198 +322,226 @@ function ShiftsContent({ initialPage = 1, initialper_page = 10 }) {
                   backgroundColor: '#00000000'
                 }}
               >
-                {shifts.map(shift => (
-                  <Card
-                    key={shift.id}
-                    elevation={0}
-                    onMouseEnter={() => setHoveredId(shift.id)}
-                    onMouseLeave={() => setHoveredId(null)}
-                    onClick={() => handleOpenDetailModal(shift)}
-                    sx={{
-                      borderRadius: 2,
-                      position: 'relative',
-                      overflow: 'hidden',
-                      boxShadow: '0 8px 22px rgba(0,0,0,0.08)',
-                      transform: 'translateY(0)',
-                      transition: 'box-shadow .25s ease, transform .25s ease',
-                      backgroundColor: 'background.paper',
-                      border: '1px solid',
-                      borderColor: hoveredId === shift.id ? 'primary.main' : 'transparent',
-                      '&:hover': {
-                        transform: 'translateY(-8px)',
-                        boxShadow: '0 24px 44px rgba(0,0,0,0.2)',
-                        zIndex: 2,
-                        cursor: 'pointer'
-                      }
-                    }}
-                  >
-                    {/* Main card area with watermark icon */}
-                    <Box
-                      sx={{
-                        height: 140,
-                        position: 'relative',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        pointerEvents: 'none'
-                      }}
-                    >
-                      <AccessTimeIcon sx={{ fontSize: 100, color: 'primary.main', opacity: 0.6 }} />
-                    </Box>
+                {shifts.map((shift, idx) => {
+                  // ensure refs
+                  cardRefs.current[idx] = cardRefs.current[idx] || { current: null }
+                  imageRefs.current[idx] = imageRefs.current[idx] || { current: null }
+                  detailsRefs.current[idx] = detailsRefs.current[idx] || { current: null }
 
-                    {/* Floating actions */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        top: 10,
-                        right: 10,
-                        display: 'flex',
-                        gap: 0.5,
-                        bgcolor: 'rgba(17,17,17,0.35)',
-                        backdropFilter: 'blur(6px)',
-                        borderRadius: 999,
-                        p: 0.5,
-                        opacity: hoveredId === shift.id ? 1 : 0,
-                        transform: hoveredId === shift.id ? 'translateY(0)' : 'translateY(-6px)',
-                        transition: 'opacity .2s ease, transform .2s ease',
-                        pointerEvents: hoveredId === shift.id ? 'auto' : 'none'
-                      }}
-                    >
-                      <IconButton
-                        size='small'
-                        onClick={e => {
-                          e.stopPropagation()
-                          handleOpenDetailModal(shift)
-                        }}
-                        sx={{ color: 'common.white' }}
-                        aria-label={t('common.view')}
+                  return (
+                    <MotionContainer key={shift.id} ref={cardRefs.current[idx]} index={idx} sx={{ width: '100%' }}>
+                      <HoverWrapper
+                        cardRef={cardRefs.current[idx]}
+                        imageRef={imageRefs.current[idx]}
+                        detailsRef={detailsRefs.current[idx]}
                       >
-                        <VisibilityIcon fontSize='small' />
-                      </IconButton>
-                      {hasUpdatePermission && (
-                        <IconButton
-                          size='small'
-                          onClick={e => {
-                            e.stopPropagation()
-                            handleOpenEditModal(shift)
-                          }}
-                          sx={{ color: 'common.white' }}
-                          aria-label={t('shifts.edit')}
-                        >
-                          <EditIcon fontSize='small' />
-                        </IconButton>
-                      )}
-                      {hasDeletePermission && (
-                        <IconButton
-                          size='small'
-                          onClick={e => {
-                            e.stopPropagation()
-                            handleOpenDeleteModal(shift)
-                          }}
-                          sx={{ color: 'error.light' }}
-                          aria-label={t('shifts.delete')}
-                        >
-                          <DeleteIcon fontSize='small' />
-                        </IconButton>
-                      )}
-                    </Box>
-
-                    {/* Connected info section - no gap, same background */}
-                    <Box sx={{ p: 2, pt: 1 }}>
-                      {/* Shift title - big and centered */}
-                      <Typography
-                        variant='h5'
-                        fontWeight={700}
-                        sx={{
-                          textAlign: 'center',
-                          mb: 2,
-                          fontSize: '1.25rem',
-                          lineHeight: 1.2,
-                          color: 'text.primary'
-                        }}
-                      >
-                        {shift.title}
-                      </Typography>
-
-                      {/* Date range with icon */}
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 1.5, justifyContent: 'center' }}>
-                        <CalendarMonthIcon fontSize='small' color='primary' />
-                        <Typography variant='body2' sx={{ fontSize: '0.85rem', textAlign: 'center' }}>
-                          {t('shifts.from')} <ShamsiDateTime dateTime={shift.start_date} format='date' />{' '}
-                          {t('shifts.to')} <ShamsiDateTime dateTime={shift.end_date} format='date' />
-                        </Typography>
-                      </Box>
-
-                      {/* Status and ID section */}
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                          mb: 2,
-                          justifyContent: 'space-between',
-                          flexWrap: 'wrap'
-                        }}
-                      >
-                        <Chip
-                          size='small'
-                          label={shift.is_active ? t('shifts.active') : t('shifts.inactive')}
-                          color={shift.is_active ? 'success' : 'default'}
-                          sx={{ fontWeight: 500 }}
-                        />
-                        <Chip
-                          label={`${t('shifts.id')}: ${shift.id}`}
-                          size='small'
-                          color='primary'
-                          variant='outlined'
-                          sx={{ fontWeight: 500 }}
-                        />
-                      </Box>
-
-                      {/* Weekdays section at the bottom */}
-                      <Box
-                        sx={{
-                          pt: 1.5,
-                          borderTop: '1px solid',
-                          borderColor: 'divider'
-                        }}
-                      >
-                        <Typography
-                          variant='caption'
+                        <Card
+                          elevation={0}
+                          onMouseEnter={() => setHoveredId(shift.id)}
+                          onMouseLeave={() => setHoveredId(null)}
+                          onClick={() => handleOpenDetailModal(shift)}
                           sx={{
-                            display: 'block',
-                            textAlign: 'center',
-                            mb: 1,
-                            fontWeight: 600,
-                            color: 'text.secondary',
-                            textTransform: 'uppercase',
-                            letterSpacing: 0.5
+                            borderRadius: 2,
+                            position: 'relative',
+                            overflow: 'hidden',
+                            boxShadow: '0 8px 22px rgba(0,0,0,0.08)',
+                            transform: 'translateY(0)',
+                            transition: 'box-shadow .25s ease, transform .25s ease',
+                            backgroundColor: 'background.paper',
+                            border: '1px solid',
+                            borderColor: hoveredId === shift.id ? 'primary.main' : 'transparent',
+                            '&:hover': {
+                              transform: 'translateY(-8px)',
+                              boxShadow: '0 24px 44px rgba(0,0,0,0.2)',
+                              zIndex: 2,
+                              cursor: 'pointer'
+                            }
                           }}
                         >
-                          {t('shifts.activeDays') || 'روزهای فعال'}
-                        </Typography>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, justifyContent: 'center' }}>
-                          {getActiveDays(shift).map(day => (
-                            <Chip
-                              key={day}
-                              label={translateDay(day)}
+                          {/* Main card area with watermark icon */}
+                          <Box
+                            ref={el => (imageRefs.current[idx].current = el)}
+                            data-gsap-image
+                            sx={{
+                              height: 140,
+                              position: 'relative',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              pointerEvents: 'none'
+                            }}
+                          >
+                            <AccessTimeIcon sx={{ fontSize: 100, color: 'primary.main', opacity: 0.6 }} />
+                          </Box>
+
+                          {/* Floating actions */}
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              top: 10,
+                              right: 10,
+                              display: 'flex',
+                              gap: 0.5,
+                              bgcolor: 'rgba(17,17,17,0.35)',
+                              backdropFilter: 'blur(6px)',
+                              borderRadius: 999,
+                              p: 0.5,
+                              opacity: hoveredId === shift.id ? 1 : 0,
+                              transform: hoveredId === shift.id ? 'translateY(0)' : 'translateY(-6px)',
+                              transition: 'opacity .2s ease, transform .2s ease',
+                              pointerEvents: hoveredId === shift.id ? 'auto' : 'none'
+                            }}
+                          >
+                            <IconButton
                               size='small'
-                              variant='filled'
-                              color='primary'
-                              sx={{
-                                fontSize: '0.7rem',
-                                fontWeight: 500,
-                                '& .MuiChip-label': {
-                                  px: 1
-                                }
+                              onClick={e => {
+                                e.stopPropagation()
+                                handleOpenDetailModal(shift)
                               }}
-                            />
-                          ))}
-                        </Box>
-                      </Box>
-                    </Box>
-                  </Card>
-                ))}
+                              sx={{ color: 'common.white' }}
+                              aria-label={t('common.view')}
+                            >
+                              <VisibilityIcon fontSize='small' />
+                            </IconButton>
+                            {hasUpdatePermission && (
+                              <IconButton
+                                size='small'
+                                onClick={e => {
+                                  e.stopPropagation()
+                                  handleOpenEditModal(shift)
+                                }}
+                                sx={{ color: 'common.white' }}
+                                aria-label={t('shifts.edit')}
+                              >
+                                <EditIcon fontSize='small' />
+                              </IconButton>
+                            )}
+                            {hasDeletePermission && (
+                              <IconButton
+                                size='small'
+                                onClick={e => {
+                                  e.stopPropagation()
+                                  handleOpenDeleteModal(shift)
+                                }}
+                                sx={{ color: 'error.light' }}
+                                aria-label={t('shifts.delete')}
+                              >
+                                <DeleteIcon fontSize='small' />
+                              </IconButton>
+                            )}
+                          </Box>
+
+                          {/* Connected info section - no gap, same background */}
+                          <Box
+                            ref={el => (detailsRefs.current[idx].current = el)}
+                            data-gsap-details
+                            sx={{ p: 2, pt: 1 }}
+                          >
+                            {/* Shift title - big and centered */}
+                            <Typography
+                              variant='h5'
+                              fontWeight={700}
+                              sx={{
+                                textAlign: 'center',
+                                mb: 2,
+                                fontSize: '1.25rem',
+                                lineHeight: 1.2,
+                                color: 'text.primary'
+                              }}
+                            >
+                              {shift.title}
+                            </Typography>
+
+                            {/* Date range with icon */}
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 0.75,
+                                mb: 1.5,
+                                justifyContent: 'center'
+                              }}
+                            >
+                              <CalendarMonthIcon fontSize='small' color='primary' />
+                              <Typography variant='body2' sx={{ fontSize: '0.85rem', textAlign: 'center' }}>
+                                {t('shifts.from')} <ShamsiDateTime dateTime={shift.start_date} format='date' />{' '}
+                                {t('shifts.to')} <ShamsiDateTime dateTime={shift.end_date} format='date' />
+                              </Typography>
+                            </Box>
+
+                            {/* Status and ID section */}
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                                mb: 2,
+                                justifyContent: 'space-between',
+                                flexWrap: 'wrap'
+                              }}
+                            >
+                              <Chip
+                                size='small'
+                                label={shift.is_active ? t('shifts.active') : t('shifts.inactive')}
+                                color={shift.is_active ? 'success' : 'default'}
+                                sx={{ fontWeight: 500 }}
+                              />
+                              <Chip
+                                label={`${t('shifts.id')}: ${shift.id}`}
+                                size='small'
+                                color='primary'
+                                variant='outlined'
+                                sx={{ fontWeight: 500 }}
+                              />
+                            </Box>
+
+                            {/* Weekdays section at the bottom */}
+                            <Box
+                              sx={{
+                                pt: 1.5,
+                                borderTop: '1px solid',
+                                borderColor: 'divider'
+                              }}
+                            >
+                              <Typography
+                                variant='caption'
+                                sx={{
+                                  display: 'block',
+                                  textAlign: 'center',
+                                  mb: 1,
+                                  fontWeight: 600,
+                                  color: 'text.secondary',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: 0.5
+                                }}
+                              >
+                                {t('shifts.activeDays') || 'روزهای فعال'}
+                              </Typography>
+                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, justifyContent: 'center' }}>
+                                {getActiveDays(shift).map(day => (
+                                  <Chip
+                                    key={day}
+                                    label={translateDay(day)}
+                                    size='small'
+                                    variant='filled'
+                                    color='primary'
+                                    sx={{
+                                      fontSize: '0.7rem',
+                                      fontWeight: 500,
+                                      '& .MuiChip-label': {
+                                        px: 1
+                                      }
+                                    }}
+                                  />
+                                ))}
+                              </Box>
+                            </Box>
+                          </Box>
+                        </Card>
+                      </HoverWrapper>
+                    </MotionContainer>
+                  )
+                })}
               </Box>
 
               {/* Pagination and Controls */}

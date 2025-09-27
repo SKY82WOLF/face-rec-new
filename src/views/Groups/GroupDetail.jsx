@@ -22,6 +22,7 @@ import usePermissions from '@/hooks/usePermissions'
 import { useGroupDetail } from '@/hooks/useGroups'
 import LoadingState from '@/components/ui/LoadingState'
 import ShamsiDateTime from '@/components/ShamsiDateTimer'
+import AnimatedDialog from '@/components/AnimatedDialog'
 
 const GroupDetail = ({ open, onClose, groupId }) => {
   const { t } = useTranslation()
@@ -79,7 +80,7 @@ const GroupDetail = ({ open, onClose, groupId }) => {
 
   if (groupLoading) {
     return (
-      <Dialog open={open} onClose={onClose} maxWidth='md' fullWidth dir='rtl'>
+      <AnimatedDialog open={open} onClose={onClose} maxWidth='md' fullWidth dir='rtl'>
         <DialogTitle sx={{ fontWeight: 600 }}>{t('groups.groupDetails')}</DialogTitle>
         <DialogContent>
           <LoadingState />
@@ -87,13 +88,13 @@ const GroupDetail = ({ open, onClose, groupId }) => {
         <DialogActions>
           <Button onClick={onClose}>{t('common.close')}</Button>
         </DialogActions>
-      </Dialog>
+      </AnimatedDialog>
     )
   }
 
   if (isError || !group) {
     return (
-      <Dialog open={open} onClose={onClose} maxWidth='md' fullWidth dir='rtl'>
+      <AnimatedDialog open={open} onClose={onClose} maxWidth='md' fullWidth dir='rtl'>
         <DialogTitle sx={{ fontWeight: 600 }}>{t('groups.groupDetails')}</DialogTitle>
         <DialogContent>
           <Typography color='error'>{t('messages.error')}</Typography>
@@ -101,7 +102,7 @@ const GroupDetail = ({ open, onClose, groupId }) => {
         <DialogActions>
           <Button onClick={onClose}>{t('common.close')}</Button>
         </DialogActions>
-      </Dialog>
+      </AnimatedDialog>
     )
   }
 
@@ -120,7 +121,7 @@ const GroupDetail = ({ open, onClose, groupId }) => {
   const groupPermissionNames = getPermissionNames(permissionIds)
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth='md' fullWidth dir='rtl'>
+    <AnimatedDialog open={open} onClose={onClose} maxWidth='md' fullWidth dir='rtl'>
       <DialogTitle sx={{ fontWeight: 700 }}>{t('groups.groupDetails')}</DialogTitle>
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -256,7 +257,7 @@ const GroupDetail = ({ open, onClose, groupId }) => {
           {t('common.close')}
         </Button>
       </DialogActions>
-    </Dialog>
+    </AnimatedDialog>
   )
 }
 

@@ -5,6 +5,7 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, Typogra
 import WarningIcon from '@mui/icons-material/Warning'
 
 import { useTranslation } from '@/translations/useTranslation'
+import AnimatedDialog from '@/components/AnimatedDialog'
 
 const GroupDeleteModal = ({ open, onClose, onConfirm, group, isLoading = false }) => {
   const { t } = useTranslation()
@@ -12,7 +13,7 @@ const GroupDeleteModal = ({ open, onClose, onConfirm, group, isLoading = false }
   if (!group) return null
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth='sm' fullWidth>
+    <AnimatedDialog open={open} onClose={onClose} maxWidth='sm' fullWidth>
       <DialogTitle sx={{ fontWeight: 600, color: 'error.main' }}>{t('groups.deleteConfirmation')}</DialogTitle>
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -83,7 +84,7 @@ const GroupDeleteModal = ({ open, onClose, onConfirm, group, isLoading = false }
           {isLoading ? t('common.loading') : t('groups.delete')}
         </Button>
       </DialogActions>
-    </Dialog>
+    </AnimatedDialog>
   )
 }
 

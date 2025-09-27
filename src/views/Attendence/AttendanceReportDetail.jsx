@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { Box, Typography, Button, Modal, Fade, Backdrop, Avatar, Divider, IconButton, Grid, Chip } from '@mui/material'
+import { Box, Typography, Button, Fade, Backdrop, Avatar, Divider, IconButton, Grid, Chip } from '@mui/material'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore'
 import CameraAltIcon from '@mui/icons-material/CameraAlt'
@@ -20,12 +20,13 @@ import { getBackendImgUrl2 } from '@/configs/routes'
 import { selectGenderTypes, selectAccessTypes } from '@/store/slices/typesSlice'
 import ShamsiDateTime from '@/components/ShamsiDateTimer'
 import { commonStyles } from '@/@core/styles/commonStyles'
+import AnimatedModal from '@/components/AnimatedModal'
 
 const modalStyle = {
   ...commonStyles.modalContainer,
   width: '90%',
   maxWidth: 600,
-  maxHeight: { xs: '90vh', md: '100%' },
+  maxHeight: { xs: '90vh' },
   overflow: 'auto'
 }
 
@@ -245,7 +246,7 @@ const AttendanceReportDetail = ({
   }
 
   return (
-    <Modal
+    <AnimatedModal
       open={open}
       onClose={onClose}
       closeAfterTransition
@@ -442,7 +443,7 @@ const AttendanceReportDetail = ({
           </Box>
         </Box>
       </Fade>
-    </Modal>
+    </AnimatedModal>
   )
 }
 

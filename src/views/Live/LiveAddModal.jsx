@@ -148,7 +148,7 @@ const AddModal = ({ open, onClose, onSubmit, initialData, mode }) => {
     if (!formData.first_name || !formData.last_name || !formData.national_code || formData.gender_id === '') {
       console.error('Validation failed: Required fields are missing')
 
-return
+      return
     }
 
     let profileImage = formData.person_image // Use the newly uploaded image if available

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 import {
   Card,
@@ -20,6 +20,8 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import Info from '@mui/icons-material/Info'
 
 import { useSelector } from 'react-redux'
+
+import MotionContainer, { HoverWrapper } from '@/components/GSAP/MotionWrappers'
 
 import { useTranslation } from '@/translations/useTranslation'
 import { useDeletePerson } from '@/hooks/usePersons'
@@ -51,16 +53,15 @@ const StyledReportCard = styled(Card)(({ theme, mode }) => ({
   borderRadius: theme.spacing(3),
   overflow: 'hidden',
   height: '100%',
-  boxSizing: 'border-box',
-  '&:hover': {
-    boxShadow: mode === 'dark' ? '0px 6px 12px rgba(0, 0, 0, 0.4), 0px 4px 8px rgba(0, 0, 0, 0.3)' : theme.shadows[4],
-    transform: 'translateY(-2px)'
-  }
+  boxSizing: 'border-box'
 }))
 
 const AccessReportCard = ({ reportData, allReports }) => {
   const { t } = useTranslation()
   const { settings } = useSettings()
+  const cardRef = useRef(null)
+  const imageWrapperRef = useRef(null)
+  const detailsRef = useRef(null)
   const [open, setOpen] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [editOpen, setEditOpen] = useState(false)
@@ -130,6 +131,8 @@ const AccessReportCard = ({ reportData, allReports }) => {
 
   const handleClose = () => setOpen(false)
 
+  // Motion handled by MotionContainer + HoverWrapper components
+
   const handleEditOpen = () => {
     // Check if this is an update (person has an ID and access_id is not unknown) or add (no ID or unknown access)
     const accessId = modalData.access_id?.id || modalData.access_id
@@ -192,140 +195,165 @@ const AccessReportCard = ({ reportData, allReports }) => {
 
   return (
     <>
-      <StyledReportCard
-        mode={currentMode}
-        onClick={handleOpen}
-        sx={{
-          cursor: 'pointer',
-          width: '100%',
-          boxSizing: 'border-box',
-          borderRadius: 2,
-          overflow: 'hidden'
-        }}
-      >
-        {/* Image carousel */}
-        <ImageCarousel
-          images={images}
-          aspectRatio={{ xs: '3 / 2', sm: '16 / 9' }}
-          objectFit='cover'
-          objectPosition='center'
-          transitionDuration={2000}
-          alt={`${reportData.first_name || ''} ${reportData.last_name || ''}`}
-          sx={{
-            borderTopLeftRadius: 0,
-            borderTopRightRadius: 0
-          }}
-        />
-
-        {/* Divider between image and details */}
-        <Divider sx={{ borderColor: 'divider' }} />
-
-        {/* Details section beneath image - compact, centered, responsive */}
-        <Box
-          sx={{
-            p: 2,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 0.5,
-            alignItems: 'center',
-            justifyContent: 'center',
-            flex: '1 1 auto',
-            minHeight: { xs: 56, sm: 72 }
-          }}
-        >
-          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-            <Typography
-              variant='h6'
-              align='center'
-              sx={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-            >
-              {`${reportData.first_name || ''} ${reportData.last_name || ''}`}
-            </Typography>
-
+      <MotionContainer ref={cardRef} index={reportData?.index ?? 0} sx={{ width: '100%' }}>
+        <HoverWrapper cardRef={cardRef} imageRef={imageWrapperRef} detailsRef={detailsRef}>
+          <StyledReportCard
+            mode={currentMode}
+            onClick={handleOpen}
+            sx={{
+              cursor: 'pointer',
+              width: '100%',
+              boxSizing: 'border-box',
+              borderRadius: 2,
+              overflow: 'hidden'
+            }}
+          >
+            {/* Image carousel */}
             <Box
+              ref={imageWrapperRef}
+              data-gsap-image
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                mt: 0.5,
-                justifyContent: 'space-between',
-                width: '100%'
+                width: '100%',
+                transform: 'scale(1.04)',
+                filter: 'blur(6px)',
+                opacity: 0.92,
+                willChange: 'transform, filter, opacity'
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
-                {(() => {
-                  if (genderTypes.loading) {
-                    return (
-                      <>
-                        <Typography variant='body2' color='textSecondary'>
-                          {t('reportCard.loading')}
-                        </Typography>
-                      </>
-                    )
-                  }
-
-                  const genderId = reportData.gender_id?.id || reportData.gender_id
-                  let icon = null
-
-                  if (genderId === 2) {
-                    icon = <i className='tabler tabler-gender-male' style={{ fontSize: 18, color: '#1976d2' }} />
-                  } else if (genderId === 3) {
-                    icon = <i className='tabler tabler-gender-female' style={{ fontSize: 18, color: '#d81b60' }} />
-                  }
-
-                  return (
-                    <>
-                      {icon}
-                      <Typography variant='body2' color='textSecondary'>
-                        {genderId && genderTypes?.data ? getTypeTitle(genderTypes, genderId) : t('reportCard.unknown')}
-                      </Typography>
-                    </>
-                  )
-                })()}
-              </Box>
-
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-                <Typography
-                  variant='body2'
-                  color={isAllowed ? 'success.main' : 'error.main'}
-                  sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-                >
-                  {accessTypes.loading
-                    ? t('reportCard.loading')
-                    : (() => {
-                        const accessId = reportData.access_id?.id || reportData.access_id
-
-                        if (accessId && accessTypes?.data) {
-                          return getTypeTitle(accessTypes, accessId)
-                        }
-
-                        return t('reportCard.unknown')
-                      })()}
-                </Typography>
-                {isAllowed ? (
-                  <LockOpenIcon sx={{ fontSize: 16, color: 'success.main' }} />
-                ) : (
-                  <LockIcon sx={{ fontSize: 16, color: 'error.main' }} />
-                )}
-              </Box>
-            </Box>
-
-            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', pt: 1 }}>
-              <Button
-                sx={{ width: '100%' }}
-                variant='outlined'
-                onClick={e => {
-                  e.stopPropagation()
-                  handleOpen()
+              <ImageCarousel
+                images={images}
+                aspectRatio={{ xs: '3 / 2', sm: '16 / 9' }}
+                objectFit='cover'
+                objectPosition='center'
+                transitionDuration={2000}
+                alt={`${reportData.first_name || ''} ${reportData.last_name || ''}`}
+                sx={{
+                  borderTopLeftRadius: 0,
+                  borderTopRightRadius: 0
                 }}
-                startIcon={<Info />}
-              >
-                {t('reportCard.details')}
-              </Button>
+              />
             </Box>
-          </Box>
-        </Box>
-      </StyledReportCard>
+
+            {/* Divider between image and details */}
+            <Divider sx={{ borderColor: 'divider' }} />
+
+            {/* Details section beneath image - compact, centered, responsive */}
+            <Box
+              ref={detailsRef}
+              data-gsap-details
+              sx={{
+                p: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 0.5,
+                alignItems: 'center',
+                justifyContent: 'center',
+                flex: '1 1 auto',
+                minHeight: { xs: 56, sm: 72 },
+
+                // start slightly lowered and transparent to match entrance animation
+                opacity: 0,
+                transform: 'translateY(8px)',
+                willChange: 'transform, opacity'
+              }}
+            >
+              <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                <Typography
+                  variant='h6'
+                  align='center'
+                  sx={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                >
+                  {`${reportData.first_name || ''} ${reportData.last_name || ''}`}
+                </Typography>
+
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    mt: 0.5,
+                    justifyContent: 'space-between',
+                    width: '100%'
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
+                    {(() => {
+                      if (genderTypes.loading) {
+                        return (
+                          <>
+                            <Typography variant='body2' color='textSecondary'>
+                              {t('reportCard.loading')}
+                            </Typography>
+                          </>
+                        )
+                      }
+
+                      const genderId = reportData.gender_id?.id || reportData.gender_id
+                      let icon = null
+
+                      if (genderId === 2) {
+                        icon = <i className='tabler tabler-gender-male' style={{ fontSize: 18, color: '#1976d2' }} />
+                      } else if (genderId === 3) {
+                        icon = <i className='tabler tabler-gender-female' style={{ fontSize: 18, color: '#d81b60' }} />
+                      }
+
+                      return (
+                        <>
+                          {icon}
+                          <Typography variant='body2' color='textSecondary'>
+                            {genderId && genderTypes?.data
+                              ? getTypeTitle(genderTypes, genderId)
+                              : t('reportCard.unknown')}
+                          </Typography>
+                        </>
+                      )
+                    })()}
+                  </Box>
+
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                    <Typography
+                      variant='body2'
+                      color={isAllowed ? 'success.main' : 'error.main'}
+                      sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+                    >
+                      {accessTypes.loading
+                        ? t('reportCard.loading')
+                        : (() => {
+                            const accessId = reportData.access_id?.id || reportData.access_id
+
+                            if (accessId && accessTypes?.data) {
+                              return getTypeTitle(accessTypes, accessId)
+                            }
+
+                            return t('reportCard.unknown')
+                          })()}
+                    </Typography>
+                    {isAllowed ? (
+                      <LockOpenIcon sx={{ fontSize: 16, color: 'success.main' }} />
+                    ) : (
+                      <LockIcon sx={{ fontSize: 16, color: 'error.main' }} />
+                    )}
+                  </Box>
+                </Box>
+
+                <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', pt: 1 }}>
+                  <Button
+                    sx={{ width: '100%' }}
+                    variant='outlined'
+                    onClick={e => {
+                      e.stopPropagation()
+                      handleOpen()
+                    }}
+                    startIcon={<Info />}
+                  >
+                    {t('reportCard.details')}
+                  </Button>
+                </Box>
+              </Box>
+            </Box>
+          </StyledReportCard>
+        </HoverWrapper>
+      </MotionContainer>
 
       {/* Details Modal */}
       <AccessDetailModal

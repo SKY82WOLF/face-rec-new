@@ -38,7 +38,8 @@ export const Switch = styled.div`
     border-color 1500ms,
     background-color 1500ms,
     box-shadow 1500ms;
-  ${props => props.shadows && `box-shadow: 0 0 35px 1px ${props.checked ? '#E0E0E0' : '#616161'};`}
+  /* read transient prop $shadows to avoid boolean leaking to DOM */
+  ${props => props.$shadows && `box-shadow: 0 0 35px 1px ${props.checked ? '#E0E0E0' : '#616161'};`}
   transform: translate(-50%, -50%) scale(${props => props.size * 0.00832});
   ${props =>
     props.checked &&

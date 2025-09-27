@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 
 import { Box, Card, Typography, Grid } from '@mui/material'
 
@@ -14,8 +14,9 @@ import { useAddPerson, useUpdatePerson } from '@/hooks/usePersons'
 import { commonStyles } from '@/@core/styles/commonStyles'
 import { getLiveWebSocketUrl } from '@/configs/routes'
 import { useTranslation } from '@/translations/useTranslation'
+import { useGSAP } from '@/hooks/useGSAP'
 
-const LiveSection = ({ camera, reports = [] }) => {
+const LiveSection = ({ camera, reports = [], index = 0 }) => {
   const { t } = useTranslation()
   const [isPlaying, setIsPlaying] = useState(true)
 
@@ -35,6 +36,41 @@ const LiveSection = ({ camera, reports = [] }) => {
   const [personModalType, setPersonModalType] = useState(null) // 'add' | 'edit' | null
   const addPersonMutation = useAddPerson()
   const updatePersonMutation = useUpdatePerson()
+
+  // Motion: mount animation for the whole section and key sub-areas
+  const containerRef = useRef(null)
+  const mountedIndex = typeof index === 'number' ? index : 0
+
+  useGSAP(
+    containerRef,
+    gsap => {
+      const el = containerRef.current
+
+      if (!el) return
+
+      // initial state handled by sx to avoid FOUC
+      const baseDelay = Math.min(Math.max(mountedIndex * 0.08, 0), 1.5)
+      const tl = gsap.timeline({ defaults: { ease: 'power3.out' }, delay: baseDelay })
+
+      tl.fromTo(el, { opacity: 0, y: 18, scale: 0.995 }, { opacity: 1, y: 0, scale: 1, duration: 0.5 })
+
+      const hero = el.querySelector('[data-live-hero]')
+      const details = el.querySelector('[data-live-details]')
+
+      if (hero)
+        tl.fromTo(
+          hero,
+          { scale: 1.04, filter: 'blur(6px)', opacity: 0.92 },
+          { scale: 1, filter: 'blur(0px)', opacity: 1, duration: 0.6 },
+          '-=0.36'
+        )
+      if (details) tl.fromTo(details, { y: 8, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4 }, '-=0.35')
+
+      // on unmount, quickly fade out to avoid abrupt removal (best-effort)
+      tl.eventCallback('onReverseComplete', null)
+    },
+    [mountedIndex]
+  )
 
   const isUnknownAccess = accessId => {
     return accessId === 7 || accessId === 'unknown' || !accessId
@@ -113,7 +149,16 @@ const LiveSection = ({ camera, reports = [] }) => {
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+    <Box
+      ref={containerRef}
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        width: '100%',
+        opacity: 0,
+        transform: 'translateY(18px) scale(0.995)'
+      }}
+    >
       <Card>
         <Card sx={{ mb: 4, p: 4, pt: 2, flex: '0 0 auto', boxShadow: 'none' }}>
           <Box>
@@ -149,12 +194,16 @@ const LiveSection = ({ camera, reports = [] }) => {
                   borderRadius: 'inherit',
                   cursor: 'pointer'
                 }}
+                data-live-hero
               />
             </Box>
           </Box>
         </Card>
 
-        <Card sx={{ p: 4, pt: 2, flex: '1 1 auto', display: 'flex', flexDirection: 'column', boxShadow: 'none' }}>
+        <Card
+          sx={{ p: 4, pt: 2, flex: '1 1 auto', display: 'flex', flexDirection: 'column', boxShadow: 'none' }}
+          data-live-details
+        >
           <Box sx={{ p: 2, flex: '1 1 auto', display: 'flex', flexDirection: 'column' }}>
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
               <Typography textAlign={'center'} variant='h6' sx={{ ...commonStyles.centeredTitle, width: '100%' }}>

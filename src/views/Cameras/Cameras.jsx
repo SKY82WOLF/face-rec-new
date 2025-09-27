@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, Suspense, useRef } from 'react'
 
 import { useRouter, useSearchParams } from 'next/navigation'
 
@@ -39,6 +39,7 @@ import useHasPermission from '@/utils/HasPermission'
 import CamerasFilter from '@/views/Cameras/CamerasFilter'
 import CameraSort from '@/views/Cameras/CameraSort'
 import { useTypesReduxSync } from '@/hooks/useTypes'
+import MotionContainer, { HoverWrapper } from '@/components/GSAP/MotionWrappers'
 
 const per_page_OPTIONS = [5, 10, 15, 20]
 
@@ -157,6 +158,11 @@ function CamerasContent({ initialPage = 1, initialper_page = 10 }) {
     />
   )
 
+  // refs arrays for GSAP motion wrappers
+  const cardRefs = useRef([])
+  const imageRefs = useRef([])
+  const detailsRefs = useRef([])
+
   return (
     <Box sx={commonStyles.pageContainer}>
       <SEO
@@ -230,123 +236,154 @@ function CamerasContent({ initialPage = 1, initialper_page = 10 }) {
                   overflow: 'visible'
                 }}
               >
-                {cameras.map((camera, idx) => (
-                  <Card
-                    key={camera.id || idx}
-                    elevation={0}
-                    onMouseEnter={() => setHoveredId(camera.id)}
-                    onMouseLeave={() => setHoveredId(null)}
-                    sx={{
-                      borderRadius: 2,
-                      width: '100%',
-                      aspectRatio: '16 / 9',
-                      position: 'relative',
-                      overflow: 'hidden',
-                      boxShadow: '0 8px 22px rgba(0,0,0,0.08)',
-                      transform: 'translateY(0)',
-                      transition: 'box-shadow .25s ease, transform .25s ease',
-                      '&:hover': {
-                        transform: 'translateY(-8px)',
-                        boxShadow: '0 24px 44px rgba(0,0,0,0.2)',
-                        zIndex: 2,
-                        cursor: 'pointer',
-                        '&:focus': { outline: 'none' }
-                      }
-                    }}
-                  >
-                    <Box
-                      component='img'
-                      src={'/images/detected_image.png'}
-                      alt={camera.name}
-                      sx={{
-                        display: 'block',
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'contain',
-                        bgcolor: 'background.default'
-                      }}
-                      onClick={() => setSelectedCamera(camera)}
-                    />
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        p: 1.5,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                        background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 100%)',
-                        borderBottomLeftRadius: 'inherit',
-                        borderBottomRightRadius: 'inherit'
-                      }}
+                {cameras.map((camera, idx) => {
+                  cardRefs.current[idx] = cardRefs.current[idx] || { current: null }
+                  imageRefs.current[idx] = imageRefs.current[idx] || { current: null }
+                  detailsRefs.current[idx] = detailsRefs.current[idx] || { current: null }
+
+                  return (
+                    <MotionContainer
+                      key={camera.id || idx}
+                      ref={cardRefs.current[idx]}
+                      index={idx}
+                      sx={{ width: '100%' }}
                     >
-                      <VideocamIcon sx={{ fontSize: 23, color: 'primary.main' }} />
-                      <Typography
-                        variant='subtitle2'
-                        sx={{
-                          fontSize: 16,
-                          fontWeight: 600,
-                          flexGrow: 1,
-                          color: 'common.white',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap'
-                        }}
+                      <HoverWrapper
+                        cardRef={cardRefs.current[idx]}
+                        imageRef={imageRefs.current[idx]}
+                        detailsRef={detailsRefs.current[idx]}
                       >
-                        {camera.name}
-                      </Typography>
-                      {renderActiveChip(!!camera.is_active)}
-                    </Box>
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        top: 10,
-                        right: 10,
-                        display: 'flex',
-                        gap: 0.5,
-                        bgcolor: 'rgba(17,17,17,0.35)',
-                        backdropFilter: 'blur(6px)',
-                        borderRadius: 999,
-                        p: 0.5,
-                        opacity: hoveredId === camera.id ? 1 : 0,
-                        transform: hoveredId === camera.id ? 'translateY(0)' : 'translateY(-6px)',
-                        transition: 'opacity .2s ease, transform .2s ease',
-                        pointerEvents: hoveredId === camera.id ? 'auto' : 'none'
-                      }}
-                    >
-                      <IconButton
-                        size='small'
-                        onClick={() => setSelectedCamera(camera)}
-                        sx={{ color: 'common.white' }}
-                        aria-label={t('cameras.cameraDetail')}
-                      >
-                        <VideocamIcon fontSize='small' />
-                      </IconButton>
-                      {hasEditPermission && (
-                        <IconButton
-                          size='small'
-                          onClick={() => handleEditClick(camera)}
-                          sx={{ color: 'common.white' }}
-                          aria-label={t('cameras.editCamera')}
+                        <Card
+                          elevation={0}
+                          onMouseEnter={() => setHoveredId(camera.id)}
+                          onMouseLeave={() => setHoveredId(null)}
+                          sx={{
+                            borderRadius: 2,
+                            width: '100%',
+                            aspectRatio: '16 / 9',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            boxShadow: '0 8px 22px rgba(0,0,0,0.08)',
+                            transform: 'translateY(0)',
+                            transition: 'box-shadow .25s ease, transform .25s ease',
+                            '&:hover': {
+                              transform: 'translateY(-8px)',
+                              boxShadow: '0 24px 44px rgba(0,0,0,0.2)',
+                              zIndex: 2,
+                              cursor: 'pointer',
+                              '&:focus': { outline: 'none' }
+                            }
+                          }}
                         >
-                          <EditIcon fontSize='small' />
-                        </IconButton>
-                      )}
-                      {hasDeletePermission && (
-                        <IconButton
-                          size='small'
-                          sx={{ color: 'error.light' }}
-                          aria-label={t('cameras.deleteCamera')}
-                          onClick={() => handleDeleteClick(camera)}
-                        >
-                          <DeleteIcon fontSize='small' />
-                        </IconButton>
-                      )}
-                    </Box>
-                  </Card>
-                ))}
+                          <Box
+                            ref={el => (imageRefs.current[idx].current = el)}
+                            data-gsap-image
+                            component='img'
+                            src={'/images/detected_image.png'}
+                            alt={camera.name}
+                            sx={{
+                              display: 'block',
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'contain',
+                              bgcolor: 'background.default',
+                              transform: 'scale(1.04)',
+                              filter: 'blur(6px)',
+                              opacity: 0.92,
+                              willChange: 'transform, filter, opacity'
+                            }}
+                            onClick={() => setSelectedCamera(camera)}
+                          />
+
+                          <Box
+                            ref={el => (detailsRefs.current[idx].current = el)}
+                            data-gsap-details
+                            sx={{
+                              position: 'absolute',
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              p: 1.5,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                              background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 100%)',
+                              borderBottomLeftRadius: 'inherit',
+                              borderBottomRightRadius: 'inherit',
+                              opacity: 0,
+                              transform: 'translateY(8px)',
+                              willChange: 'transform, opacity'
+                            }}
+                          >
+                            <VideocamIcon sx={{ fontSize: 23, color: 'primary.main' }} />
+                            <Typography
+                              variant='subtitle2'
+                              sx={{
+                                fontSize: 16,
+                                fontWeight: 600,
+                                flexGrow: 1,
+                                color: 'common.white',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              {camera.name}
+                            </Typography>
+                            {renderActiveChip(!!camera.is_active)}
+                          </Box>
+
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              top: 10,
+                              right: 10,
+                              display: 'flex',
+                              gap: 0.5,
+                              bgcolor: 'rgba(17,17,17,0.35)',
+                              backdropFilter: 'blur(6px)',
+                              borderRadius: 999,
+                              p: 0.5,
+                              opacity: hoveredId === camera.id ? 1 : 0,
+                              transform: hoveredId === camera.id ? 'translateY(0)' : 'translateY(-6px)',
+                              transition: 'opacity .2s ease, transform .2s ease',
+                              pointerEvents: hoveredId === camera.id ? 'auto' : 'none'
+                            }}
+                          >
+                            <IconButton
+                              size='small'
+                              onClick={() => setSelectedCamera(camera)}
+                              sx={{ color: 'common.white' }}
+                              aria-label={t('cameras.cameraDetail')}
+                            >
+                              <VideocamIcon fontSize='small' />
+                            </IconButton>
+                            {hasEditPermission && (
+                              <IconButton
+                                size='small'
+                                onClick={() => handleEditClick(camera)}
+                                sx={{ color: 'common.white' }}
+                                aria-label={t('cameras.editCamera')}
+                              >
+                                <EditIcon fontSize='small' />
+                              </IconButton>
+                            )}
+                            {hasDeletePermission && (
+                              <IconButton
+                                size='small'
+                                sx={{ color: 'error.light' }}
+                                aria-label={t('cameras.deleteCamera')}
+                                onClick={() => handleDeleteClick(camera)}
+                              >
+                                <DeleteIcon fontSize='small' />
+                              </IconButton>
+                            )}
+                          </Box>
+                        </Card>
+                      </HoverWrapper>
+                    </MotionContainer>
+                  )
+                })}
               </Box>
             </>
           )}

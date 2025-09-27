@@ -3,7 +3,6 @@
 import * as React from 'react'
 
 import {
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -24,6 +23,7 @@ import PermissionTreeView from './TreeView'
 import usePermissions from '@/hooks/usePermissions'
 import useUsers from '@/hooks/useUsers'
 import LoadingState from '@/components/ui/LoadingState'
+import AnimatedDialog from '@/components/AnimatedDialog'
 
 const GroupsUpdate = ({ open, onClose, onSubmit, group, isLoading = false }) => {
   const { t } = useTranslation()
@@ -82,7 +82,7 @@ const GroupsUpdate = ({ open, onClose, onSubmit, group, isLoading = false }) => 
   }
 
   return (
-    <Dialog
+    <AnimatedDialog
       open={open}
       onClose={handleClose}
       maxWidth='md'
@@ -187,7 +187,7 @@ const GroupsUpdate = ({ open, onClose, onSubmit, group, isLoading = false }) => 
           </Button>
         </DialogActions>
       </form>
-    </Dialog>
+    </AnimatedDialog>
   )
 }
 
